@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+package workflow.task;
+option go_package = "github.com/infraboard/workflow/api/pkg/task";
+
+import "github.com/infraboard/protoc-gen-go-ext/extension/tag/tag.proto";
+import "github.com/infraboard/mcube/pb/http/entry.proto";
+import "github.com/infraboard/mcube/pb/page/page.proto";
+import "api/pkg/pipeline/pb/pipeline.proto";
+
+// PIPELINE_STATUS 流水线状态
+enum PIPELINE_STATUS {
+    // 状态未知
+    UNKNOW = 0;
+    // 任务等待被调度
+    PENDDING = 1;
+	// 正在执行
+	RUNNING = 2;
+    // 执行成功
+    SUCCEEDED = 3;
+	// 执行失败
+	FAILED = 4;
+}
+
+service Service {
+	rpc RunPipeline(RunPipelineRequest) returns(PipelineTask) {
+		option (mcube.http.rest_api) = {
+			path: "/pipeline_tasks/"
+			method: "POST"
+			resource: "pipeline_task"
+			auth_enable: true
+			permission_enable: true
+			labels: [{
+				key: "action"
+				value: "create"
+			}]
+		};
+	};
+	rpc QueryPipelineTask(QueryPipelineTaskRequest) returns(PipelineTaskSet) {
+		option (mcube.http.rest_api) = {
+			path: "/pipeline_tasks/"
+			method: "GET"
+			resource: "pipeline_task"
+			auth_enable: true
+			labels: [{
+				key: "action"
+				value: "list"
+			}]
+		};
+	};
+}
+
+// Stage todo
+message PipelineTask {
+    // 唯一ID
+    string id = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"_id" json:"id"'}
+        ];
+    // 需要被运行的Pipeline对象
+    workflow.pipeline.Pipeline pipeline = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"pipeline" json:"pipeline"'}
+        ];
+    // 创建时间
+    int64 create_at = 3[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"create_at" json:"create_at"'}
+        ];
+    // 开始时间
+    int64 start_at = 4[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"start_at" json:"start_at"'}
+        ];
+    // 结束时间
+    int64 end_at = 5[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"end_at" json:"end_at"'}
+        ];
+    // 状态更新的时间
+    int64 update_at = 6[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"update_at" json:"update_at"'}
+        ];
+    // 任务状态
+    workflow.task.PIPELINE_STATUS status = 7[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"status" json:"status"'}
+        ];
+    // 执行结果
+    string message = 8[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"message" json:"message"'}
+        ];
+}
+
+// QueryPipelineTaskRequest 查询Book请求
+message QueryPipelineTaskRequest {
+    page.PageRequest page = 1;
+    string name = 2;
+}
+
+// PipelineTaskSet todo
+message PipelineTaskSet {
+    int64 total = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"total" json:"total"'}
+        ];
+    repeated PipelineTask items = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"items" json:"items"'}
+        ];
+}
+
+// RunPipelineRequest todo
+message RunPipelineRequest {
+    // 唯一ID
+    string id = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"_id" json:"id"'}
+        ];
+}

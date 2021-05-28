@@ -1,0 +1,388 @@
+syntax = "proto3";
+
+package workflow.pipeline;
+option go_package = "github.com/infraboard/workflow/api/pkg/pipeline";
+
+import "github.com/infraboard/protoc-gen-go-ext/extension/tag/tag.proto";
+import "github.com/infraboard/mcube/pb/http/entry.proto";
+import "github.com/infraboard/mcube/pb/page/page.proto";
+
+// SYSTEM_SECRET 系统秘钥
+enum SYSTEM_SECRET {
+    NULL = 0;
+    // 拉取代码的秘钥
+    PULL_CODE = 1;
+	// 修改代码的秘钥
+	PUSH_CODE = 2;
+    // 拉取进行的秘钥
+    PULL_IMAGE = 3;
+	// 推送进行的秘钥
+	PUSH_IMAGE = 4;
+    // 拉取归档包的密码
+    PULL_OSS = 5;
+	// 推送归档包的密码
+	PUSH_OSS = 6;
+	// k8s连接的秘钥
+	K8S_DEPLOY = 7;
+	// 服务器主机登录密码
+	HOST_DEPLOY = 8;
+}
+
+// STEP_STATUS Step任务状态
+enum STEP_STATUS {
+    // 任务等待被调度
+    PENDDING = 0;
+    // 已经调度完成, 等待执行
+    WAITTING = 1;
+	// 正在执行
+	RUNNING = 2;
+    // 执行成功
+    SUCCEEDED = 3;
+	// 执行失败
+	FAILED = 4;
+    // 取消中
+    CANCELING = 5;
+    // 任务取消
+    CANCELED = 6;
+	// 忽略执行
+	SKIP = 7;
+}
+
+service Service {
+	rpc CreatePipeline(CreatePipelineRequest) returns(Pipeline) {
+		option (mcube.http.rest_api) = {
+			path: "/pipelines/"
+			method: "POST"
+			resource: "pipeline"
+			auth_enable: true
+			permission_enable: true
+			labels: [{
+				key: "action"
+				value: "create"
+			}]
+		};
+	};
+	rpc QueryPipeline(QueryPipelineRequest) returns(PipelineSet) {
+		option (mcube.http.rest_api) = {
+			path: "/pipelines/"
+			method: "GET"
+			resource: "pipeline"
+			auth_enable: true
+			labels: [{
+				key: "action"
+				value: "list"
+			}]
+		};
+	};
+	rpc CreateAction(CreateActionRequest) returns(Action) {
+		option (mcube.http.rest_api) = {
+			path: "/actions/"
+			method: "POST"
+			resource: "action"
+			auth_enable: true
+			permission_enable: true
+			labels: [{
+				key: "action"
+				value: "create"
+			}]
+		};
+	};
+	rpc QueryAction(QueryActionRequest) returns(ActionSet) {
+		option (mcube.http.rest_api) = {
+			path: "/actions/"
+			method: "GET"
+			resource: "action"
+			auth_enable: true
+			labels: [{
+				key: "action"
+				value: "list"
+			}]
+		};
+	};
+}
+
+// Pipeline todo
+message Pipeline {
+    // 唯一ID
+    string id = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"_id" json:"id"'}
+        ];
+	// 资源版本
+	int64 resource_version = 13 [
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"resource_version" json:"resource_version,omitempty"'}
+        ];
+	// 所属域
+	string domain = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"domain" json:"domain"'}
+        ];
+	// 所属空间
+	string namespace = 3[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"namespace" json:"namespace"'}
+        ];
+	// 创建时间
+	int64 create_at = 4[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"create_at" json:"create_at"'}
+        ];
+	// 创建人
+	string create_by = 5[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"create_by" json:"create_by"'}
+        ];
+	// 更新时间
+	int64 update_at = 6[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"update_at" json:"update_at"'}
+		];
+	// 更新人
+	string update_by = 7[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"update_by" json:"update_by"'}
+		];
+    // 名称
+    string name = 8[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"name" json:"name"'}
+        ];
+	// 标签
+	map<string, string> tags = 9[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"tags" json:"tags"'}
+        ];
+	// 描述
+	string description = 10[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"description" json:"description"'}
+		];
+	// 触发条件
+	Trigger on = 11[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"on" json:"on"'}
+		];
+	// 具体编排阶段
+	repeated Stage stages = 12[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"stages" json:"stages"'}
+		];
+}
+
+// Trigger Pipeline触发执行的条件
+message Trigger {
+	// 是否允许手动触发
+	bool allow_manual = 1[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"allow_manual" json:"allow_manual"'}
+		];
+	// 是否启用自动触发
+	bool auto_enabled = 2[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"enabled" json:"enabled"'}
+		];
+	// 事件名称
+	string event_name = 3[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"event_name" json:"event_name"'}
+		];
+	// 具体分支
+	repeated string branches = 4[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"branches" json:"branches"'}
+		];
+}
+
+// Stage todo
+message Stage {
+	// 阶段ID
+	int32 id = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"id" json:"id"'}
+        ];
+    // 名称
+    string name = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"name" json:"name" validate:"required"'}
+        ];
+	// 依赖其他stage执行成功
+	repeated string needs = 3[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"needs" json:"needs"'}
+		];
+	// 具体步骤
+	repeated Step steps = 4[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"steps" json:"steps"'}
+		];
+}
+
+message Step {
+	// 步骤ID
+	int32 id = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"id" json:"id"'}
+        ];
+    // 名称
+    string name = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"name" json:"name" validate:"required"'}
+        ];
+	// 具体动作
+	string action = 3[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"action" json:"action" validate:"required"'}
+        ];
+	// 参数
+	map<string, string> with = 4[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"with" json:"with"'}
+		];
+	// 是否并行
+	bool is_parallel = 5[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"is_parallel" json:"is_parallel"'}
+        ];
+	// 忽略失败
+	bool ignore_failed = 6[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"ignore_failed" json:"ignore_failed"'}
+        ];
+	// 调度标签
+	map<string, string> node_selector = 8[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"node_selector" json:"node_selector"'}
+        ];
+	// 当前步骤的状态
+	StepStatus status = 7[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"status" json:"status,omitempty"'}
+        ];
+}
+
+message StepStatus {
+	// 创建时间
+    int64 create_at = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"create_at" json:"create_at"'}
+        ];
+	// 开始时间
+	int64 start_at = 2[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"start_at" json:"start_at"'}
+		];
+	// 结束时间
+	int64 end_at = 3[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"end_at" json:"end_at"'}
+		];
+	// 当前状态
+	STEP_STATUS status = 4[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"status" json:"status"'}
+        ];
+	// 被调度到的节点
+	string scheduled_node = 5[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"scheduled_node" json:"scheduled_node"'}
+        ];
+    // 执行结果
+    string message = 6[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"message" json:"message"'}
+        ];
+}
+
+// PipelineSet todo
+message PipelineSet {
+    int64 total = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"total" json:"total"'}
+        ];
+    repeated Pipeline items = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"items" json:"items"'}
+        ];
+}
+
+// CreatePipelineRequest 创建Book请求
+message CreatePipelineRequest {
+    // 名称
+    string name = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"name"'}
+        ];
+	// 标签
+	map<string, string> tags = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"tags"'}
+        ];
+	// 描述
+	string description = 3[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"description"'}
+		];
+	// 触发条件
+	Trigger on = 4[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"on"'}
+		];
+	// 具体编排阶段
+	repeated Stage stages = 5[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"stages"'}
+		];
+}
+
+// QueryPipelineRequest 查询Book请求
+message QueryPipelineRequest {
+    page.PageRequest page = 1;
+    string name = 2;
+}
+
+// Action 动作定义
+message Action {
+	// 所属域
+	string domain = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"domain" json:"domain"'}
+        ];
+	// 所属空间
+	string namespace = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"namespace" json:"namespace"'}
+        ];
+	// 创建时间
+	int64 create_at = 3[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"create_at" json:"create_at"'}
+        ];
+	// 创建人
+	string create_by = 4[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"create_by" json:"create_by"'}
+        ];
+	// 更新时间
+	int64 update_at = 5[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"update_at" json:"update_at"'}
+		];
+	// 更新人
+	string update_by = 6[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"update_by" json:"update_by"'}
+		];
+    // 名称
+    string name = 8[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"name" json:"name"'}
+        ];
+	// 镜像仓库地址
+	string image = 9[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"image" json:"image"'}
+        ];
+	// action运行时需要由系统注入的秘钥
+	repeated SYSTEM_SECRET need_secret = 10[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"need_secret"'}
+		];
+	// 标签
+	map<string, string> tags = 11[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"tags" json:"tags"'}
+        ];
+	// 描述
+	string description = 12[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"description" json:"description"'}
+		];	
+}
+
+// ActionSet todo
+message ActionSet {
+    int64 total = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"total" json:"total"'}
+        ];
+    repeated Action items = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"items" json:"items"'}
+        ];
+}
+
+
+message CreateActionRequest {
+	// 名称
+	string name = 1[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"name"'}
+		];
+	// 镜像仓库地址
+	string image = 2[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"image"'}
+		];
+	// action运行时需要由系统注入的秘钥
+	repeated SYSTEM_SECRET need_secret = 3[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"need_secret"'}
+		];
+	// 标签
+	map<string, string> tags = 4[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"tags"'}
+		];
+	// 描述
+	string description = 5[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"description"'}
+		];	
+}
+
+// QueryPipelineRequest 查询Book请求
+message QueryActionRequest {
+    page.PageRequest page = 1;
+    string name = 2;
+}
