@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/infraboard/mcube/logger"
+	"github.com/infraboard/mcube/logger/zap"
 	"k8s.io/client-go/util/workqueue"
 
 	"github.com/infraboard/workflow/api/pkg/pipeline"
@@ -29,6 +30,7 @@ func NewPipelineScheduler(
 		workqueue:      wq,
 		lister:         inform.Lister(),
 		workerNums:     4,
+		log:            zap.L().Named("PipelineScheduler"),
 		runningWorkers: make(map[string]bool, 4),
 	}
 
@@ -71,6 +73,10 @@ type PipelineScheduler struct {
 // SetPicker 设置Node挑选器
 func (c *PipelineScheduler) SetPicker(picker algorithm.Picker) {
 	c.picker = picker
+}
+
+func (c *PipelineScheduler) Debug(log logger.Logger) {
+	c.log = log
 }
 
 // Run will set up the event handlers for types we are interested in, as well

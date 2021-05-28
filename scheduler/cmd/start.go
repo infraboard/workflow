@@ -42,16 +42,18 @@ var serviceCmd = &cobra.Command{
 		if err := loadGloabl(confType); err != nil {
 			return err
 		}
-
 		cfg := conf.C()
+
 		// 启动服务
 		ch := make(chan os.Signal, 1)
 		signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGKILL, syscall.SIGHUP, syscall.SIGQUIT)
+
 		// 初始化服务
 		svr, err := newService(cfg)
 		if err != nil {
 			return err
 		}
+
 		// 注册服务
 		r, err := etcd_register.NewEtcdRegister(cfg.Etcd.Endpoints, cfg.Etcd.UserName, cfg.Etcd.Password)
 		if err != nil {
@@ -62,8 +64,10 @@ var serviceCmd = &cobra.Command{
 		if err := svr.registry(r, cfg); err != nil {
 			return err
 		}
+
 		// 等待信号处理
 		go svr.waitSign(ch)
+
 		// 启动服务
 		if err := svr.start(); err != nil {
 			return err
@@ -90,6 +94,7 @@ func newService(cnf *conf.Config) (*service, error) {
 	// Controller 实例
 	nodeStore := store.NewDeaultNodeStore()
 	ctl := controller.NewPipelineScheduler(nodeStore, info)
+	ctl.Debug(zap.L().Named("Pipeline"))
 	svr := &service{
 		info: info,
 		pc:   ctl,
@@ -135,8 +140,9 @@ func (s *service) waitSign(sign chan os.Signal) {
 }
 
 func (s *service) registry(r node.Register, cfg *conf.Config) error {
+	hn, _ := os.Hostname()
 	instance := &node.Node{
-		InstanceName: cfg.App.Name,
+		InstanceName: hn,
 		ServiceName:  version.ServiceName,
 		Type:         node.SchedulerType,
 		Address:      cfg.HTTP.Host,

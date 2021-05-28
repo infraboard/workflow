@@ -19,7 +19,7 @@ func NewSchedulerInformer(cnf conf.Etcd) (informer.Informer, error) {
 		return nil, err
 	}
 
-	info := &PipelineInformer{cnf: cnf, log: zap.L().Named("Scheduler")}
+	info := &PipelineInformer{cnf: cnf, log: zap.L().Named("Informer")}
 
 	// 初始化客户端
 	config := clientv3.Config{
@@ -40,6 +40,7 @@ func NewSchedulerInformer(cnf conf.Etcd) (informer.Informer, error) {
 		return nil, fmt.Errorf("check etcd %s health by member list error, %s", cnf.Endpoints, err)
 	}
 
+	info.log.Debugf("connect to etcd %s success", cnf.Endpoints)
 	info.client = client
 	return info, nil
 }
@@ -55,6 +56,8 @@ type PipelineInformer struct {
 
 func (i *PipelineInformer) Debug(l logger.Logger) {
 	i.log = l
+	i.shared.log = l
+	i.lister.log = l
 }
 
 func (i *PipelineInformer) Watcher() informer.Watcher {

@@ -22,7 +22,7 @@ type lister struct {
 // List 获取所有Node对象
 func (l *lister) ListNode(ctx context.Context) (ret []*node.Node, err error) {
 	listKey := node.EtcdNodePrefixWithType(l.prefix, node.NodeType)
-	l.log.Infof("lister etcd node resource key: %s", listKey)
+	l.log.Infof("list etcd node resource key: %s", listKey)
 	resp, err := l.client.Get(ctx, listKey, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func (l *lister) ListNode(ctx context.Context) (ret []*node.Node, err error) {
 
 func (l *lister) ListPipeline(ctx context.Context, opts *informer.QueryPipelineOptions) (*pipeline.PipelineSet, error) {
 	listKey := pipeline.EtcdPipelinePrefix(l.prefix)
-	l.log.Infof("lister etcd pipeline resource key: %s", listKey)
+	l.log.Infof("list etcd pipeline resource key: %s", listKey)
 	resp, err := l.client.Get(ctx, listKey, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err

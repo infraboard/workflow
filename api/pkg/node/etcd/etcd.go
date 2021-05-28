@@ -71,12 +71,14 @@ func (e *etcd) Registe(node *node.Node) (<-chan node.HeatbeatResonse, error) {
 		e.Errorf("marshal service object to json error, %s", err)
 	}
 	serviceValue := string(sjson)
-	// 注册服务到etcd
 	serviceKey := node.MakeRegistryKey()
+
 	// 后台续约
 	// 并没有直接使用KeepAlive, 因为存在偶然端口, 就不续约的情况
 	ctx, cancel := context.WithCancel(context.Background())
 	e.keepAliveStop = cancel
+	e.instanceKey = serviceKey
+
 	go e.keepAlive(ctx, serviceKey, serviceValue, node.TTL, e.headbeatResponseChan)
 	return e.headbeatResponseChan, nil
 }
@@ -156,10 +158,10 @@ func (e *etcd) UnRegiste() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	if resp, err := e.client.Delete(ctx, e.instanceKey); err != nil {
-		e.Warnf("unnode '%s' failed: connect to etcd server timeout, %s", e.instanceKey, err.Error())
+		e.Warnf("unregiste '%s' failed: connect to etcd server timeout, %s", e.instanceKey, err.Error())
 	} else {
 		if resp.Deleted == 0 {
-			e.Infof("unnode '%s' failed, the key not exist", e.instanceKey)
+			e.Infof("unregiste '%s' failed, the key not exist", e.instanceKey)
 		} else {
 			e.Infof("服务实例(%s)注销成功", e.instanceKey)
 		}
