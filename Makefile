@@ -35,7 +35,7 @@ build-api: dep ## Build the binary file
 linux-api: ## Linux build
 	@sh ./script/build.sh linux dist/${API_PROJECT_NAME} ${API_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
 	
-run_api: install codegen dep build-api ## Run Server
+run-api: dep build-api ## Run Server
 	@./dist/${API_PROJECT_NAME} start
 
 build-sch: dep ## Build the binary file
@@ -45,7 +45,7 @@ build-sch: dep ## Build the binary file
 linux-sch: ## Linux build
 	@sh ./script/build.sh linux dist/${SCH_PROJECT_NAME} ${SCH_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
 	
-run_sch: install codegen dep build-sch ## Run Server
+run-sch: dep build-sch ## Run Server
 	@./dist/${SCH_PROJECT_NAME} start
 
 clean: ## Remove previous build
