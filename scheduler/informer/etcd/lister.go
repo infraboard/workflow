@@ -10,6 +10,7 @@ import (
 
 	"github.com/infraboard/workflow/api/pkg/node"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/api/pkg/task"
 	"github.com/infraboard/workflow/scheduler/informer"
 )
 
@@ -41,24 +42,24 @@ func (l *lister) ListNode(ctx context.Context) (ret []*node.Node, err error) {
 	return nodes, nil
 }
 
-func (l *lister) ListPipeline(ctx context.Context, opts *informer.QueryPipelineOptions) (*pipeline.PipelineSet, error) {
+func (l *lister) ListPipelineTask(ctx context.Context, opts *informer.QueryPipelineTaskOptions) (*task.PipelineTaskSet, error) {
 	listKey := pipeline.EtcdPipelinePrefix(l.prefix)
 	l.log.Infof("list etcd pipeline resource key: %s", listKey)
 	resp, err := l.client.Get(ctx, listKey, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
 	}
-	ps := pipeline.NewPipelineSet()
+	ps := task.NewPipelineTaskSet()
 	for i := range resp.Kvs {
 		// 解析对象
-		pl, err := pipeline.LoadPipelineFromBytes(resp.Kvs[i].Value)
+		pt, err := task.LoadPipelineTaskFromBytes(resp.Kvs[i].Value)
 		if err != nil {
 			l.log.Error(err)
 			continue
 		}
 
-		pl.ResourceVersion = resp.Header.Revision
-		ps.Add(pl)
+		pt.ResourceVersion = resp.Header.Revision
+		ps.Add(pt)
 	}
 	return ps, nil
 }

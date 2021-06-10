@@ -182,31 +182,31 @@ type Pipeline struct {
 	unknownFields protoimpl.UnknownFields
 
 	// 唯一ID
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty" bson:"_id"`
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id" bson:"_id"`
 	// 资源版本
 	ResourceVersion int64 `protobuf:"varint,13,opt,name=resource_version,json=resourceVersion,proto3" json:"resource_version,omitempty" bson:"resource_version"`
 	// 所属域
-	Domain string `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty" bson:"domain"`
+	Domain string `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain" bson:"domain"`
 	// 所属空间
-	Namespace string `protobuf:"bytes,3,opt,name=namespace,proto3" json:"namespace,omitempty" bson:"namespace"`
+	Namespace string `protobuf:"bytes,3,opt,name=namespace,proto3" json:"namespace" bson:"namespace"`
 	// 创建时间
-	CreateAt int64 `protobuf:"varint,4,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty" bson:"create_at"`
+	CreateAt int64 `protobuf:"varint,4,opt,name=create_at,json=createAt,proto3" json:"create_at" bson:"create_at"`
 	// 创建人
-	CreateBy string `protobuf:"bytes,5,opt,name=create_by,json=createBy,proto3" json:"create_by,omitempty" bson:"create_by"`
+	CreateBy string `protobuf:"bytes,5,opt,name=create_by,json=createBy,proto3" json:"create_by" bson:"create_by"`
 	// 更新时间
-	UpdateAt int64 `protobuf:"varint,6,opt,name=update_at,json=updateAt,proto3" json:"update_at,omitempty" bson:"update_at"`
+	UpdateAt int64 `protobuf:"varint,6,opt,name=update_at,json=updateAt,proto3" json:"update_at" bson:"update_at"`
 	// 更新人
-	UpdateBy string `protobuf:"bytes,7,opt,name=update_by,json=updateBy,proto3" json:"update_by,omitempty" bson:"update_by"`
+	UpdateBy string `protobuf:"bytes,7,opt,name=update_by,json=updateBy,proto3" json:"update_by" bson:"update_by"`
 	// 名称
-	Name string `protobuf:"bytes,8,opt,name=name,proto3" json:"name,omitempty" bson:"name"`
+	Name string `protobuf:"bytes,8,opt,name=name,proto3" json:"name" bson:"name"`
 	// 标签
-	Tags map[string]string `protobuf:"bytes,9,rep,name=tags,proto3" json:"tags,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3" bson:"tags"`
+	Tags map[string]string `protobuf:"bytes,9,rep,name=tags,proto3" json:"tags" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3" bson:"tags"`
 	// 描述
-	Description string `protobuf:"bytes,10,opt,name=description,proto3" json:"description,omitempty" bson:"description"`
+	Description string `protobuf:"bytes,10,opt,name=description,proto3" json:"description" bson:"description"`
 	// 触发条件
-	On *Trigger `protobuf:"bytes,11,opt,name=on,proto3" json:"on,omitempty" bson:"on"`
+	On *Trigger `protobuf:"bytes,11,opt,name=on,proto3" json:"on" bson:"on"`
 	// 具体编排阶段
-	Stages []*Stage `protobuf:"bytes,12,rep,name=stages,proto3" json:"stages,omitempty" bson:"stages"`
+	Stages []*Stage `protobuf:"bytes,12,rep,name=stages,proto3" json:"stages" bson:"stages"`
 }
 
 func (x *Pipeline) Reset() {
@@ -339,13 +339,13 @@ type Trigger struct {
 	unknownFields protoimpl.UnknownFields
 
 	// 是否允许手动触发
-	AllowManual bool `protobuf:"varint,1,opt,name=allow_manual,json=allowManual,proto3" json:"allow_manual,omitempty" bson:"allow_manual"`
+	AllowManual bool `protobuf:"varint,1,opt,name=allow_manual,json=allowManual,proto3" json:"allow_manual" bson:"allow_manual"`
 	// 是否启用自动触发
-	AutoEnabled bool `protobuf:"varint,2,opt,name=auto_enabled,json=autoEnabled,proto3" json:"enabled,omitempty" bson:"enabled"`
+	AutoEnabled bool `protobuf:"varint,2,opt,name=auto_enabled,json=autoEnabled,proto3" json:"enabled" bson:"enabled"`
 	// 事件名称
-	EventName string `protobuf:"bytes,3,opt,name=event_name,json=eventName,proto3" json:"event_name,omitempty" bson:"event_name"`
+	EventName string `protobuf:"bytes,3,opt,name=event_name,json=eventName,proto3" json:"event_name" bson:"event_name"`
 	// 具体分支
-	Branches []string `protobuf:"bytes,4,rep,name=branches,proto3" json:"branches,omitempty" bson:"branches"`
+	Branches []string `protobuf:"bytes,4,rep,name=branches,proto3" json:"branches" bson:"branches"`
 }
 
 func (x *Trigger) Reset() {
@@ -415,13 +415,13 @@ type Stage struct {
 	unknownFields protoimpl.UnknownFields
 
 	// 阶段ID
-	Id int32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty" bson:"id"`
+	Id int32 `protobuf:"varint,1,opt,name=id,proto3" json:"id" bson:"id"`
 	// 名称
-	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty" bson:"name" validate:"required"`
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name" bson:"name" validate:"required"`
 	// 依赖其他stage执行成功
-	Needs []string `protobuf:"bytes,3,rep,name=needs,proto3" json:"needs,omitempty" bson:"needs"`
+	Needs []string `protobuf:"bytes,3,rep,name=needs,proto3" json:"needs" bson:"needs"`
 	// 具体步骤
-	Steps []*Step `protobuf:"bytes,4,rep,name=steps,proto3" json:"steps,omitempty" bson:"steps"`
+	Steps []*Step `protobuf:"bytes,4,rep,name=steps,proto3" json:"steps" bson:"steps"`
 }
 
 func (x *Stage) Reset() {
@@ -490,19 +490,19 @@ type Step struct {
 	unknownFields protoimpl.UnknownFields
 
 	// 步骤ID
-	Id int32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty" bson:"id"`
+	Id int32 `protobuf:"varint,1,opt,name=id,proto3" json:"id" bson:"id"`
 	// 名称
-	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty" bson:"name" validate:"required"`
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name" bson:"name" validate:"required"`
 	// 具体动作
-	Action string `protobuf:"bytes,3,opt,name=action,proto3" json:"action,omitempty" bson:"action" validate:"required"`
+	Action string `protobuf:"bytes,3,opt,name=action,proto3" json:"action" bson:"action" validate:"required"`
 	// 参数
-	With map[string]string `protobuf:"bytes,4,rep,name=with,proto3" json:"with,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3" bson:"with"`
+	With map[string]string `protobuf:"bytes,4,rep,name=with,proto3" json:"with" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3" bson:"with"`
 	// 是否并行
-	IsParallel bool `protobuf:"varint,5,opt,name=is_parallel,json=isParallel,proto3" json:"is_parallel,omitempty" bson:"is_parallel"`
+	IsParallel bool `protobuf:"varint,5,opt,name=is_parallel,json=isParallel,proto3" json:"is_parallel" bson:"is_parallel"`
 	// 忽略失败
-	IgnoreFailed bool `protobuf:"varint,6,opt,name=ignore_failed,json=ignoreFailed,proto3" json:"ignore_failed,omitempty" bson:"ignore_failed"`
+	IgnoreFailed bool `protobuf:"varint,6,opt,name=ignore_failed,json=ignoreFailed,proto3" json:"ignore_failed" bson:"ignore_failed"`
 	// 调度标签
-	NodeSelector map[string]string `protobuf:"bytes,8,rep,name=node_selector,json=nodeSelector,proto3" json:"node_selector,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3" bson:"node_selector"`
+	NodeSelector map[string]string `protobuf:"bytes,8,rep,name=node_selector,json=nodeSelector,proto3" json:"node_selector" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3" bson:"node_selector"`
 	// 当前步骤的状态
 	Status *StepStatus `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty" bson:"status"`
 }
@@ -601,17 +601,17 @@ type StepStatus struct {
 	unknownFields protoimpl.UnknownFields
 
 	// 创建时间
-	CreateAt int64 `protobuf:"varint,1,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty" bson:"create_at"`
+	CreateAt int64 `protobuf:"varint,1,opt,name=create_at,json=createAt,proto3" json:"create_at" bson:"create_at"`
 	// 开始时间
-	StartAt int64 `protobuf:"varint,2,opt,name=start_at,json=startAt,proto3" json:"start_at,omitempty" bson:"start_at"`
+	StartAt int64 `protobuf:"varint,2,opt,name=start_at,json=startAt,proto3" json:"start_at" bson:"start_at"`
 	// 结束时间
-	EndAt int64 `protobuf:"varint,3,opt,name=end_at,json=endAt,proto3" json:"end_at,omitempty" bson:"end_at"`
+	EndAt int64 `protobuf:"varint,3,opt,name=end_at,json=endAt,proto3" json:"end_at" bson:"end_at"`
 	// 当前状态
-	Status STEP_STATUS `protobuf:"varint,4,opt,name=status,proto3,enum=workflow.pipeline.STEP_STATUS" json:"status,omitempty" bson:"status"`
+	Status STEP_STATUS `protobuf:"varint,4,opt,name=status,proto3,enum=workflow.pipeline.STEP_STATUS" json:"status" bson:"status"`
 	// 被调度到的节点
-	ScheduledNode string `protobuf:"bytes,5,opt,name=scheduled_node,json=scheduledNode,proto3" json:"scheduled_node,omitempty" bson:"scheduled_node"`
+	ScheduledNode string `protobuf:"bytes,5,opt,name=scheduled_node,json=scheduledNode,proto3" json:"scheduled_node" bson:"scheduled_node"`
 	// 执行结果
-	Message string `protobuf:"bytes,6,opt,name=message,proto3" json:"message,omitempty" bson:"message"`
+	Message string `protobuf:"bytes,6,opt,name=message,proto3" json:"message" bson:"message"`
 }
 
 func (x *StepStatus) Reset() {
@@ -694,8 +694,8 @@ type PipelineSet struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Total int64       `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty" bson:"total"`
-	Items []*Pipeline `protobuf:"bytes,2,rep,name=items,proto3" json:"items,omitempty" bson:"items"`
+	Total int64       `protobuf:"varint,1,opt,name=total,proto3" json:"total" bson:"total"`
+	Items []*Pipeline `protobuf:"bytes,2,rep,name=items,proto3" json:"items" bson:"items"`
 }
 
 func (x *PipelineSet) Reset() {
@@ -751,15 +751,15 @@ type CreatePipelineRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	// 名称
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name"`
 	// 标签
-	Tags map[string]string `protobuf:"bytes,2,rep,name=tags,proto3" json:"tags,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Tags map[string]string `protobuf:"bytes,2,rep,name=tags,proto3" json:"tags" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	// 描述
-	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description"`
 	// 触发条件
-	On *Trigger `protobuf:"bytes,4,opt,name=on,proto3" json:"on,omitempty"`
+	On *Trigger `protobuf:"bytes,4,opt,name=on,proto3" json:"on"`
 	// 具体编排阶段
-	Stages []*Stage `protobuf:"bytes,5,rep,name=stages,proto3" json:"stages,omitempty"`
+	Stages []*Stage `protobuf:"bytes,5,rep,name=stages,proto3" json:"stages"`
 }
 
 func (x *CreatePipelineRequest) Reset() {
@@ -892,27 +892,27 @@ type Action struct {
 	unknownFields protoimpl.UnknownFields
 
 	// 所属域
-	Domain string `protobuf:"bytes,1,opt,name=domain,proto3" json:"domain,omitempty" bson:"domain"`
+	Domain string `protobuf:"bytes,1,opt,name=domain,proto3" json:"domain" bson:"domain"`
 	// 所属空间
-	Namespace string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty" bson:"namespace"`
+	Namespace string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace" bson:"namespace"`
 	// 创建时间
-	CreateAt int64 `protobuf:"varint,3,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty" bson:"create_at"`
+	CreateAt int64 `protobuf:"varint,3,opt,name=create_at,json=createAt,proto3" json:"create_at" bson:"create_at"`
 	// 创建人
-	CreateBy string `protobuf:"bytes,4,opt,name=create_by,json=createBy,proto3" json:"create_by,omitempty" bson:"create_by"`
+	CreateBy string `protobuf:"bytes,4,opt,name=create_by,json=createBy,proto3" json:"create_by" bson:"create_by"`
 	// 更新时间
-	UpdateAt int64 `protobuf:"varint,5,opt,name=update_at,json=updateAt,proto3" json:"update_at,omitempty" bson:"update_at"`
+	UpdateAt int64 `protobuf:"varint,5,opt,name=update_at,json=updateAt,proto3" json:"update_at" bson:"update_at"`
 	// 更新人
-	UpdateBy string `protobuf:"bytes,6,opt,name=update_by,json=updateBy,proto3" json:"update_by,omitempty" bson:"update_by"`
+	UpdateBy string `protobuf:"bytes,6,opt,name=update_by,json=updateBy,proto3" json:"update_by" bson:"update_by"`
 	// 名称
-	Name string `protobuf:"bytes,8,opt,name=name,proto3" json:"name,omitempty" bson:"name"`
+	Name string `protobuf:"bytes,8,opt,name=name,proto3" json:"name" bson:"name"`
 	// 镜像仓库地址
-	Image string `protobuf:"bytes,9,opt,name=image,proto3" json:"image,omitempty" bson:"image"`
+	Image string `protobuf:"bytes,9,opt,name=image,proto3" json:"image" bson:"image"`
 	// action运行时需要由系统注入的秘钥
-	NeedSecret []SYSTEM_SECRET `protobuf:"varint,10,rep,packed,name=need_secret,json=needSecret,proto3,enum=workflow.pipeline.SYSTEM_SECRET" json:"need_secret,omitempty"`
+	NeedSecret []SYSTEM_SECRET `protobuf:"varint,10,rep,packed,name=need_secret,json=needSecret,proto3,enum=workflow.pipeline.SYSTEM_SECRET" json:"need_secret"`
 	// 标签
-	Tags map[string]string `protobuf:"bytes,11,rep,name=tags,proto3" json:"tags,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3" bson:"tags"`
+	Tags map[string]string `protobuf:"bytes,11,rep,name=tags,proto3" json:"tags" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3" bson:"tags"`
 	// 描述
-	Description string `protobuf:"bytes,12,opt,name=description,proto3" json:"description,omitempty" bson:"description"`
+	Description string `protobuf:"bytes,12,opt,name=description,proto3" json:"description" bson:"description"`
 }
 
 func (x *Action) Reset() {
@@ -1030,8 +1030,8 @@ type ActionSet struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Total int64     `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty" bson:"total"`
-	Items []*Action `protobuf:"bytes,2,rep,name=items,proto3" json:"items,omitempty" bson:"items"`
+	Total int64     `protobuf:"varint,1,opt,name=total,proto3" json:"total" bson:"total"`
+	Items []*Action `protobuf:"bytes,2,rep,name=items,proto3" json:"items" bson:"items"`
 }
 
 func (x *ActionSet) Reset() {
@@ -1086,15 +1086,15 @@ type CreateActionRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	// 名称
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name"`
 	// 镜像仓库地址
-	Image string `protobuf:"bytes,2,opt,name=image,proto3" json:"image,omitempty"`
+	Image string `protobuf:"bytes,2,opt,name=image,proto3" json:"image"`
 	// action运行时需要由系统注入的秘钥
-	NeedSecret []SYSTEM_SECRET `protobuf:"varint,3,rep,packed,name=need_secret,json=needSecret,proto3,enum=workflow.pipeline.SYSTEM_SECRET" json:"need_secret,omitempty"`
+	NeedSecret []SYSTEM_SECRET `protobuf:"varint,3,rep,packed,name=need_secret,json=needSecret,proto3,enum=workflow.pipeline.SYSTEM_SECRET" json:"need_secret"`
 	// 标签
-	Tags map[string]string `protobuf:"bytes,4,rep,name=tags,proto3" json:"tags,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Tags map[string]string `protobuf:"bytes,4,rep,name=tags,proto3" json:"tags" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	// 描述
-	Description string `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
+	Description string `protobuf:"bytes,5,opt,name=description,proto3" json:"description"`
 }
 
 func (x *CreateActionRequest) Reset() {

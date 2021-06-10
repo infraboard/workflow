@@ -56,6 +56,10 @@ message PipelineTask {
     string id = 1[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"_id" json:"id"'}
         ];
+	// 资源版本
+	int64 resource_version = 9 [
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"resource_version" json:"resource_version"'}
+        ];
     // 需要被运行的Pipeline对象
     workflow.pipeline.Pipeline pipeline = 2[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"pipeline" json:"pipeline"'}
@@ -83,6 +87,10 @@ message PipelineTask {
     // 执行结果
     string message = 8[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"message" json:"message"'}
+        ];
+	// 由哪个调度器实例负责进行调度运行
+	string scheduler_node = 10[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"scheduler_node" json:"scheduler_node"'}
         ];
 }
 

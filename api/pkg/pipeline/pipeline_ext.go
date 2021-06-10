@@ -16,10 +16,6 @@ func (p *Pipeline) Validate() error {
 	return validate.Struct(p)
 }
 
-func (p *Pipeline) ScheduledNodeName() string {
-	return ""
-}
-
 func NewDefaultPipeline() *Pipeline {
 	return &Pipeline{}
 }
@@ -33,25 +29,6 @@ func NewPipelineSet() *PipelineSet {
 
 func (s *PipelineSet) Add(item *Pipeline) {
 	s.Items = append(s.Items, item)
-}
-
-// LoadPipelineFromBytes 解析etcd 的pipeline数据
-func LoadPipelineFromBytes(value []byte) (*Pipeline, error) {
-	p := NewDefaultPipeline()
-
-	// 解析Value
-	if len(value) > 0 {
-		if err := json.Unmarshal(value, p); err != nil {
-			return nil, fmt.Errorf("unmarshal pipeline error, vaule(%s) %s", string(value), err)
-		}
-	}
-
-	// 校验合法性
-	if err := p.Validate(); err != nil {
-		return nil, err
-	}
-
-	return p, nil
 }
 
 func (p *Pipeline) EtcdObjectKey(prefix string) string {
@@ -91,4 +68,8 @@ func (s *Step) EtcdObjectKey(prefix string) string {
 
 func (s *Step) AddScheduleNode(nodeName string) {
 	s.Status.ScheduledNode = nodeName
+}
+
+func (s *Step) ScheduledNodeName() string {
+	return ""
 }

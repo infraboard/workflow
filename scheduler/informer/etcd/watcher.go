@@ -10,6 +10,7 @@ import (
 
 	"github.com/infraboard/workflow/api/pkg/node"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/api/pkg/task"
 	"github.com/infraboard/workflow/scheduler/informer"
 )
 
@@ -18,7 +19,7 @@ type shared struct {
 	log               logger.Logger
 	client            clientv3.Watcher
 	nodeHandler       informer.NodeEventHandler
-	pipelineHandler   informer.PipelineEventHandler
+	pipelineHandler   informer.PipelineTaskEventHandler
 	stepHandler       informer.StepEventHandler
 	nodeWatchChan     clientv3.WatchChan
 	pipelineWatchChan clientv3.WatchChan
@@ -31,7 +32,7 @@ func (i *shared) AddNodeEventHandler(h informer.NodeEventHandler) {
 }
 
 // AddPipelineEventHandler 添加事件处理回调
-func (i *shared) AddPipelineEventHandler(h informer.PipelineEventHandler) {
+func (i *shared) AddPipelineTaskEventHandler(h informer.PipelineTaskEventHandler) {
 	i.pipelineHandler = h
 }
 
@@ -118,7 +119,7 @@ func (i *shared) notifyNode(event *clientv3.Event, eventVersion int64) error {
 
 func (i *shared) notifyPipeline(event *clientv3.Event, eventVersion int64) error {
 	// 解析对象
-	obj, err := pipeline.LoadPipelineFromBytes(event.Kv.Value)
+	obj, err := task.LoadPipelineTaskFromBytes(event.Kv.Value)
 	if err != nil {
 		return err
 	}

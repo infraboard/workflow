@@ -33,25 +33,25 @@ type Application struct {
 	unknownFields protoimpl.UnknownFields
 
 	// 唯一ID
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty" bson:"_id"`
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id" bson:"_id"`
 	// 所属域
-	Domain string `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty" bson:"domain"`
+	Domain string `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain" bson:"domain"`
 	// 所属空间
-	Namespace string `protobuf:"bytes,3,opt,name=namespace,proto3" json:"namespace,omitempty" bson:"namespace"`
+	Namespace string `protobuf:"bytes,3,opt,name=namespace,proto3" json:"namespace" bson:"namespace"`
 	// 创建时间
-	CreateAt int64 `protobuf:"varint,4,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty" bson:"create_at"`
+	CreateAt int64 `protobuf:"varint,4,opt,name=create_at,json=createAt,proto3" json:"create_at" bson:"create_at"`
 	// 创建人
-	CreateBy string `protobuf:"bytes,5,opt,name=create_by,json=createBy,proto3" json:"create_by,omitempty" bson:"create_by"`
+	CreateBy string `protobuf:"bytes,5,opt,name=create_by,json=createBy,proto3" json:"create_by" bson:"create_by"`
 	// 更新时间
-	UpdateAt int64 `protobuf:"varint,6,opt,name=update_at,json=updateAt,proto3" json:"create_at,omitempty" bson:"create_at"`
+	UpdateAt int64 `protobuf:"varint,6,opt,name=update_at,json=updateAt,proto3" json:"create_at" bson:"create_at"`
 	// 更新人
-	UpdateBy string `protobuf:"bytes,7,opt,name=update_by,json=updateBy,proto3" json:"update_by,omitempty" bson:"update_by"`
+	UpdateBy string `protobuf:"bytes,7,opt,name=update_by,json=updateBy,proto3" json:"update_by" bson:"update_by"`
 	// 名称
-	Name string `protobuf:"bytes,8,opt,name=name,proto3" json:"name,omitempty" bson:"name"`
+	Name string `protobuf:"bytes,8,opt,name=name,proto3" json:"name" bson:"name"`
 	// 应用标签
-	Tags map[string]string `protobuf:"bytes,9,rep,name=tags,proto3" json:"tags,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3" bson:"tags"`
+	Tags map[string]string `protobuf:"bytes,9,rep,name=tags,proto3" json:"tags" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3" bson:"tags"`
 	// 描述
-	Description string `protobuf:"bytes,10,opt,name=description,proto3" json:"description,omitempty" bson:"description"`
+	Description string `protobuf:"bytes,10,opt,name=description,proto3" json:"description" bson:"description"`
 }
 
 func (x *Application) Reset() {
@@ -162,8 +162,8 @@ type ApplicationSet struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Total int64          `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty" bson:"total"`
-	Items []*Application `protobuf:"bytes,2,rep,name=items,proto3" json:"items,omitempty" bson:"items"`
+	Total int64          `protobuf:"varint,1,opt,name=total,proto3" json:"total" bson:"total"`
+	Items []*Application `protobuf:"bytes,2,rep,name=items,proto3" json:"items" bson:"items"`
 }
 
 func (x *ApplicationSet) Reset() {
