@@ -12,6 +12,7 @@ import (
 type Lister interface {
 	PipelineTaskLister
 	StepUpdater
+	TaskUpdater
 	NodeLister
 }
 
@@ -28,6 +29,11 @@ type PipelineTaskLister interface {
 // StepUpdater todo
 type StepUpdater interface {
 	UpdateStep(*pipeline.Step) error
+}
+
+// StepUpdater todo
+type TaskUpdater interface {
+	UpdateTask(*task.PipelineTask) error
 }
 
 // NodeLister 获取所有执行节点

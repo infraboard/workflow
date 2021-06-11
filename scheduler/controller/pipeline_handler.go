@@ -48,12 +48,13 @@ func (c *PipelineTaskScheduler) addPipelineTask(t *task.PipelineTask) {
 	// TODO: 使用分布式锁trylock处 理多个实例竞争调度问题
 
 	// 将需要调度的任务, 交给step调度器调度
-	for i := range t.Pipeline.Stages {
-		stage := t.Pipeline.Stages[i]
-		c.log.Debugf("start deal step:", stage.Id)
-		if stage.HasNextStep() {
-			stage.NextStep()
-			// 添加step任务, 等待
+	steps := t.NextStep()
+	for i := range steps {
+		step := steps[i]
+		c.log.Debugf("add pipeline step: %s", step.Key)
+		err := c.lister.UpdateStep(step)
+		if err != nil {
+			c.log.Errorf(err.Error())
 		}
 	}
 }
@@ -65,10 +66,13 @@ func (c *PipelineTaskScheduler) addStep(s *pipeline.Step) {
 		return
 	}
 
-	// 未调度的交给调度
-	if s.ScheduledNodeName() == "" {
-		c.workqueue.AddRateLimited(s)
+	// 已经调度的任务不处理
+	nn := s.ScheduledNodeName()
+	if nn != "" {
+		c.log.Infof("step %s has scheuled to node %s", s.Key, nn)
 	}
+
+	c.workqueue.AddRateLimited(s)
 }
 
 func (c *PipelineTaskScheduler) deleteStep(p *pipeline.Step) {

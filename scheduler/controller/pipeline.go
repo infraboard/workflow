@@ -48,11 +48,17 @@ func NewPipelineTaskScheduler(
 		DeleteFunc: controller.deleteStep,
 	})
 
-	picker, err := roundrobin.NewPicker(nodeStore)
+	stepPicker, err := roundrobin.NewStepPicker(nodeStore)
 	if err != nil {
 		panic(err)
 	}
-	controller.picker = picker
+	controller.stepPicker = stepPicker
+
+	taskPicker, err := roundrobin.NewTaskPicker(nodeStore)
+	if err != nil {
+		panic(err)
+	}
+	controller.taskPicker = taskPicker
 	return controller
 }
 
@@ -69,13 +75,19 @@ type PipelineTaskScheduler struct {
 	workerNums     int
 	runningWorkers map[string]bool
 	wLock          sync.Mutex
-	picker         algorithm.Picker
+	stepPicker     algorithm.StepPicker
+	taskPicker     algorithm.TaskPicker
 	nodes          store.NodeStore // 存储每个region的node信息
 }
 
 // SetPicker 设置Node挑选器
-func (c *PipelineTaskScheduler) SetPicker(picker algorithm.Picker) {
-	c.picker = picker
+func (c *PipelineTaskScheduler) SetStepPicker(picker algorithm.StepPicker) {
+	c.stepPicker = picker
+}
+
+// SetPicker 设置Node挑选器
+func (c *PipelineTaskScheduler) SetTaskPicker(picker algorithm.TaskPicker) {
+	c.taskPicker = picker
 }
 
 func (c *PipelineTaskScheduler) Debug(log logger.Logger) {
@@ -226,12 +238,7 @@ func (c *PipelineTaskScheduler) runningWorkerNames() string {
 
 //
 func (c *PipelineTaskScheduler) schedulePipelineTask(t *task.PipelineTask) error {
-	return nil
-}
-
-// 单步调度
-func (c *PipelineTaskScheduler) scheduleStep(step *pipeline.Step) error {
-	node, err := c.picker.Pick(step)
+	node, err := c.taskPicker.Pick(t)
 	if err != nil {
 		return err
 	}
@@ -241,7 +248,29 @@ func (c *PipelineTaskScheduler) scheduleStep(step *pipeline.Step) error {
 		return fmt.Errorf("no excutable node")
 	}
 
-	c.log.Debugf("choice node %s for step %s", node.InstanceName, step.Id)
+	c.log.Debugf("choice node %s for pipeline %s", node.InstanceName, t.Id)
+	t.AddScheduleNode(node.InstanceName)
+	// 清除一下其他数据
+	if err := c.lister.UpdateTask(t); err != nil {
+		c.log.Errorf("update scheduled step error, %s", err)
+	}
+
+	return nil
+}
+
+// 单步调度
+func (c *PipelineTaskScheduler) scheduleStep(step *pipeline.Step) error {
+	node, err := c.stepPicker.Pick(step)
+	if err != nil {
+		return err
+	}
+
+	// 没有合法的node
+	if node == nil {
+		return fmt.Errorf("no excutable node")
+	}
+
+	c.log.Debugf("choice node %s for step %s", node.InstanceName, step.Key)
 	step.AddScheduleNode(node.InstanceName)
 	// 清除一下其他数据
 	if err := c.lister.UpdateStep(step); err != nil {

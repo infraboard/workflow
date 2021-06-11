@@ -3,6 +3,8 @@ package task
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/infraboard/workflow/api/pkg/pipeline"
 )
 
 // LoadPipelineTaskFromBytes 解析etcd 的pipeline Task数据
@@ -34,6 +36,31 @@ func (t *PipelineTask) Validate() error {
 
 func (t *PipelineTask) SchedulerNodeName() string {
 	return t.SchedulerNode
+}
+
+func (t *PipelineTask) AddScheduleNode(nodeName string) {
+	t.SchedulerNode = nodeName
+}
+
+func (t *PipelineTask) EtcdObjectKey(prefix string) string {
+	return fmt.Sprintf("%s/%s", prefix, t.Id)
+}
+
+func (t *PipelineTask) NextStep() (steps []*pipeline.Step) {
+	for i := range t.Pipeline.Stages {
+		stage := t.Pipeline.Stages[i]
+		if !stage.HasNextStep() {
+			continue
+		}
+
+		steps = stage.NextStep()
+		for i := range steps {
+			steps[i].BuildKey(t.Id, stage.Id)
+		}
+		return
+	}
+
+	return
 }
 
 // NewPipelineTaskSet todo

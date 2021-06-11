@@ -64,15 +64,26 @@ func (l *lister) ListPipelineTask(ctx context.Context, opts *informer.QueryPipel
 	return ps, nil
 }
 
-func (l *lister) UpdateStep(pp *pipeline.Step) error {
-	objKey := pp.EtcdObjectKey(pipeline.EtcdPipelinePrefix(l.prefix))
-	copyJob := *pp
-	objVal, err := json.Marshal(copyJob)
+func (l *lister) UpdateStep(step *pipeline.Step) error {
+	objKey := step.EtcdObjectKey(pipeline.EtcdPipelinePrefix(l.prefix))
+	objValue, err := json.Marshal(step)
 	if err != nil {
 		return err
 	}
-	if _, err := l.client.Put(context.Background(), objKey, string(objVal)); err != nil {
-		return fmt.Errorf("update cronjob '%s' to etcd3 failed: %s", objKey, err.Error())
+	if _, err := l.client.Put(context.Background(), objKey, string(objValue)); err != nil {
+		return fmt.Errorf("update pipeline step '%s' to etcd3 failed: %s", objKey, err.Error())
+	}
+	return nil
+}
+
+func (l *lister) UpdateTask(t *task.PipelineTask) error {
+	objKey := t.EtcdObjectKey(pipeline.EtcdPipelinePrefix(l.prefix))
+	objValue, err := json.Marshal(t)
+	if err != nil {
+		return err
+	}
+	if _, err := l.client.Put(context.Background(), objKey, string(objValue)); err != nil {
+		return fmt.Errorf("update pipeline task '%s' to etcd3 failed: %s", objKey, err.Error())
 	}
 	return nil
 }

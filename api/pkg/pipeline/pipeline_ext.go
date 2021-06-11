@@ -95,7 +95,7 @@ func (s *Step) Validate() error {
 }
 
 func (s *Step) EtcdObjectKey(prefix string) string {
-	return fmt.Sprintf("%s/%d", prefix, s.Id)
+	return fmt.Sprintf("%s/%s", prefix, s.Key)
 }
 
 func (s *Step) AddScheduleNode(nodeName string) {
@@ -108,4 +108,8 @@ func (s *Step) ScheduledNodeName() string {
 
 func (s *Step) HasScheduled() bool {
 	return s.ScheduledNodeName() != ""
+}
+
+func (s *Step) BuildKey(pipelineId string, stage int32) {
+	s.Key = fmt.Sprintf("%s.%d.%d", pipelineId, stage, s.Id)
 }
