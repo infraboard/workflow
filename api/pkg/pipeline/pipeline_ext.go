@@ -48,7 +48,7 @@ func (s *Stage) HasNextStep() bool {
 }
 
 // 因为可能包含并行任务, 下一次执行的任务可能是多个
-func (s *Stage) NextSteps() (nextSteps []*Step) {
+func (s *Stage) NextStep() (nextSteps []*Step) {
 	for i := range s.Steps {
 		step := s.Steps[i]
 
