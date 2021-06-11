@@ -19,13 +19,13 @@ import (
 	"github.com/infraboard/workflow/scheduler/store"
 )
 
-// PipelineScheduler pipeline controller
-func NewPipelineScheduler(
+// NewPipelineTaskScheduler pipeline controller
+func NewPipelineTaskScheduler(
 	nodeStore store.NodeStore,
 	inform informer.Informer,
-) *PipelineScheduler {
+) *PipelineTaskScheduler {
 	wq := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "PipelineScheduler")
-	controller := &PipelineScheduler{
+	controller := &PipelineTaskScheduler{
 		nodes:          nodeStore,
 		workqueue:      wq,
 		lister:         inform.Lister(),
@@ -55,8 +55,8 @@ func NewPipelineScheduler(
 	return controller
 }
 
-// SchedulerController 调度器控制器
-type PipelineScheduler struct {
+// PipelineTaskScheduler 调度器控制器
+type PipelineTaskScheduler struct {
 	// workqueue is a rate limited work queue. This is used to queue work to be
 	// processed instead of performing it as soon as a change happens. This
 	// means we can ensure we only process a fixed amount of resources at a
@@ -73,11 +73,11 @@ type PipelineScheduler struct {
 }
 
 // SetPicker 设置Node挑选器
-func (c *PipelineScheduler) SetPicker(picker algorithm.Picker) {
+func (c *PipelineTaskScheduler) SetPicker(picker algorithm.Picker) {
 	c.picker = picker
 }
 
-func (c *PipelineScheduler) Debug(log logger.Logger) {
+func (c *PipelineTaskScheduler) Debug(log logger.Logger) {
 	c.log = log
 }
 
@@ -85,7 +85,7 @@ func (c *PipelineScheduler) Debug(log logger.Logger) {
 // as syncing informer caches and starting workers. It will block until stopCh
 // is closed, at which point it will shutdown the workqueue and wait for
 // workers to finish processing their current work items.
-func (c *PipelineScheduler) Run(ctx context.Context) error {
+func (c *PipelineTaskScheduler) Run(ctx context.Context) error {
 	// Start the informer factories to begin populating the informer caches
 	c.log.Info("Starting schedule control loop")
 	// 调用Lister 获得所有的cronjob 并添加cron
@@ -98,15 +98,15 @@ func (c *PipelineScheduler) Run(ctx context.Context) error {
 	c.log.Infof("Sync All(%d) nodes success", len(nodes))
 	// 获取所有的pipeline
 	listCount := 0
-	ps, err := c.lister.ListPipelineTask(ctx, nil)
+	pt, err := c.lister.ListPipelineTask(ctx, nil)
 	if err != nil {
 		return err
 	}
 
 	// 看看是否有需要调度的
-	for i := range ps.Items {
-		if ps.Items[i].SchedulerNodeName() == "" {
-			c.workqueue.Add(ps.Items[i])
+	for i := range pt.Items {
+		if pt.Items[i].SchedulerNodeName() == "" {
+			c.workqueue.Add(pt.Items[i])
 			listCount++
 		}
 	}
@@ -142,7 +142,7 @@ func (c *PipelineScheduler) Run(ctx context.Context) error {
 // runWorker is a long-running function that will continually call the
 // processNextWorkItem function in order to read and process a message on the
 // workqueue.
-func (c *PipelineScheduler) runWorker(name string) {
+func (c *PipelineTaskScheduler) runWorker(name string) {
 	isRunning, ok := c.runningWorkers[name]
 	if ok && isRunning {
 		c.log.Warnf("worker %s has running", name)
@@ -165,7 +165,7 @@ func (c *PipelineScheduler) runWorker(name string) {
 
 // processNextWorkItem will read a single work item off the workqueue and
 // attempt to process it, by calling the syncHandler.
-func (c *PipelineScheduler) processNextWorkItem() bool {
+func (c *PipelineTaskScheduler) processNextWorkItem() bool {
 	obj, shutdown := c.workqueue.Get()
 	if shutdown {
 		return false
@@ -213,7 +213,7 @@ func (c *PipelineScheduler) processNextWorkItem() bool {
 	return true
 }
 
-func (c *PipelineScheduler) runningWorkerNames() string {
+func (c *PipelineTaskScheduler) runningWorkerNames() string {
 	c.wLock.Lock()
 	defer c.wLock.Unlock()
 	kList := make([]string, 0, len(c.runningWorkers))
@@ -224,12 +224,12 @@ func (c *PipelineScheduler) runningWorkerNames() string {
 }
 
 //
-func (c *PipelineScheduler) schedulePipeline(pp *pipeline.Pipeline) error {
+func (c *PipelineTaskScheduler) schedulePipeline(pp *pipeline.Pipeline) error {
 	return nil
 }
 
 // 单步调度
-func (c *PipelineScheduler) scheduleStep(step *pipeline.Step) error {
+func (c *PipelineTaskScheduler) scheduleStep(step *pipeline.Step) error {
 	node, err := c.picker.Pick(step)
 	if err != nil {
 		return err
