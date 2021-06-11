@@ -38,11 +38,13 @@ func NewPipelineScheduler(
 		AddFunc:    controller.addNode,
 		DeleteFunc: controller.delNode,
 	})
-	inform.Watcher().AddPipelineEventHandler(informer.PipelineEventHandlerFuncs{
-		AddFunc: controller.addPipeline,
+	inform.Watcher().AddPipelineTaskEventHandler(informer.PipelineTaskEventHandlerFuncs{
+		AddFunc: controller.addPipelineTask,
 	})
 	inform.Watcher().AddStepEventHandler(informer.StepEventHandlerFuncs{
-		AddFunc: controller.addStep,
+		AddFunc:    controller.addStep,
+		UpdateFunc: controller.updateStep,
+		DeleteFunc: controller.deleteStep,
 	})
 
 	picker, err := roundrobin.NewPicker(nodeStore)
@@ -96,14 +98,14 @@ func (c *PipelineScheduler) Run(ctx context.Context) error {
 	c.log.Infof("Sync All(%d) nodes success", len(nodes))
 	// 获取所有的pipeline
 	listCount := 0
-	ps, err := c.lister.ListPipeline(ctx, nil)
+	ps, err := c.lister.ListPipelineTask(ctx, nil)
 	if err != nil {
 		return err
 	}
 
 	// 看看是否有需要调度的
 	for i := range ps.Items {
-		if ps.Items[i].ScheduledNodeName() == "" {
+		if ps.Items[i].SchedulerNodeName() == "" {
 			c.workqueue.Add(ps.Items[i])
 			listCount++
 		}
@@ -221,10 +223,12 @@ func (c *PipelineScheduler) runningWorkerNames() string {
 	return strings.Join(kList, ",")
 }
 
+//
 func (c *PipelineScheduler) schedulePipeline(pp *pipeline.Pipeline) error {
 	return nil
 }
 
+// 单步调度
 func (c *PipelineScheduler) scheduleStep(step *pipeline.Step) error {
 	node, err := c.picker.Pick(step)
 	if err != nil {

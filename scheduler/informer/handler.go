@@ -3,6 +3,7 @@ package informer
 import (
 	"github.com/infraboard/workflow/api/pkg/node"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/api/pkg/task"
 )
 
 // NodeEventHandler can handle notifications for events that happen to a
@@ -69,37 +70,37 @@ func (r NodeEventHandlerFuncs) OnDelete(obj *node.Node) {
 //      it will get an object of type DeletedFinalStateUnknown. This can
 //      happen if the watch is closed and misses the delete event and we don't
 //      notice the deletion until the subsequent re-list.
-type PipelineEventHandler interface {
-	OnAdd(obj *pipeline.Pipeline)
-	OnUpdate(old, new *pipeline.Pipeline)
-	OnDelete(obj *pipeline.Pipeline)
+type PipelineTaskEventHandler interface {
+	OnAdd(obj *task.PipelineTask)
+	OnUpdate(old, new *task.PipelineTask)
+	OnDelete(obj *task.PipelineTask)
 }
 
 // PipelineEventHandlerFuncs is an adaptor to let you easily specify as many or
 // as few of the notification functions as you want while still implementing
 // ResourceEventHandler.
-type PipelineEventHandlerFuncs struct {
-	AddFunc    func(obj *pipeline.Pipeline)
-	UpdateFunc func(oldObj, newObj *pipeline.Pipeline)
-	DeleteFunc func(obj *pipeline.Pipeline)
+type PipelineTaskEventHandlerFuncs struct {
+	AddFunc    func(obj *task.PipelineTask)
+	UpdateFunc func(oldObj, newObj *task.PipelineTask)
+	DeleteFunc func(obj *task.PipelineTask)
 }
 
 // OnAdd calls AddFunc if it's not nil.
-func (r PipelineEventHandlerFuncs) OnAdd(obj *pipeline.Pipeline) {
+func (r PipelineTaskEventHandlerFuncs) OnAdd(obj *task.PipelineTask) {
 	if r.AddFunc != nil {
 		r.AddFunc(obj)
 	}
 }
 
 // OnUpdate calls UpdateFunc if it's not nil.
-func (r PipelineEventHandlerFuncs) OnUpdate(oldObj, newObj *pipeline.Pipeline) {
+func (r PipelineTaskEventHandlerFuncs) OnUpdate(oldObj, newObj *task.PipelineTask) {
 	if r.UpdateFunc != nil {
 		r.UpdateFunc(oldObj, newObj)
 	}
 }
 
 // OnDelete calls DeleteFunc if it's not nil.
-func (r PipelineEventHandlerFuncs) OnDelete(obj *pipeline.Pipeline) {
+func (r PipelineTaskEventHandlerFuncs) OnDelete(obj *task.PipelineTask) {
 	if r.DeleteFunc != nil {
 		r.DeleteFunc(obj)
 	}

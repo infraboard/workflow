@@ -11,6 +11,6 @@ type Watcher interface {
 	// period.  Events to a single handler are delivered sequentially, but there is no coordination
 	// between different handlers.
 	AddNodeEventHandler(handler NodeEventHandler)
-	AddPipelineEventHandler(handler PipelineEventHandler)
+	AddPipelineTaskEventHandler(handler PipelineTaskEventHandler)
 	AddStepEventHandler(handler StepEventHandler)
 }
