@@ -11,9 +11,8 @@ require (
 	github.com/infraboard/mcube v1.0.5
 	github.com/infraboard/protoc-gen-go-ext v0.0.2
 	github.com/spf13/cobra v1.1.3
-	go.etcd.io/etcd v3.3.25+incompatible
-	go.etcd.io/etcd/api/v3 v3.5.0-beta.3
-	go.etcd.io/etcd/client/pkg/v3 v3.5.0-beta.3 // indirect
+	go.etcd.io/etcd/api/v3 v3.5.0-beta.4
+	go.etcd.io/etcd/client/v3 v3.5.0-beta.4
 	go.mongodb.org/mongo-driver v1.5.2
 	google.golang.org/grpc v1.38.0
 	google.golang.org/protobuf v1.26.0

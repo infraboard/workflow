@@ -11,10 +11,10 @@ import (
 )
 
 // 添加节点后, 需要延迟扫描, 从新调度未调度的Pipeline
-func (c *PipelineScheduler) addNode(n *node.Node) {
+func (c *PipelineTaskScheduler) addNode(n *node.Node) {
 	c.nodes.AddNode(n)
 }
-func (c *PipelineScheduler) delNode(n *node.Node) {
+func (c *PipelineTaskScheduler) delNode(n *node.Node) {
 	c.nodes.DelNode(n)
 
 	// 1. 获取该节点上所有pipeline
@@ -31,17 +31,25 @@ func (c *PipelineScheduler) delNode(n *node.Node) {
 	}
 }
 
-//
-func (c *PipelineScheduler) addPipelineTask(p *task.PipelineTask) {
-	c.log.Infof("receive add object: %s", p)
-	if err := p.Validate(); err != nil {
+// 每添加一个pipeline task
+func (c *PipelineTaskScheduler) addPipelineTask(t *task.PipelineTask) {
+	c.log.Infof("receive add object: %s", t)
+	if err := t.Validate(); err != nil {
 		c.log.Errorf("invalidate node error, %s", err)
 		return
 	}
 
+	// 已经被处理的task无效再处理
+	if t.SchedulerNodeName() != "" {
+		c.log.Infof("pipeline task %s has scheduler node: %s", t.SchedulerNodeName())
+		return
+	}
+
+	// TODO: 使用分布式锁处理多个实例竞争调度问题
+
 }
 
-func (c *PipelineScheduler) addStep(s *pipeline.Step) {
+func (c *PipelineTaskScheduler) addStep(s *pipeline.Step) {
 	c.log.Infof("receive add object: %s", s)
 	if err := s.Validate(); err != nil {
 		c.log.Errorf("invalidate node error, %s", err)
@@ -49,12 +57,12 @@ func (c *PipelineScheduler) addStep(s *pipeline.Step) {
 	}
 
 	// 未调度的交给调度
-	if len(s.ScheduledNodeName()) == 0 {
+	if s.ScheduledNodeName() == "" {
 		c.workqueue.AddRateLimited(s)
 	}
 }
 
-func (c *PipelineScheduler) deleteStep(p *pipeline.Step) {
+func (c *PipelineTaskScheduler) deleteStep(p *pipeline.Step) {
 	c.log.Infof("receive add object: %s", p)
 	if err := p.Validate(); err != nil {
 		c.log.Errorf("invalidate node error, %s", err)
@@ -64,6 +72,6 @@ func (c *PipelineScheduler) deleteStep(p *pipeline.Step) {
 	// 未调度的交给调度
 }
 
-func (c *PipelineScheduler) updateStep(oldObj, newObj *pipeline.Step) {
+func (c *PipelineTaskScheduler) updateStep(oldObj, newObj *pipeline.Step) {
 
 }

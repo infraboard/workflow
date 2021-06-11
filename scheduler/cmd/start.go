@@ -78,7 +78,7 @@ var serviceCmd = &cobra.Command{
 
 type service struct {
 	info informer.Informer
-	pc   *controller.PipelineScheduler
+	pc   *controller.PipelineTaskScheduler
 	hb   <-chan node.HeatbeatResonse
 	log  logger.Logger
 	stop context.CancelFunc
@@ -93,7 +93,7 @@ func newService(cnf *conf.Config) (*service, error) {
 
 	// Controller 实例
 	nodeStore := store.NewDeaultNodeStore()
-	ctl := controller.NewPipelineScheduler(nodeStore, info)
+	ctl := controller.NewPipelineTaskScheduler(nodeStore, info)
 	ctl.Debug(zap.L().Named("Pipeline"))
 	svr := &service{
 		info: info,
