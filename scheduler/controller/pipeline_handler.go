@@ -31,6 +31,7 @@ func (c *PipelineScheduler) delNode(n *node.Node) {
 	}
 }
 
+//
 func (c *PipelineScheduler) addPipelineTask(p *task.PipelineTask) {
 	c.log.Infof("receive add object: %s", p)
 	if err := p.Validate(); err != nil {

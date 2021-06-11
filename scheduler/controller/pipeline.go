@@ -13,6 +13,7 @@ import (
 	"k8s.io/client-go/util/workqueue"
 
 	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/api/pkg/task"
 	"github.com/infraboard/workflow/scheduler/algorithm"
 	"github.com/infraboard/workflow/scheduler/algorithm/roundrobin"
 	"github.com/infraboard/workflow/scheduler/informer"
@@ -181,9 +182,9 @@ func (c *PipelineScheduler) processNextWorkItem() bool {
 		// period.
 		defer c.workqueue.Done(obj)
 		switch v := obj.(type) {
-		case *pipeline.Pipeline:
+		case *task.PipelineTask:
 			c.log.Debugf("wait schedule pipeline: %s", v.GetId())
-			if err := c.schedulePipeline(v); err != nil {
+			if err := c.schedulePipelineTask(v); err != nil {
 				return fmt.Errorf("error scheduled '%s': %s", v, err.Error())
 			}
 		case *pipeline.Step:
@@ -224,7 +225,7 @@ func (c *PipelineScheduler) runningWorkerNames() string {
 }
 
 //
-func (c *PipelineScheduler) schedulePipeline(pp *pipeline.Pipeline) error {
+func (c *PipelineScheduler) schedulePipelineTask(t *task.PipelineTask) error {
 	return nil
 }
 
