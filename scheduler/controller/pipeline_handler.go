@@ -45,8 +45,16 @@ func (c *PipelineTaskScheduler) addPipelineTask(t *task.PipelineTask) {
 		return
 	}
 
-	// TODO: 使用分布式锁处理多个实例竞争调度问题
+	// TODO: 使用分布式锁trylock处 理多个实例竞争调度问题
 
+	// 1. 任务调用
+	for i := range t.Pipeline.Stages {
+		stage := t.Pipeline.Stages[i]
+		c.log.Debugf("start deal step:", stage.Id)
+		if stage.HasNextStep() {
+			stage.NextSteps()
+		}
+	}
 }
 
 func (c *PipelineTaskScheduler) addStep(s *pipeline.Step) {

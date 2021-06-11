@@ -35,6 +35,38 @@ func (p *Pipeline) EtcdObjectKey(prefix string) string {
 	return fmt.Sprintf("%s/%s", prefix, p.Id)
 }
 
+func (s *Stage) StepCount() int {
+	return len(s.Steps)
+}
+
+func (s *Stage) HasNextStep() bool {
+	if s.StepCount() == 0 {
+		return false
+	}
+
+	return s.Steps[s.StepCount()-1].HasScheduled()
+}
+
+// 因为可能包含并行任务, 下一次执行的任务可能是多个
+func (s *Stage) NextSteps() (nextSteps []*Step) {
+	for i := range s.Steps {
+		step := s.Steps[i]
+
+		// 已经调度的Step不计入下一次调度范围
+		if step.HasScheduled() {
+			continue
+		}
+
+		nextSteps = append(nextSteps, step)
+
+		// 遇到串行执行的step结束step
+		if !step.IsParallel {
+			return
+		}
+	}
+	return
+}
+
 // LoadStepFromBytes 解析etcd 的step数据
 func LoadStepFromBytes(value []byte) (*Step, error) {
 	step := NewDefaultStep()
@@ -72,4 +104,8 @@ func (s *Step) AddScheduleNode(nodeName string) {
 
 func (s *Step) ScheduledNodeName() string {
 	return ""
+}
+
+func (s *Step) HasScheduled() bool {
+	return s.ScheduledNodeName() != ""
 }
