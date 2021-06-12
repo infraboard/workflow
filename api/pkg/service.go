@@ -7,11 +7,15 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/infraboard/workflow/api/pkg/application"
+	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/api/pkg/task"
 )
 
 var (
 	// Example 服务
 	Application application.ServiceServer
+	Pipeline    pipeline.ServiceServer
+	Task        task.ServiceServer
 )
 
 var (
@@ -67,6 +71,18 @@ func RegistryService(name string, svr Service) {
 			registryError(name)
 		}
 		Application = value
+		addService(name, svr)
+	case pipeline.ServiceServer:
+		if Pipeline != nil {
+			registryError(name)
+		}
+		Pipeline = value
+		addService(name, svr)
+	case task.ServiceServer:
+		if Task != nil {
+			registryError(name)
+		}
+		Task = value
 		addService(name, svr)
 	default:
 		fmt.Println(value)
