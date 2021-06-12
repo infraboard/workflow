@@ -97,7 +97,7 @@ func (i *shared) watchAll(ctx context.Context) {
 
 	stepWatchKey := pipeline.EtcdStepPrefix(i.prefix)
 	i.stepWatchChan = i.client.Watch(ctx, stepWatchKey, clientv3.WithPrefix())
-	i.log.Infof("watch etcd pipeline resource key: %s", stepWatchKey)
+	i.log.Infof("watch etcd step resource key: %s", stepWatchKey)
 }
 
 func (i *shared) notifyNode(event *clientv3.Event, eventVersion int64) error {
