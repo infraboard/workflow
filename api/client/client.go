@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/infraboard/workflow/api/pkg/application"
+	"github.com/infraboard/workflow/api/pkg/pipeline"
 )
 
 var (
@@ -46,6 +47,11 @@ type Client struct {
 }
 
 // Example todo
-func (c *Client) Example() application.ServiceClient {
+func (c *Client) Application() application.ServiceClient {
 	return application.NewServiceClient(c.conn)
+}
+
+// Example todo
+func (c *Client) Pipeline() pipeline.ServiceClient {
+	return pipeline.NewServiceClient(c.conn)
 }

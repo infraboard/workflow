@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/infraboard/mcube/http/request"
 	"github.com/infraboard/mcube/types/ftime"
 	"github.com/rs/xid"
 )
@@ -14,8 +15,35 @@ var (
 	validate = validator.New()
 )
 
+func NewCreatePipelineRequest() *CreatePipelineRequest {
+	return &CreatePipelineRequest{}
+}
+
+// NewQueryPipelineRequest 查询book列表
+func NewQueryPipelineRequest(page *request.PageRequest) *QueryPipelineRequest {
+	return &QueryPipelineRequest{
+		Page: &page.PageRequest,
+	}
+}
+
 func (req *CreatePipelineRequest) Validate() error {
 	return validate.Struct(req)
+}
+
+func LoadPipelineFromBytes(payload []byte) (*Pipeline, error) {
+	ins := NewDefaultPipeline()
+
+	// 解析Value
+	if err := json.Unmarshal(payload, ins); err != nil {
+		return nil, fmt.Errorf("unmarshal step error, vaule(%s) %s", string(payload), err)
+	}
+
+	// 校验合法性
+	if err := ins.Validate(); err != nil {
+		return nil, err
+	}
+
+	return ins, nil
 }
 
 func NewDefaultPipeline() *Pipeline {

@@ -28,6 +28,7 @@ var (
 // InitV1GRPCAPI 初始化GRPC服务
 func InitV1GRPCAPI(server *grpc.Server) {
 	application.RegisterServiceServer(server, Application)
+	pipeline.RegisterServiceServer(server, Pipeline)
 	return
 }
 

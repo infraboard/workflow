@@ -230,6 +230,14 @@ func (e *Etcd) Validate() error {
 	return nil
 }
 
+func (e *Etcd) GetClient() *clientv3.Client {
+	if etcdClient == nil {
+		panic("please load etcd client first")
+	}
+
+	return etcdClient
+}
+
 func (e *Etcd) getClient() (*clientv3.Client, error) {
 	client, err := clientv3.New(clientv3.Config{
 		Endpoints:   e.Endpoints,

@@ -46,7 +46,7 @@ var serviceCmd = &cobra.Command{
 
 		// 启动服务
 		ch := make(chan os.Signal, 1)
-		signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGKILL, syscall.SIGHUP, syscall.SIGQUIT)
+		signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGHUP, syscall.SIGQUIT)
 
 		// 初始化服务
 		svr, err := newService(cfg)
@@ -55,7 +55,7 @@ var serviceCmd = &cobra.Command{
 		}
 
 		// 注册服务
-		r, err := etcd_register.NewEtcdRegister(cfg.Etcd.Endpoints, cfg.Etcd.UserName, cfg.Etcd.Password)
+		r, err := etcd_register.NewEtcdRegister()
 		if err != nil {
 			svr.log.Warn(err)
 		}
