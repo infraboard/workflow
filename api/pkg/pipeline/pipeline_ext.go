@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/infraboard/mcube/types/ftime"
+	"github.com/rs/xid"
 )
 
 // use a single instance of Validate, it caches struct info
@@ -12,12 +14,33 @@ var (
 	validate = validator.New()
 )
 
-func (p *Pipeline) Validate() error {
-	return validate.Struct(p)
+func (req *CreatePipelineRequest) Validate() error {
+	return validate.Struct(req)
 }
 
 func NewDefaultPipeline() *Pipeline {
 	return &Pipeline{}
+}
+
+func NewPipeline(req *CreatePipelineRequest) (*Pipeline, error) {
+	if err := req.Validate(); err != nil {
+		return nil, err
+	}
+
+	p := &Pipeline{
+		Id:          xid.New().String(),
+		CreateAt:    ftime.Now().Timestamp(),
+		Name:        req.Name,
+		Tags:        req.Tags,
+		Description: req.Description,
+		On:          req.On,
+		Stages:      req.Stages,
+	}
+	return p, nil
+}
+
+func (p *Pipeline) Validate() error {
+	return validate.Struct(p)
 }
 
 // NewPipelineSet todo

@@ -2,7 +2,6 @@ package conf
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"time"
 
@@ -10,13 +9,14 @@ import (
 
 	"github.com/infraboard/mcube/cache/memory"
 	"github.com/infraboard/mcube/cache/redis"
+	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var (
-	db        *sql.DB
-	mgoclient *mongo.Client
+	mgoClient  *mongo.Client
+	etcdClient *clientv3.Client
 )
 
 func newConfig() *Config {
@@ -157,11 +157,11 @@ type mongodb struct {
 
 // Client 获取一个全局的mongodb客户端连接
 func (m *mongodb) Client() *mongo.Client {
-	if mgoclient == nil {
+	if mgoClient == nil {
 		panic("please load mongo client first")
 	}
 
-	return mgoclient
+	return mgoClient
 }
 
 func (m *mongodb) GetDB() *mongo.Database {
@@ -228,4 +228,18 @@ func (e *Etcd) Validate() error {
 		return fmt.Errorf("etcd enpoints not config")
 	}
 	return nil
+}
+
+func (e *Etcd) getClient() (*clientv3.Client, error) {
+	client, err := clientv3.New(clientv3.Config{
+		Endpoints:   e.Endpoints,
+		DialTimeout: time.Duration(5) * time.Second,
+		Username:    e.UserName,
+		Password:    e.Password,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("connect etcd error, %s", err)
+	}
+
+	return client, nil
 }

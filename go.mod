@@ -10,6 +10,7 @@ require (
 	github.com/infraboard/keyauth v0.3.1
 	github.com/infraboard/mcube v1.0.5
 	github.com/infraboard/protoc-gen-go-ext v0.0.2
+	github.com/rs/xid v1.3.0
 	github.com/spf13/cobra v1.1.3
 	go.etcd.io/etcd/api/v3 v3.5.0-beta.4
 	go.etcd.io/etcd/client/v3 v3.5.0-beta.4

@@ -17,12 +17,26 @@ func C() *Config {
 	return global
 }
 
+func initGloabalInstance(cfg *Config) error {
+	c, err := cfg.Etcd.getClient()
+	if err != nil {
+		return err
+	}
+	etcdClient = c
+	return nil
+}
+
 // LoadConfigFromToml 从toml中添加配置文件, 并初始化全局对象
 func LoadConfigFromToml(filePath string) error {
 	cfg := newConfig()
 	if _, err := toml.DecodeFile(filePath, cfg); err != nil {
 		return err
 	}
+
+	if err := initGloabalInstance(cfg); err != nil {
+		return err
+	}
+
 	// 加载全局配置单例
 	global = cfg
 	return nil
@@ -34,6 +48,11 @@ func LoadConfigFromEnv() error {
 	if err := env.Parse(cfg); err != nil {
 		return err
 	}
+
+	if err := initGloabalInstance(cfg); err != nil {
+		return err
+	}
+
 	// 加载全局配置单例
 	global = cfg
 	return nil
