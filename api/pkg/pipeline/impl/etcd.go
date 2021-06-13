@@ -7,7 +7,6 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 
 	"github.com/infraboard/workflow/api/pkg"
-	"github.com/infraboard/workflow/api/pkg/application"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/conf"
 )
@@ -41,7 +40,7 @@ func (s *impl) Config() error {
 
 // HttpEntry todo
 func (s *impl) HTTPEntry() *http.EntrySet {
-	return application.HttpEntry()
+	return pipeline.HttpEntry()
 }
 
 func (e *impl) Debug(log logger.Logger) {

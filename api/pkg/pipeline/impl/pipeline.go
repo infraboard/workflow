@@ -28,6 +28,7 @@ func (i *impl) CreatePipeline(ctx context.Context, req *pipeline.CreatePipelineR
 	if _, err := i.client.Put(context.Background(), objKey, objValue); err != nil {
 		return nil, fmt.Errorf("put pipeline with key: %s, error, %s", objKey, err.Error())
 	}
+	i.log.Debugf("create pipeline success, key: %s", objKey)
 	return p, nil
 }
 
