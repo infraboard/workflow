@@ -3,7 +3,7 @@ syntax = "proto3";
 package workflow.pipeline;
 option go_package = "github.com/infraboard/workflow/api/pkg/pipeline";
 
-import "github.com/infraboard/protoc-gen-go-ext/extension/tag/tag.proto";
+import "github.com/infraboard/mcube/cmd/protoc-gen-go-ext/extension/tag/tag.proto";
 import "github.com/infraboard/mcube/pb/http/entry.proto";
 import "github.com/infraboard/mcube/pb/page/page.proto";
 
@@ -56,6 +56,7 @@ service Service {
 			resource: "pipeline"
 			auth_enable: true
 			permission_enable: true
+			required_namespace: true
 			labels: [{
 				key: "action"
 				value: "create"
@@ -277,7 +278,7 @@ message PipelineSet {
 message CreatePipelineRequest {
     // 名称
     string name = 1[
-        (google.protobuf.field_tag) = {struct_tag: 'json:"name"'}
+        (google.protobuf.field_tag) = {struct_tag: 'json:"name" validate:"required"'}
         ];
 	// 标签
 	map<string, string> tags = 2[

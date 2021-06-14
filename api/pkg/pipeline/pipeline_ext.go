@@ -83,7 +83,7 @@ func (s *PipelineSet) Add(item *Pipeline) {
 }
 
 func (p *Pipeline) EtcdObjectKey(prefix string) string {
-	return fmt.Sprintf("%s/%s", EtcdPipelinePrefix(prefix), p.Id)
+	return fmt.Sprintf("%s/%s/%s", EtcdPipelinePrefix(prefix), p.Namespace, p.Id)
 }
 
 func (s *Stage) StepCount() int {

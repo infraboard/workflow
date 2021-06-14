@@ -3,7 +3,7 @@ syntax = "proto3";
 package workflow.task;
 option go_package = "github.com/infraboard/workflow/api/pkg/task";
 
-import "github.com/infraboard/protoc-gen-go-ext/extension/tag/tag.proto";
+import "github.com/infraboard/mcube/cmd/protoc-gen-go-ext/extension/tag/tag.proto";
 import "github.com/infraboard/mcube/pb/http/entry.proto";
 import "github.com/infraboard/mcube/pb/page/page.proto";
 import "api/pkg/pipeline/pb/pipeline.proto";

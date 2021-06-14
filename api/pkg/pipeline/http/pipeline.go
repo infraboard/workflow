@@ -20,6 +20,10 @@ func (h *handler) CreatePipeline(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req := pipeline.NewCreatePipelineRequest()
+	if err := request.GetDataFromRequest(r, req); err != nil {
+		response.Failed(w, err)
+		return
+	}
 
 	var header, trailer metadata.MD
 	ins, err := h.service.CreatePipeline(

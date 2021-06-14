@@ -5,17 +5,27 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/infraboard/mcube/grpc/gcontext"
+	"github.com/infraboard/workflow/api/pkg"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 func (i *impl) CreatePipeline(ctx context.Context, req *pipeline.CreatePipelineRequest) (
 	*pipeline.Pipeline, error) {
+	in, err := gcontext.GetGrpcInCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	tk := pkg.S().GetToken(in.GetRequestID())
 
 	p, err := pipeline.NewPipeline(req)
 	if err != nil {
 		return nil, err
 	}
+	p.CreateBy = tk.Account
+	p.Domain = tk.Domain
+	p.Namespace = tk.Namespace
 
 	value, err := json.Marshal(p)
 	if err != nil {
