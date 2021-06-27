@@ -20,6 +20,8 @@ const _ = grpc.SupportPackageIsVersion7
 type ServiceClient interface {
 	CreatePipeline(ctx context.Context, in *CreatePipelineRequest, opts ...grpc.CallOption) (*Pipeline, error)
 	QueryPipeline(ctx context.Context, in *QueryPipelineRequest, opts ...grpc.CallOption) (*PipelineSet, error)
+	DescribePipeline(ctx context.Context, in *DescribePipelineRequest, opts ...grpc.CallOption) (*Pipeline, error)
+	DeletePipeline(ctx context.Context, in *DeletePipelineRequest, opts ...grpc.CallOption) (*Pipeline, error)
 	CreateAction(ctx context.Context, in *CreateActionRequest, opts ...grpc.CallOption) (*Action, error)
 	QueryAction(ctx context.Context, in *QueryActionRequest, opts ...grpc.CallOption) (*ActionSet, error)
 }
@@ -50,6 +52,24 @@ func (c *serviceClient) QueryPipeline(ctx context.Context, in *QueryPipelineRequ
 	return out, nil
 }
 
+func (c *serviceClient) DescribePipeline(ctx context.Context, in *DescribePipelineRequest, opts ...grpc.CallOption) (*Pipeline, error) {
+	out := new(Pipeline)
+	err := c.cc.Invoke(ctx, "/workflow.pipeline.Service/DescribePipeline", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) DeletePipeline(ctx context.Context, in *DeletePipelineRequest, opts ...grpc.CallOption) (*Pipeline, error) {
+	out := new(Pipeline)
+	err := c.cc.Invoke(ctx, "/workflow.pipeline.Service/DeletePipeline", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *serviceClient) CreateAction(ctx context.Context, in *CreateActionRequest, opts ...grpc.CallOption) (*Action, error) {
 	out := new(Action)
 	err := c.cc.Invoke(ctx, "/workflow.pipeline.Service/CreateAction", in, out, opts...)
@@ -74,6 +94,8 @@ func (c *serviceClient) QueryAction(ctx context.Context, in *QueryActionRequest,
 type ServiceServer interface {
 	CreatePipeline(context.Context, *CreatePipelineRequest) (*Pipeline, error)
 	QueryPipeline(context.Context, *QueryPipelineRequest) (*PipelineSet, error)
+	DescribePipeline(context.Context, *DescribePipelineRequest) (*Pipeline, error)
+	DeletePipeline(context.Context, *DeletePipelineRequest) (*Pipeline, error)
 	CreateAction(context.Context, *CreateActionRequest) (*Action, error)
 	QueryAction(context.Context, *QueryActionRequest) (*ActionSet, error)
 	mustEmbedUnimplementedServiceServer()
@@ -88,6 +110,12 @@ func (UnimplementedServiceServer) CreatePipeline(context.Context, *CreatePipelin
 }
 func (UnimplementedServiceServer) QueryPipeline(context.Context, *QueryPipelineRequest) (*PipelineSet, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method QueryPipeline not implemented")
+}
+func (UnimplementedServiceServer) DescribePipeline(context.Context, *DescribePipelineRequest) (*Pipeline, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DescribePipeline not implemented")
+}
+func (UnimplementedServiceServer) DeletePipeline(context.Context, *DeletePipelineRequest) (*Pipeline, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePipeline not implemented")
 }
 func (UnimplementedServiceServer) CreateAction(context.Context, *CreateActionRequest) (*Action, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateAction not implemented")
@@ -144,6 +172,42 @@ func _Service_QueryPipeline_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Service_DescribePipeline_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DescribePipelineRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).DescribePipeline(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/workflow.pipeline.Service/DescribePipeline",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).DescribePipeline(ctx, req.(*DescribePipelineRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_DeletePipeline_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePipelineRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).DeletePipeline(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/workflow.pipeline.Service/DeletePipeline",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).DeletePipeline(ctx, req.(*DeletePipelineRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Service_CreateAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateActionRequest)
 	if err := dec(in); err != nil {
@@ -194,6 +258,14 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "QueryPipeline",
 			Handler:    _Service_QueryPipeline_Handler,
+		},
+		{
+			MethodName: "DescribePipeline",
+			Handler:    _Service_DescribePipeline_Handler,
+		},
+		{
+			MethodName: "DeletePipeline",
+			Handler:    _Service_DeletePipeline_Handler,
 		},
 		{
 			MethodName: "CreateAction",

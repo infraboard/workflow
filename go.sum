@@ -440,8 +440,8 @@ github.com/imdario/mergo v0.3.5/go.mod h1:2EnlNZ0deacrJVfApfmtdGgDfMuh/nq6Ok1EcJ
 github.com/imdario/mergo v0.3.6/go.mod h1:2EnlNZ0deacrJVfApfmtdGgDfMuh/nq6Ok1EcJh5FfA=
 github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NHg9XEKhtSvM=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
-github.com/infraboard/keyauth v0.3.9 h1:uTfvXcajzzukPOrhnNoZpsCADNIDr6WFf3NrGuazpaU=
-github.com/infraboard/keyauth v0.3.9/go.mod h1:GI7yrqIxVGt051ioTnTDsSygr5om7LRsZgfLDNhh8Fs=
+github.com/infraboard/keyauth v0.4.1 h1:W0fJbt3bdCCDty7yCRDe+4SMvohjaiEisucnokbiJIU=
+github.com/infraboard/keyauth v0.4.1/go.mod h1:GI7yrqIxVGt051ioTnTDsSygr5om7LRsZgfLDNhh8Fs=
 github.com/infraboard/mcube v1.2.1 h1:f+28rbMNDZy/Z0jfH44bn+MM7ICtp5BsSoo2GdE35o0=
 github.com/infraboard/mcube v1.2.1/go.mod h1:MoweXyplhn6YpLO4Yh9ufFHFO+u5a29xfFj2wVWZouc=
 github.com/jcmturner/gofork v1.0.0/go.mod h1:MK8+TM0La+2rjBD4jE12Kj1pCCxK7d2LK/UM3ncEo0o=

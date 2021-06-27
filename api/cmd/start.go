@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"github.com/infraboard/keyauth/client"
+	"github.com/infraboard/keyauth/client/session"
 	"github.com/infraboard/mcube/cache"
 	"github.com/infraboard/mcube/cache/memory"
 	"github.com/infraboard/mcube/cache/redis"
@@ -88,15 +89,17 @@ func newService(cnf *conf.Config) (*service, error) {
 		return nil, err
 	}
 
-	// grpc开启权限检查
-	// auther := client.NewGrpcKeyauthAuther(pkg.GetPathEntry, cli)
-	// auther.SetLogger(zap.L().Named("GRPC Auther"))
-	// pkg.SetSessionGetter(auther)
-	grpc := protocol.NewGRPCService()
+	// grpc开启权限检查, 校验凭证合法性
+	grpcAuther := client.NewGrpcKeyauthAuther(pkg.GetPathEntry, cli)
+	grpcAuther.SetLogger(zap.L().Named("GRPC Auther"))
+	session.SetSessionGetter(grpcAuther)
 
-	// http层开启权限检查
-	auther := client.NewHTTPAuther(cli)
-	http := protocol.NewHTTPService(auther)
+	// http开启权限检查, 校验权限合法性
+	httpAuther := client.NewHTTPAuther(cli)
+	grpcAuther.SetLogger(zap.L().Named("HTTP Auther"))
+
+	grpc := protocol.NewGRPCService(grpcAuther.AuthUnaryServerInterceptor())
+	http := protocol.NewHTTPService(httpAuther)
 
 	svr := &service{
 		grpc: grpc,

@@ -195,3 +195,17 @@ func (s *Step) HasScheduled() bool {
 func (s *Step) BuildKey(pipelineId string, stage int32) {
 	s.Key = fmt.Sprintf("%s.%d.%d", pipelineId, stage, s.Id)
 }
+
+// NewQueryPipelineRequest 查询book列表
+func NewDescribePipelineRequestWithID(id string) *DescribePipelineRequest {
+	return &DescribePipelineRequest{
+		Id: id,
+	}
+}
+
+// NewDeletePipelineRequestWithID 查询book列表
+func NewDeletePipelineRequestWithID(id string) *DeletePipelineRequest {
+	return &DeletePipelineRequest{
+		Id: id,
+	}
+}

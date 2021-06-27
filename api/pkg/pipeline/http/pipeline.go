@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/infraboard/mcube/grpc/gcontext"
+	"github.com/infraboard/mcube/http/context"
 	"github.com/infraboard/mcube/http/request"
 	"github.com/infraboard/mcube/http/response"
 	"google.golang.org/grpc"
@@ -37,7 +38,6 @@ func (h *handler) CreatePipeline(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response.Success(w, ins)
-	return
 }
 
 func (h *handler) QueryPipeline(w http.ResponseWriter, r *http.Request) {
@@ -62,5 +62,52 @@ func (h *handler) QueryPipeline(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response.Success(w, dommains)
-	return
+}
+
+func (h *handler) DescribePipeline(w http.ResponseWriter, r *http.Request) {
+	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
+	if err != nil {
+		response.Failed(w, err)
+		return
+	}
+
+	hc := context.GetContext(r)
+	req := pipeline.NewDescribePipelineRequestWithID(hc.PS.ByName("id"))
+
+	var header, trailer metadata.MD
+	dommains, err := h.service.DescribePipeline(
+		ctx.Context(),
+		req,
+		grpc.Header(&header),
+		grpc.Trailer(&trailer),
+	)
+	if err != nil {
+		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		return
+	}
+	response.Success(w, dommains)
+}
+
+func (h *handler) DeletePipeline(w http.ResponseWriter, r *http.Request) {
+	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
+	if err != nil {
+		response.Failed(w, err)
+		return
+	}
+
+	hc := context.GetContext(r)
+	req := pipeline.NewDeletePipelineRequestWithID(hc.PS.ByName("id"))
+
+	var header, trailer metadata.MD
+	dommains, err := h.service.DeletePipeline(
+		ctx.Context(),
+		req,
+		grpc.Header(&header),
+		grpc.Trailer(&trailer),
+	)
+	if err != nil {
+		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		return
+	}
+	response.Success(w, dommains)
 }

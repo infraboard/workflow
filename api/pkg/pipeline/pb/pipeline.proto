@@ -4,7 +4,6 @@ package workflow.pipeline;
 option go_package = "github.com/infraboard/workflow/api/pkg/pipeline";
 
 import "github.com/infraboard/mcube/cmd/protoc-gen-go-ext/extension/tag/tag.proto";
-import "github.com/infraboard/mcube/pb/http/entry.proto";
 import "github.com/infraboard/mcube/pb/page/page.proto";
 
 // SYSTEM_SECRET 系统秘钥
@@ -57,57 +56,12 @@ enum PIPELINE_STATUS {
 }
 
 service Service {
-	rpc CreatePipeline(CreatePipelineRequest) returns(Pipeline) {
-		option (mcube.http.rest_api) = {
-			path: "/pipelines/"
-			method: "POST"
-			resource: "pipeline"
-			auth_enable: true
-			permission_enable: true
-			required_namespace: true
-			labels: [{
-				key: "action"
-				value: "create"
-			}]
-		};
-	};
-	rpc QueryPipeline(QueryPipelineRequest) returns(PipelineSet) {
-		option (mcube.http.rest_api) = {
-			path: "/pipelines/"
-			method: "GET"
-			resource: "pipeline"
-			auth_enable: true
-			labels: [{
-				key: "action"
-				value: "list"
-			}]
-		};
-	};
-	rpc CreateAction(CreateActionRequest) returns(Action) {
-		option (mcube.http.rest_api) = {
-			path: "/actions/"
-			method: "POST"
-			resource: "action"
-			auth_enable: true
-			permission_enable: true
-			labels: [{
-				key: "action"
-				value: "create"
-			}]
-		};
-	};
-	rpc QueryAction(QueryActionRequest) returns(ActionSet) {
-		option (mcube.http.rest_api) = {
-			path: "/actions/"
-			method: "GET"
-			resource: "action"
-			auth_enable: true
-			labels: [{
-				key: "action"
-				value: "list"
-			}]
-		};
-	};
+	rpc CreatePipeline(CreatePipelineRequest) returns(Pipeline);
+	rpc QueryPipeline(QueryPipelineRequest) returns(PipelineSet);
+	rpc DescribePipeline(DescribePipelineRequest) returns(Pipeline);
+	rpc DeletePipeline(DeletePipelineRequest) returns(Pipeline);
+	rpc CreateAction(CreateActionRequest) returns(Action);
+	rpc QueryAction(QueryActionRequest) returns(ActionSet);
 }
 
 // Pipeline todo
@@ -414,4 +368,18 @@ message CreateActionRequest {
 message QueryActionRequest {
     page.PageRequest page = 1;
     string name = 2;
+}
+
+message DeletePipelineRequest {
+	// 唯一ID
+	string id = 1[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"id"'}
+		];
+}
+
+message DescribePipelineRequest {
+	// 唯一ID
+	string id = 1[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"id"'}
+		];	
 }

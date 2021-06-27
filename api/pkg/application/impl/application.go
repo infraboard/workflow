@@ -3,9 +3,9 @@ package impl
 import (
 	"context"
 
+	"github.com/infraboard/keyauth/client/session"
 	"github.com/infraboard/mcube/grpc/gcontext"
 
-	"github.com/infraboard/workflow/api/pkg"
 	"github.com/infraboard/workflow/api/pkg/application"
 )
 
@@ -15,7 +15,7 @@ func (s *service) CreateApplication(ctx context.Context, req *application.Create
 	if err != nil {
 		return nil, err
 	}
-	tk := pkg.S().GetToken(in.GetRequestID())
+	tk := session.S().GetToken(in.GetRequestID())
 	s.log.Debug(tk)
 	return application.NewApplication(req), nil
 }
