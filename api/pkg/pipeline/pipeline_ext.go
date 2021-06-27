@@ -27,6 +27,9 @@ func NewQueryPipelineRequest(page *request.PageRequest) *QueryPipelineRequest {
 }
 
 func (req *CreatePipelineRequest) Validate() error {
+	if len(req.Stages) == 0 {
+		return fmt.Errorf("no stages")
+	}
 	return validate.Struct(req)
 }
 

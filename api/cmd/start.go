@@ -87,12 +87,16 @@ func newService(cnf *conf.Config) (*service, error) {
 	if err != nil {
 		return nil, err
 	}
-	auther := client.NewGrpcKeyauthAuther(pkg.GetGrpcPathEntry, cli)
-	auther.SetLogger(zap.L().Named("GRPC Auther"))
-	pkg.SetSessionGetter(auther)
 
-	grpc := protocol.NewGRPCService(auther.AuthUnaryServerInterceptor())
-	http := protocol.NewHTTPService()
+	// grpc开启权限检查
+	// auther := client.NewGrpcKeyauthAuther(pkg.GetPathEntry, cli)
+	// auther.SetLogger(zap.L().Named("GRPC Auther"))
+	// pkg.SetSessionGetter(auther)
+	grpc := protocol.NewGRPCService()
+
+	// http层开启权限检查
+	auther := client.NewHTTPAuther(cli)
+	http := protocol.NewHTTPService(auther)
 
 	svr := &service{
 		grpc: grpc,

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/infraboard/keyauth/pkg/endpoint"
 	"github.com/infraboard/mcube/http/middleware/accesslog"
 	"github.com/infraboard/mcube/http/middleware/cors"
 	"github.com/infraboard/mcube/http/middleware/recovery"
@@ -18,15 +19,20 @@ import (
 	"github.com/infraboard/workflow/api/client"
 	"github.com/infraboard/workflow/api/pkg"
 	"github.com/infraboard/workflow/conf"
+	"github.com/infraboard/workflow/version"
 )
 
 // NewHTTPService 构建函数
-func NewHTTPService() *HTTPService {
+func NewHTTPService(auther router.Auther) *HTTPService {
 	r := httprouter.New()
 	r.Use(recovery.NewWithLogger(zap.L().Named("Recovery")))
 	r.Use(accesslog.NewWithLogger(zap.L().Named("AccessLog")))
 	r.Use(cors.AllowAll())
 	r.EnableAPIRoot()
+	r.SetAuther(auther)
+	r.Auth(true)
+	r.Permission(true)
+
 	server := &http.Server{
 		ReadHeaderTimeout: 20 * time.Second,
 		ReadTimeout:       20 * time.Second,
@@ -65,6 +71,10 @@ func (s *HTTPService) Start() error {
 	if err := pkg.InitV1HTTPAPI(s.c.App.Name, s.r); err != nil {
 		return err
 	}
+
+	// 注册路由
+	s.registryEndpoints()
+
 	// 启动HTTPS服务
 	if hc.EnableSSL {
 		// 安全的算法挑选标准依赖: https://wiki.mozilla.org/Security/Server_Side_TLS
@@ -117,6 +127,27 @@ func (s *HTTPService) Stop() error {
 		s.l.Errorf("graceful shutdown timeout, force exit")
 	}
 	return nil
+}
+
+// registryEndpoints 注册条目
+func (s *HTTPService) registryEndpoints() error {
+	// 注册服务权限条目
+	s.l.Info("start registry endpoints ...")
+
+	kc, err := s.c.Keyauth.Client()
+	if err != nil {
+		return err
+	}
+
+	req := endpoint.NewRegistryRequest(version.Short(), s.r.GetEndpoints().UniquePathEntry())
+
+	_, err = kc.Endpoint().Registry(context.Background(), req)
+	if err != nil {
+		s.l.Warnf("registry endpoints error, %s", err)
+	} else {
+		s.l.Debug("service endpoints registry success")
+	}
+	return err
 }
 
 // InitGRPCClient 初始化grpc客户端
