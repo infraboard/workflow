@@ -98,3 +98,48 @@ func (t *STEP_STATUS) UnmarshalJSON(b []byte) error {
 	*t = ins
 	return nil
 }
+
+// ParsePIPELINE_STATUSFromString Parse PIPELINE_STATUS from string
+func ParsePIPELINE_STATUSFromString(str string) (PIPELINE_STATUS, error) {
+	key := strings.Trim(string(str), `"`)
+	v, ok := PIPELINE_STATUS_value[strings.ToUpper(key)]
+	if !ok {
+		return 0, fmt.Errorf("unknown PIPELINE_STATUS: %s", str)
+	}
+
+	return PIPELINE_STATUS(v), nil
+}
+
+// Equal type compare
+func (t PIPELINE_STATUS) Equal(target PIPELINE_STATUS) bool {
+	return t == target
+}
+
+// IsIn todo
+func (t PIPELINE_STATUS) IsIn(targets ...PIPELINE_STATUS) bool {
+	for _, target := range targets {
+		if t.Equal(target) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// MarshalJSON todo
+func (t PIPELINE_STATUS) MarshalJSON() ([]byte, error) {
+	b := bytes.NewBufferString(`"`)
+	b.WriteString(t.String())
+	b.WriteString(`"`)
+	return b.Bytes(), nil
+}
+
+// UnmarshalJSON todo
+func (t *PIPELINE_STATUS) UnmarshalJSON(b []byte) error {
+	ins, err := ParsePIPELINE_STATUSFromString(string(b))
+	if err != nil {
+		return err
+	}
+	*t = ins
+	return nil
+}

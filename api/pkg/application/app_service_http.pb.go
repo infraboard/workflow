@@ -11,9 +11,8 @@ func HttpEntry() *http.EntrySet {
 	set := &http.EntrySet{
 		Items: []*http.Entry{
 			{
-				GrpcPath:          "/workflow.application.Service/CreateApplication",
+				Path:              "/workflow.application.Service/CreateApplication",
 				FunctionName:      "CreateApplication",
-				Path:              "/applications/",
 				Method:            "POST",
 				Resource:          "application",
 				AuthEnable:        true,
@@ -24,9 +23,8 @@ func HttpEntry() *http.EntrySet {
 				Extension:         map[string]string{},
 			},
 			{
-				GrpcPath:          "/workflow.application.Service/QueryApplication",
+				Path:              "/workflow.application.Service/QueryApplication",
 				FunctionName:      "QueryApplication",
-				Path:              "/applications/",
 				Method:            "GET",
 				Resource:          "application",
 				AuthEnable:        false,

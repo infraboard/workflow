@@ -11,7 +11,7 @@ require (
 	github.com/infraboard/mcube v1.1.0
 	github.com/rs/xid v1.3.0
 	github.com/spf13/cobra v1.1.3
-	go.etcd.io/etcd/api/v3 v3.5.0-beta.4
+	go.etcd.io/etcd/api/v3 v3.5.0
 	go.etcd.io/etcd/client/v3 v3.5.0-beta.4
 	go.mongodb.org/mongo-driver v1.5.2
 	google.golang.org/grpc v1.38.0

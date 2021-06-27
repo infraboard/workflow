@@ -6,7 +6,6 @@ import (
 
 	"github.com/infraboard/workflow/api/pkg/node"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
-	"github.com/infraboard/workflow/api/pkg/task"
 	"github.com/infraboard/workflow/scheduler/informer"
 )
 
@@ -20,7 +19,7 @@ func (c *PipelineTaskScheduler) delNode(n *node.Node) {
 	// 1. 获取该节点上所有pipeline
 	ctx, cancle := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancle()
-	ps, err := c.lister.ListPipelineTask(ctx, &informer.QueryPipelineTaskOptions{Node: n.InstanceName})
+	ps, err := c.lister.ListPipeline(ctx, &informer.QueryPipelineTaskOptions{Node: n.InstanceName})
 	if err != nil {
 		c.log.Errorf("list node pipelines error, %s", err)
 	}
@@ -32,7 +31,7 @@ func (c *PipelineTaskScheduler) delNode(n *node.Node) {
 }
 
 // 每添加一个pipeline task
-func (c *PipelineTaskScheduler) addPipelineTask(t *task.PipelineTask) {
+func (c *PipelineTaskScheduler) addPipelineTask(t *pipeline.Pipeline) {
 	c.log.Infof("receive add object: %s", t)
 	if err := t.Validate(); err != nil {
 		c.log.Errorf("invalidate node error, %s", err)

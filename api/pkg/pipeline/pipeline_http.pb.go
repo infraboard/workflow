@@ -11,9 +11,8 @@ func HttpEntry() *http.EntrySet {
 	set := &http.EntrySet{
 		Items: []*http.Entry{
 			{
-				GrpcPath:          "/workflow.pipeline.Service/CreatePipeline",
+				Path:              "/workflow.pipeline.Service/CreatePipeline",
 				FunctionName:      "CreatePipeline",
-				Path:              "/pipelines/",
 				Method:            "POST",
 				Resource:          "pipeline",
 				AuthEnable:        true,
@@ -24,9 +23,8 @@ func HttpEntry() *http.EntrySet {
 				Extension:         map[string]string{},
 			},
 			{
-				GrpcPath:          "/workflow.pipeline.Service/QueryPipeline",
+				Path:              "/workflow.pipeline.Service/QueryPipeline",
 				FunctionName:      "QueryPipeline",
-				Path:              "/pipelines/",
 				Method:            "GET",
 				Resource:          "pipeline",
 				AuthEnable:        true,
@@ -37,9 +35,8 @@ func HttpEntry() *http.EntrySet {
 				Extension:         map[string]string{},
 			},
 			{
-				GrpcPath:          "/workflow.pipeline.Service/CreateAction",
+				Path:              "/workflow.pipeline.Service/CreateAction",
 				FunctionName:      "CreateAction",
-				Path:              "/actions/",
 				Method:            "POST",
 				Resource:          "action",
 				AuthEnable:        true,
@@ -50,9 +47,8 @@ func HttpEntry() *http.EntrySet {
 				Extension:         map[string]string{},
 			},
 			{
-				GrpcPath:          "/workflow.pipeline.Service/QueryAction",
+				Path:              "/workflow.pipeline.Service/QueryAction",
 				FunctionName:      "QueryAction",
-				Path:              "/actions/",
 				Method:            "GET",
 				Resource:          "action",
 				AuthEnable:        true,

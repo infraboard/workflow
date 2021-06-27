@@ -21,7 +21,7 @@ import (
 	"github.com/infraboard/workflow/scheduler/store"
 	"github.com/infraboard/workflow/version"
 
-	etcd_register "github.com/infraboard/workflow/api/pkg/node/etcd"
+	etcd_register "github.com/infraboard/workflow/api/pkg/node/impl"
 	etcd_informer "github.com/infraboard/workflow/scheduler/informer/etcd"
 )
 

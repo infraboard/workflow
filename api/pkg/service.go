@@ -8,14 +8,12 @@ import (
 
 	"github.com/infraboard/workflow/api/pkg/application"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
-	"github.com/infraboard/workflow/api/pkg/task"
 )
 
 var (
 	// Example 服务
 	Application application.ServiceServer
 	Pipeline    pipeline.ServiceServer
-	Task        task.ServiceServer
 )
 
 var (
@@ -29,7 +27,6 @@ var (
 func InitV1GRPCAPI(server *grpc.Server) {
 	application.RegisterServiceServer(server, Application)
 	pipeline.RegisterServiceServer(server, Pipeline)
-	return
 }
 
 // HTTPEntry todo
@@ -78,12 +75,6 @@ func RegistryService(name string, svr Service) {
 			registryError(name)
 		}
 		Pipeline = value
-		addService(name, svr)
-	case task.ServiceServer:
-		if Task != nil {
-			registryError(name)
-		}
-		Task = value
 		addService(name, svr)
 	default:
 		fmt.Println(value)

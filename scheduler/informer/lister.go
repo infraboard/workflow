@@ -5,14 +5,13 @@ import (
 
 	"github.com/infraboard/workflow/api/pkg/node"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
-	"github.com/infraboard/workflow/api/pkg/task"
 )
 
 // Lister 所有的Lister
 type Lister interface {
-	PipelineTaskLister
+	PipelineLister
+	PipelineUpdater
 	StepUpdater
-	TaskUpdater
 	NodeLister
 }
 
@@ -22,8 +21,8 @@ type QueryPipelineTaskOptions struct {
 }
 
 // PipelineTaskLister 获取所有执行节点
-type PipelineTaskLister interface {
-	ListPipelineTask(ctx context.Context, opts *QueryPipelineTaskOptions) (*task.PipelineTaskSet, error)
+type PipelineLister interface {
+	ListPipeline(ctx context.Context, opts *QueryPipelineTaskOptions) (*pipeline.PipelineSet, error)
 }
 
 // StepUpdater todo
@@ -32,8 +31,8 @@ type StepUpdater interface {
 }
 
 // StepUpdater todo
-type TaskUpdater interface {
-	UpdateTask(*task.PipelineTask) error
+type PipelineUpdater interface {
+	UpdatePipeline(*pipeline.Pipeline) error
 }
 
 // NodeLister 获取所有执行节点

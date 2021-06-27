@@ -10,7 +10,6 @@ import (
 
 	"github.com/infraboard/workflow/api/pkg/node"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
-	"github.com/infraboard/workflow/api/pkg/task"
 	"github.com/infraboard/workflow/scheduler/informer"
 )
 
@@ -119,7 +118,7 @@ func (i *shared) notifyNode(event *clientv3.Event, eventVersion int64) error {
 
 func (i *shared) notifyPipeline(event *clientv3.Event, eventVersion int64) error {
 	// 解析对象
-	obj, err := task.LoadPipelineTaskFromBytes(event.Kv.Value)
+	obj, err := pipeline.LoadPipelineFromBytes(event.Kv.Value)
 	if err != nil {
 		return err
 	}

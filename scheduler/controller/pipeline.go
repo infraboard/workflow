@@ -13,7 +13,6 @@ import (
 	"k8s.io/client-go/util/workqueue"
 
 	"github.com/infraboard/workflow/api/pkg/pipeline"
-	"github.com/infraboard/workflow/api/pkg/task"
 	"github.com/infraboard/workflow/scheduler/algorithm"
 	"github.com/infraboard/workflow/scheduler/algorithm/roundrobin"
 	"github.com/infraboard/workflow/scheduler/informer"
@@ -111,7 +110,7 @@ func (c *PipelineTaskScheduler) Run(ctx context.Context) error {
 	c.log.Infof("Sync All(%d) nodes success", len(nodes))
 	// 获取所有的pipeline
 	listCount := 0
-	pt, err := c.lister.ListPipelineTask(ctx, nil)
+	pt, err := c.lister.ListPipeline(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -194,7 +193,7 @@ func (c *PipelineTaskScheduler) processNextWorkItem() bool {
 		// period.
 		defer c.workqueue.Done(obj)
 		switch v := obj.(type) {
-		case *task.PipelineTask:
+		case *pipeline.Pipeline:
 			c.log.Debugf("wait schedule pipeline: %s", v.GetId())
 			if err := c.schedulePipelineTask(v); err != nil {
 				return fmt.Errorf("error scheduled '%s': %s", v, err.Error())
@@ -237,7 +236,7 @@ func (c *PipelineTaskScheduler) runningWorkerNames() string {
 }
 
 //
-func (c *PipelineTaskScheduler) schedulePipelineTask(t *task.PipelineTask) error {
+func (c *PipelineTaskScheduler) schedulePipelineTask(t *pipeline.Pipeline) error {
 	node, err := c.taskPicker.Pick(t)
 	if err != nil {
 		return err
@@ -251,7 +250,7 @@ func (c *PipelineTaskScheduler) schedulePipelineTask(t *task.PipelineTask) error
 	c.log.Debugf("choice node %s for pipeline %s", node.InstanceName, t.Id)
 	t.AddScheduleNode(node.InstanceName)
 	// 清除一下其他数据
-	if err := c.lister.UpdateTask(t); err != nil {
+	if err := c.lister.UpdatePipeline(t); err != nil {
 		c.log.Errorf("update scheduled step error, %s", err)
 	}
 

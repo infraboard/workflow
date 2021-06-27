@@ -7,7 +7,6 @@ import (
 
 	"github.com/infraboard/workflow/api/pkg/node"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
-	"github.com/infraboard/workflow/api/pkg/task"
 	"github.com/infraboard/workflow/scheduler/algorithm"
 	"github.com/infraboard/workflow/scheduler/store"
 )
@@ -68,7 +67,7 @@ type taskPicker struct {
 	*roundrobinPicker
 }
 
-func (p *taskPicker) Pick(step *task.PipelineTask) (*node.Node, error) {
+func (p *taskPicker) Pick(step *pipeline.Pipeline) (*node.Node, error) {
 	if p.store.Len() == 0 {
 		return nil, errors.New("no available node")
 	}

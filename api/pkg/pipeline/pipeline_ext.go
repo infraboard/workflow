@@ -47,7 +47,9 @@ func LoadPipelineFromBytes(payload []byte) (*Pipeline, error) {
 }
 
 func NewDefaultPipeline() *Pipeline {
-	return &Pipeline{}
+	return &Pipeline{
+		Status: &PipelineStatus{},
+	}
 }
 
 func NewPipeline(req *CreatePipelineRequest) (*Pipeline, error) {
@@ -63,12 +65,42 @@ func NewPipeline(req *CreatePipelineRequest) (*Pipeline, error) {
 		Description: req.Description,
 		On:          req.On,
 		Stages:      req.Stages,
+		Status:      &PipelineStatus{},
 	}
 	return p, nil
 }
 
 func (p *Pipeline) Validate() error {
 	return validate.Struct(p)
+}
+
+func (t *Pipeline) NextStep() (steps []*Step) {
+	for i := range t.Stages {
+		stage := t.Stages[i]
+		if !stage.HasNextStep() {
+			continue
+		}
+
+		steps = stage.NextStep()
+		for i := range steps {
+			steps[i].BuildKey(t.Id, stage.Id)
+		}
+		return
+	}
+
+	return
+}
+
+func (t *Pipeline) SchedulerNodeName() string {
+	return t.Status.SchedulerNode
+}
+
+func (t *Pipeline) AddScheduleNode(nodeName string) {
+	t.Status.SchedulerNode = nodeName
+}
+
+func (p *Pipeline) EtcdObjectKey(prefix string) string {
+	return fmt.Sprintf("%s/%s/%s", EtcdPipelinePrefix(prefix), p.Namespace, p.Id)
 }
 
 // NewPipelineSet todo
@@ -80,10 +112,6 @@ func NewPipelineSet() *PipelineSet {
 
 func (s *PipelineSet) Add(item *Pipeline) {
 	s.Items = append(s.Items, item)
-}
-
-func (p *Pipeline) EtcdObjectKey(prefix string) string {
-	return fmt.Sprintf("%s/%s/%s", EtcdPipelinePrefix(prefix), p.Namespace, p.Id)
 }
 
 func (s *Stage) StepCount() int {
