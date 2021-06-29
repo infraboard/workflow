@@ -18,7 +18,10 @@ func (i *impl) CreatePipeline(ctx context.Context, req *pipeline.CreatePipelineR
 	if err != nil {
 		return nil, err
 	}
-	tk := session.S().GetToken(in.GetRequestID())
+	tk := session.S().GetToken(in.GetAccessToKen())
+	if tk == nil {
+		return nil, exception.NewUnauthorized("token required")
+	}
 
 	p, err := pipeline.NewPipeline(req)
 	if err != nil {
