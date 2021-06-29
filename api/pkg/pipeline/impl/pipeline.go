@@ -72,7 +72,7 @@ func (i *impl) QueryPipeline(ctx context.Context, req *pipeline.QueryPipelineReq
 func (i *impl) DescribePipeline(ctx context.Context, req *pipeline.DescribePipelineRequest) (
 	*pipeline.Pipeline, error) {
 	descKey := pipeline.EtcdPipelinePrefix(i.prefix) + "/" + req.Id
-	i.log.Infof("list etcd pipeline resource key: %s", descKey)
+	i.log.Infof("describe etcd pipeline resource key: %s", descKey)
 	resp, err := i.client.Get(ctx, descKey)
 	if err != nil {
 		return nil, err

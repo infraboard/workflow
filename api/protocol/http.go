@@ -32,6 +32,8 @@ func NewHTTPService(auther router.Auther) *HTTPService {
 	r.SetAuther(auther)
 	r.Auth(true)
 	r.Permission(true)
+	r.AuditLog(true)
+	r.RequiredNamespace(true)
 
 	server := &http.Server{
 		ReadHeaderTimeout: 20 * time.Second,
