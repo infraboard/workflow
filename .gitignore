@@ -10,7 +10,6 @@
 *.out
 *.idea
 *vendor
-.vscode
 dist/*
 
 cover.out
