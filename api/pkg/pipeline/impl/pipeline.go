@@ -36,7 +36,7 @@ func (i *impl) CreatePipeline(ctx context.Context, req *pipeline.CreatePipelineR
 		return nil, err
 	}
 
-	objKey := p.EtcdObjectKey(i.prefix)
+	objKey := p.EtcdObjectKey()
 	objValue := string(value)
 
 	if _, err := i.client.Put(context.Background(), objKey, objValue); err != nil {
@@ -48,7 +48,7 @@ func (i *impl) CreatePipeline(ctx context.Context, req *pipeline.CreatePipelineR
 
 func (i *impl) QueryPipeline(ctx context.Context, req *pipeline.QueryPipelineRequest) (
 	*pipeline.PipelineSet, error) {
-	listKey := pipeline.EtcdPipelinePrefix(i.prefix)
+	listKey := pipeline.EtcdPipelinePrefix()
 	i.log.Infof("list etcd pipeline resource key: %s", listKey)
 	resp, err := i.client.Get(ctx, listKey, clientv3.WithPrefix())
 	if err != nil {
@@ -71,7 +71,15 @@ func (i *impl) QueryPipeline(ctx context.Context, req *pipeline.QueryPipelineReq
 
 func (i *impl) DescribePipeline(ctx context.Context, req *pipeline.DescribePipelineRequest) (
 	*pipeline.Pipeline, error) {
-	descKey := pipeline.EtcdPipelinePrefix(i.prefix) + "/" + req.Id
+	in, err := gcontext.GetGrpcInCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	tk := session.S().GetToken(in.GetAccessToKen())
+	if tk == nil {
+		return nil, exception.NewUnauthorized("token required")
+	}
+	descKey := pipeline.PipeLineObjectKey(tk.Namespace, req.Id)
 	i.log.Infof("describe etcd pipeline resource key: %s", descKey)
 	resp, err := i.client.Get(ctx, descKey)
 	if err != nil {
@@ -102,7 +110,7 @@ func (i *impl) DescribePipeline(ctx context.Context, req *pipeline.DescribePipel
 
 func (i *impl) DeletePipeline(ctx context.Context, req *pipeline.DeletePipelineRequest) (
 	*pipeline.Pipeline, error) {
-	listKey := pipeline.EtcdPipelinePrefix(i.prefix)
+	listKey := pipeline.EtcdPipelinePrefix()
 	i.log.Infof("list etcd pipeline resource key: %s", listKey)
 	resp, err := i.client.Get(ctx, listKey, clientv3.WithPrefix())
 	if err != nil {

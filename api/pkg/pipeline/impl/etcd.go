@@ -27,13 +27,11 @@ type impl struct {
 	pipeline.UnimplementedServiceServer
 
 	client *clientv3.Client
-	prefix string
 	log    logger.Logger
 }
 
 func (s *impl) Config() error {
 	s.client = conf.C().Etcd.GetClient()
-	s.prefix = conf.C().Etcd.Prefix
 	s.log = zap.L().Named("Pipeline")
 	return nil
 }

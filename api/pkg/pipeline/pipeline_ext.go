@@ -102,8 +102,8 @@ func (t *Pipeline) AddScheduleNode(nodeName string) {
 	t.Status.SchedulerNode = nodeName
 }
 
-func (p *Pipeline) EtcdObjectKey(prefix string) string {
-	return fmt.Sprintf("%s/%s/%s", EtcdPipelinePrefix(prefix), p.Namespace, p.Id)
+func (p *Pipeline) EtcdObjectKey() string {
+	return fmt.Sprintf("%s/%s/%s", EtcdPipelinePrefix(), p.Namespace, p.Id)
 }
 
 // NewPipelineSet todo

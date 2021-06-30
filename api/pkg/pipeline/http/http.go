@@ -24,7 +24,7 @@ func (h *handler) Registry(router router.SubRouter) {
 	r := router.ResourceRouter("pipeline")
 	r.BasePath("pipelines")
 	r.Handle("POST", "/", h.CreatePipeline).AddLabel(label.Create)
-	r.Handle("GET", "/", h.QueryPipeline).AddLabel(label.List).DisableRequiredNamespace()
+	r.Handle("GET", "/", h.QueryPipeline).AddLabel(label.List)
 	r.Handle("GET", "/:id", h.DescribePipeline).AddLabel(label.Get)
 	r.Handle("DELETE", "/:id", h.DeletePipeline).AddLabel(label.Delete)
 }

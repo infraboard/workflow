@@ -4,7 +4,9 @@ import (
 	"fmt"
 )
 
-const (
+var (
+	// 组织的名称
+	OrgName = "inforboard"
 	// ServiceName 服务名称
 	ServiceName = "workflow"
 )
