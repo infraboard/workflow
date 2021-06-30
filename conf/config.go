@@ -7,6 +7,7 @@ import (
 
 	kc "github.com/infraboard/keyauth/client"
 
+	"github.com/infraboard/mcube/bus/broker/nats"
 	"github.com/infraboard/mcube/cache/memory"
 	"github.com/infraboard/mcube/cache/redis"
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -29,19 +30,27 @@ func newConfig() *Config {
 		Cache:   newDefaultCache(),
 		Keyauth: newDefaultKeyauth(),
 		Etcd:    newDefaultEtcd(),
+		Nats:    nats.NewDefaultConfig(),
+		Bus:     new(bus),
 	}
 }
 
 // Config 应用配置
 type Config struct {
-	App     *app     `toml:"app"`
-	HTTP    *http    `toml:"http"`
-	GRPC    *grpc    `toml:"grpc"`
-	Log     *log     `toml:"log"`
-	Mongo   *mongodb `toml:"mongodb"`
-	Keyauth *keyauth `toml:"keyauth"`
-	Cache   *_cache  `toml:"cache"`
-	Etcd    *Etcd    `toml:"etcd"`
+	App     *app         `toml:"app"`
+	HTTP    *http        `toml:"http"`
+	GRPC    *grpc        `toml:"grpc"`
+	Log     *log         `toml:"log"`
+	Mongo   *mongodb     `toml:"mongodb"`
+	Keyauth *keyauth     `toml:"keyauth"`
+	Cache   *_cache      `toml:"cache"`
+	Etcd    *Etcd        `toml:"etcd"`
+	Nats    *nats.Config `toml:"nats"`
+	Bus     *bus         `toml:"bus"`
+}
+
+type bus struct {
+	Type string `toml:"type" env:"BUS_TYPE"`
 }
 
 type app struct {

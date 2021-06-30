@@ -11,6 +11,8 @@ import (
 
 	"github.com/infraboard/keyauth/client"
 	"github.com/infraboard/keyauth/client/session"
+	"github.com/infraboard/mcube/bus"
+	"github.com/infraboard/mcube/bus/broker/nats"
 	"github.com/infraboard/mcube/cache"
 	"github.com/infraboard/mcube/cache/memory"
 	"github.com/infraboard/mcube/cache/redis"
@@ -45,6 +47,11 @@ var serviceCmd = &cobra.Command{
 
 		// 初始化全局日志配置
 		if err := loadGlobalLogger(); err != nil {
+			return err
+		}
+
+		// 加载总线
+		if err := loadGlobalBus(); err != nil {
 			return err
 		}
 
@@ -152,6 +159,34 @@ func loadGlobalConfig(configType string) error {
 		}
 	default:
 		return errors.New("unknown config type")
+	}
+
+	return nil
+}
+
+func loadGlobalBus() error {
+	log := zap.L().Named("BUS INIT")
+	bc := conf.C().Bus
+
+	switch bc.Type {
+	case "nats":
+		nc := conf.C().Nats
+		if len(nc.Servers) == 0 {
+			log.Infof("new nats broker not config: %v", nc.Servers)
+			return nil
+		}
+
+		broker, err := nats.NewBroker(nc)
+		if err != nil {
+			log.Errorf("new nats broker error, %s", err)
+			return nil
+		}
+
+		if err := broker.Connect(); err != nil {
+			return err
+		}
+		bus.SetPublisher(broker)
+	case "kafka":
 	}
 
 	return nil
