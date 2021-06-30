@@ -14,7 +14,6 @@ import (
 )
 
 type shared struct {
-	prefix            string
 	log               logger.Logger
 	client            clientv3.Watcher
 	nodeHandler       informer.NodeEventHandler
@@ -86,15 +85,15 @@ func (i *shared) isReady() error {
 
 func (i *shared) watchAll(ctx context.Context) {
 	// 监听事件
-	nodeWatchKey := node.EtcdNodePrefixWithType(i.prefix, node.NodeType)
+	nodeWatchKey := node.EtcdNodePrefixWithType(node.NodeType)
 	i.nodeWatchChan = i.client.Watch(ctx, nodeWatchKey, clientv3.WithPrefix())
 	i.log.Infof("watch etcd node resource key: %s", nodeWatchKey)
 
-	ppWatchKey := pipeline.EtcdPipelinePrefix(i.prefix)
+	ppWatchKey := pipeline.EtcdPipelinePrefix()
 	i.pipelineWatchChan = i.client.Watch(ctx, ppWatchKey, clientv3.WithPrefix())
 	i.log.Infof("watch etcd pipeline resource key: %s", ppWatchKey)
 
-	stepWatchKey := pipeline.EtcdStepPrefix(i.prefix)
+	stepWatchKey := pipeline.EtcdStepPrefix()
 	i.stepWatchChan = i.client.Watch(ctx, stepWatchKey, clientv3.WithPrefix())
 	i.log.Infof("watch etcd step resource key: %s", stepWatchKey)
 }

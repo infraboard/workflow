@@ -67,7 +67,6 @@ func (i *PipelineInformer) Watcher() informer.Watcher {
 	i.shared = &shared{
 		log:    i.log.Named("Watcher"),
 		client: clientv3.NewWatcher(i.client),
-		prefix: i.cnf.Prefix,
 	}
 	return i.shared
 }
@@ -79,7 +78,6 @@ func (i *PipelineInformer) Lister() informer.Lister {
 	i.lister = &lister{
 		log:    i.log.Named("Lister"),
 		client: clientv3.NewKV(i.client),
-		prefix: i.cnf.Prefix,
 	}
 	return i.lister
 }

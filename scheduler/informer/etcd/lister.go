@@ -16,12 +16,11 @@ import (
 type lister struct {
 	log    logger.Logger
 	client clientv3.KV
-	prefix string
 }
 
 // List 获取所有Node对象
 func (l *lister) ListNode(ctx context.Context) (ret []*node.Node, err error) {
-	listKey := node.EtcdNodePrefixWithType(l.prefix, node.NodeType)
+	listKey := node.EtcdNodePrefixWithType(node.NodeType)
 	l.log.Infof("list etcd node resource key: %s", listKey)
 	resp, err := l.client.Get(ctx, listKey, clientv3.WithPrefix())
 	if err != nil {
@@ -42,7 +41,7 @@ func (l *lister) ListNode(ctx context.Context) (ret []*node.Node, err error) {
 }
 
 func (l *lister) ListPipeline(ctx context.Context, opts *informer.QueryPipelineTaskOptions) (*pipeline.PipelineSet, error) {
-	listKey := pipeline.EtcdPipelinePrefix(l.prefix)
+	listKey := pipeline.EtcdPipelinePrefix()
 	l.log.Infof("list etcd pipeline resource key: %s", listKey)
 	resp, err := l.client.Get(ctx, listKey, clientv3.WithPrefix())
 	if err != nil {
@@ -64,7 +63,7 @@ func (l *lister) ListPipeline(ctx context.Context, opts *informer.QueryPipelineT
 }
 
 func (l *lister) UpdateStep(step *pipeline.Step) error {
-	objKey := step.EtcdObjectKey(pipeline.EtcdPipelinePrefix(l.prefix))
+	objKey := step.EtcdObjectKey(pipeline.EtcdPipelinePrefix())
 	objValue, err := json.Marshal(step)
 	if err != nil {
 		return err
@@ -76,7 +75,7 @@ func (l *lister) UpdateStep(step *pipeline.Step) error {
 }
 
 func (l *lister) UpdatePipeline(t *pipeline.Pipeline) error {
-	objKey := t.EtcdObjectKey(pipeline.EtcdPipelinePrefix(l.prefix))
+	objKey := t.EtcdObjectKey()
 	objValue, err := json.Marshal(t)
 	if err != nil {
 		return err
