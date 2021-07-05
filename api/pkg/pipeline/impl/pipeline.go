@@ -95,7 +95,6 @@ func (i *impl) DescribePipeline(ctx context.Context, req *pipeline.DescribePipel
 	}
 
 	ins := pipeline.NewDefaultPipeline()
-
 	for index := range resp.Kvs {
 		// 解析对象
 		ins, err = pipeline.LoadPipelineFromBytes(resp.Kvs[index].Value)
@@ -110,25 +109,36 @@ func (i *impl) DescribePipeline(ctx context.Context, req *pipeline.DescribePipel
 
 func (i *impl) DeletePipeline(ctx context.Context, req *pipeline.DeletePipelineRequest) (
 	*pipeline.Pipeline, error) {
-	listKey := pipeline.EtcdPipelinePrefix()
-	i.log.Infof("list etcd pipeline resource key: %s", listKey)
-	resp, err := i.client.Get(ctx, listKey, clientv3.WithPrefix())
+	in, err := gcontext.GetGrpcInCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	tk := session.S().GetToken(in.GetAccessToKen())
+	if tk == nil {
+		return nil, exception.NewUnauthorized("token required")
+	}
+	descKey := pipeline.PipeLineObjectKey(tk.Namespace, req.Id)
+	i.log.Infof("delete etcd pipeline resource key: %s", descKey)
+	resp, err := i.client.Delete(ctx, descKey, clientv3.WithPrevKV())
 	if err != nil {
 		return nil, err
 	}
 
-	ps := pipeline.NewPipelineSet()
-	for index := range resp.Kvs {
+	if resp.Deleted == 0 {
+		return nil, exception.NewNotFound("pipeline %s not found", req.Id)
+	}
+
+	ins := pipeline.NewDefaultPipeline()
+	for index := range resp.PrevKvs {
 		// 解析对象
-		ins, err := pipeline.LoadPipelineFromBytes(resp.Kvs[index].Value)
+		ins, err = pipeline.LoadPipelineFromBytes(resp.PrevKvs[index].Value)
 		if err != nil {
 			i.log.Error(err)
 			continue
 		}
 		ins.ResourceVersion = resp.Header.Revision
-		ps.Add(ins)
 	}
-	return nil, nil
+	return ins, nil
 }
 
 func (i *impl) CreateAction(context.Context, *pipeline.CreateActionRequest) (
