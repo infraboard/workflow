@@ -64,6 +64,7 @@ func (e *etcd) Registe(node *node.Node) (<-chan node.HeatbeatResonse, error) {
 	}
 	serviceValue := string(sjson)
 	serviceKey := node.MakeRegistryKey()
+	// serviceKey := node.EtcdNodePrefix()
 
 	// 后台续约
 	// 并没有直接使用KeepAlive, 因为存在偶然端口, 就不续约的情况

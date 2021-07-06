@@ -33,6 +33,10 @@ func LoadNodeFromBytes(value []byte) (*Node, error) {
 	}
 
 	// 校验合法性
+	if string(value) == "" {
+		return nil, nil
+	}
+
 	if err := n.Validate(); err != nil {
 		return nil, err
 	}
@@ -71,9 +75,10 @@ func (n *Node) Validate() error {
 }
 
 // MakeRegistryKey 构建etcd对应的key
-// 例如: inforboard/workflow/node/online/node-01
+// 例如: inforboard/workflow/node/online/node-01  ---> EtcdNodePrefixWithType
 func (n *Node) MakeRegistryKey() string {
-	return fmt.Sprintf("%s/%s/%s/%s", n.Prefix, n.ServiceName, n.Type, n.InstanceName)
+	// return fmt.Sprintf("workflow/%s/%s/service/%s/%s", version.OrgName, version.ServiceName, n.Type, n.InstanceName)
+	return EtcdNodePrefixWithType(n.Type) + "/" + n.InstanceName
 }
 
 // ParseInstanceKey 解析key中的服务信息

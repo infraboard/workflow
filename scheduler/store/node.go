@@ -79,7 +79,7 @@ func (s *nodeStore) AddNodeSet(nodes []*node.Node) {
 }
 
 func (s *nodeStore) AddNode(n *node.Node) {
-	if n != nil {
+	if n == nil {
 		return
 	}
 

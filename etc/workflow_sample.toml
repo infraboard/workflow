@@ -1,0 +1,51 @@
+[app]
+name = "workflow"
+key = "workflow_key"
+
+[http]
+host = "127.0.0.1"
+port = "8848"
+enable_ssl = false 
+cert_file = ""
+key_file = "" 
+
+[grpc]
+host = "127.0.0.1"
+port = "18848"
+enable_ssl = false 
+cert_file = ""
+key_file = "" 
+
+[mongodb]
+endpoints = ["10.40.44.101:27017"]
+username = "admin"
+password = "admin"
+database = "admin"
+
+
+[log]
+level = "debug"
+path_dir = ""
+format = ""
+to = "" 
+
+[keyauth]
+host = "10.40.44.101"
+port = "8050"
+client_id = "" 
+client_secret = ""
+
+[cache]
+
+[etcd]
+endpoints = ["10.40.33.68:2379","10.40.33.69:2379","10.40.33.70:2379"]
+username = "devops"
+password = "devops#123"
+prefix = "workflow_"
+instance_ttl = 60
+
+[nats]
+
+[bus]
+type = "kafka"
+

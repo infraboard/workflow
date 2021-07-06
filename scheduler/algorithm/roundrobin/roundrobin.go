@@ -72,9 +72,9 @@ func (p *taskPicker) Pick(step *pipeline.Pipeline) (*node.Node, error) {
 		return nil, errors.New("no available node")
 	}
 
-	if p.store.Len() == 0 {
-		return nil, fmt.Errorf("has no available nodes")
-	}
+	// if p.store.Len() == 0 {
+	// 	return nil, fmt.Errorf("has no available nodes")
+	// }
 	p.mu.Lock()
 	defer p.mu.Unlock()
 

@@ -62,6 +62,8 @@ service Service {
 	rpc DeletePipeline(DeletePipelineRequest) returns(Pipeline);
 	rpc CreateAction(CreateActionRequest) returns(Action);
 	rpc QueryAction(QueryActionRequest) returns(ActionSet);
+	rpc DeleteAction(DeleteActionRequest) returns(Action);
+
 }
 
 // Pipeline todo
@@ -310,7 +312,7 @@ message Action {
 		];
     // 名称
     string name = 8[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"name" json:"name"'}
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"name" json:"name" validate:"required"'}
         ];
 	// 镜像仓库地址
 	string image = 9[
@@ -364,6 +366,20 @@ message CreateActionRequest {
 		];	
 }
 
+message DescribeActionRequest {
+	// 唯一name
+	string name = 1[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"name"'}
+		];	
+}
+
+message DeleteActionRequest {
+	// 唯一name
+	string name = 1[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"name"'}
+		];	
+}
+
 // QueryPipelineRequest 查询Book请求
 message QueryActionRequest {
     page.PageRequest page = 1;
@@ -383,3 +399,4 @@ message DescribePipelineRequest {
 		(google.protobuf.field_tag) = {struct_tag: 'json:"id"'}
 		];	
 }
+

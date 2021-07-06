@@ -2,6 +2,8 @@ API_PROJECT_NAME := "workflow-api"
 API_MAIN_FILE_PAHT := "api/main.go"
 SCH_PROJECT_NAME := "workflow-scheduler"
 SCH_MAIN_FILE_PAHT := "scheduler/main.go"
+NODE_PROJECT_NAME := "workflow-node"
+NODE_MAIN_FILE_PAHT := "node/main.go"
 PKG := "github.com/infraboard/workflow"
 IMAGE_PREFIX := "github.com/infraboard/workflow"
 
@@ -46,8 +48,16 @@ build-sch: dep ## Build the binary file
 linux-sch: ## Linux build
 	@sh ./script/build.sh linux dist/${SCH_PROJECT_NAME} ${SCH_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
 	
-run-sch: dep build-sch ## Run Server
+run-sch: dep build-sch ## Run schedule
 	@./dist/${SCH_PROJECT_NAME} start
+
+build-node: dep ## Build the binary file
+	@go fmt ./...
+	@sh ./script/build.sh local dist/${NODE_PROJECT_NAME} ${NODE_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
+
+run-node: dep build-node ## Run node
+	@./dist/${NODE_PROJECT_NAME} start
+
 
 clean: ## Remove previous build
 	@go clean .
@@ -60,7 +70,7 @@ install: ## Install depence go package
 	@go install github.com/infraboard/mcube/cmd/protoc-gen-go-http@latest
 
 codegen: ## Init Service
-	@protoc -I=.  -I${GO_MODDIR} --go-ext_out=. --go-ext_opt=module=${PKG} --go-grpc_out=. --go-grpc_opt=module=${PKG} --go-http_out=. --go-http_opt=module=${PKG} api/pkg/*/pb/*.proto
+	@protoc -I=.  -I${GOPATH}/pkg/mod/ --go-ext_out=. --go-ext_opt=module=${PKG} --go-grpc_out=. --go-grpc_opt=module=${PKG} --go-http_out=. --go-http_opt=module=${PKG} api/pkg/*/pb/*.proto
 	@go generate ./...
 
 help: ## Display this help screen

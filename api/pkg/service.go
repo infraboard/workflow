@@ -77,7 +77,6 @@ func RegistryService(name string, svr Service) {
 		Pipeline = value
 		addService(name, svr)
 	default:
-		fmt.Println(value)
 		panic(fmt.Sprintf("unknown service type %s", name))
 	}
 }

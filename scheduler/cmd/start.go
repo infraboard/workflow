@@ -14,13 +14,13 @@ import (
 	"github.com/infraboard/mcube/types/ftime"
 	"github.com/spf13/cobra"
 
-	"github.com/infraboard/workflow/api/pkg/node"
 	"github.com/infraboard/workflow/conf"
 	"github.com/infraboard/workflow/scheduler/controller"
 	"github.com/infraboard/workflow/scheduler/informer"
 	"github.com/infraboard/workflow/scheduler/store"
 	"github.com/infraboard/workflow/version"
 
+	"github.com/infraboard/workflow/api/pkg/node"
 	etcd_register "github.com/infraboard/workflow/api/pkg/node/impl"
 	etcd_informer "github.com/infraboard/workflow/scheduler/informer/etcd"
 )
@@ -134,7 +134,7 @@ func (s *service) waitSign(sign chan os.Signal) {
 				return
 			}
 		case <-s.hb:
-			// s.log.Debug(hb.TTL())
+			s.log.Debug("hb is changed ----")
 		}
 	}
 }

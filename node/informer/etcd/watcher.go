@@ -3,7 +3,6 @@ package etcd
 import (
 	"context"
 	"errors"
-	"strings"
 
 	"github.com/infraboard/mcube/logger"
 	"go.etcd.io/etcd/api/v3/mvccpb"
@@ -11,7 +10,7 @@ import (
 
 	"github.com/infraboard/workflow/api/pkg/node"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
-	"github.com/infraboard/workflow/scheduler/informer"
+	"github.com/infraboard/workflow/node/informer"
 )
 
 type shared struct {
@@ -104,14 +103,6 @@ func (i *shared) notifyNode(event *clientv3.Event, eventVersion int64) error {
 	obj, err := node.LoadNodeFromBytes(event.Kv.Value)
 	if err != nil {
 		return err
-	}
-
-	// 解析事件为删除事件的时候，value内容为空，从key中解析 node 的 serviceName and instanceName
-	if obj == nil {
-		obj = new(node.Node)
-		etcdNodeKeyList := strings.Split(string(event.Kv.Key), "/")
-		obj.InstanceName = etcdNodeKeyList[len(etcdNodeKeyList)-1]
-		obj.ServiceName = etcdNodeKeyList[1]
 	}
 	obj.ResourceVersion = eventVersion
 	switch event.Type {

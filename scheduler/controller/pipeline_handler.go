@@ -43,7 +43,6 @@ func (c *PipelineTaskScheduler) addPipelineTask(t *pipeline.Pipeline) {
 		c.log.Infof("pipeline task %s has scheduler node: %s", t.SchedulerNodeName())
 		return
 	}
-
 	// TODO: 使用分布式锁trylock处 理多个实例竞争调度问题
 
 	// 将需要调度的任务, 交给step调度器调度
