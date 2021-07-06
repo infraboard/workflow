@@ -54,13 +54,13 @@ var serviceCmd = &cobra.Command{
 		}
 
 		// 注册服务
-		r, err := etcd_register.NewEtcdRegister()
+		r, err := etcd_register.NewEtcdRegister(svr.node)
 		if err != nil {
 			svr.log.Warn(err)
 		}
 		r.Debug(zap.L().Named("Register"))
 		defer r.UnRegiste()
-		if err := svr.registry(r, cfg); err != nil {
+		if err := r.Registe(); err != nil {
 			return err
 		}
 
@@ -80,6 +80,7 @@ type service struct {
 	hb   <-chan node.HeatbeatResonse
 	log  logger.Logger
 	stop context.CancelFunc
+	node *node.Node
 }
 
 func newService(cnf *conf.Config) (*service, error) {
@@ -88,14 +89,15 @@ func newService(cnf *conf.Config) (*service, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	svr := &service{
 		info: info,
 		log:  zap.L().Named("CLI"),
+		node: MakeRegistryNode(cnf),
 	}
 	return svr, nil
 }
 func (s *service) start() error {
-
 	// 启动informer, Informer 需要先与Controller启动,避免事件丢失
 	ctx, cancel := context.WithCancel(context.Background())
 	s.stop = cancel
@@ -117,8 +119,6 @@ func (s *service) start() error {
 			n++
 		}
 	}
-
-	return nil
 }
 
 // 占不做信号的具体区别
@@ -150,12 +150,12 @@ func RandString(len int) string {
 	return string(bytes)
 }
 
-func (s *service) registry(r node.Register, cfg *conf.Config) error {
+func MakeRegistryNode(cfg *conf.Config) *node.Node {
 	hn, _ := os.Hostname()
-	instance := &node.Node{
+	return &node.Node{
 		InstanceName: hn + RandString(10),
 		ServiceName:  version.ServiceName,
-		Type:         node.NodeType,
+		Type:         node.SchedulerType,
 		Address:      cfg.HTTP.Host,
 		Version:      version.GIT_TAG,
 		GitBranch:    version.GIT_BRANCH,
@@ -167,12 +167,6 @@ func (s *service) registry(r node.Register, cfg *conf.Config) error {
 		TTL:          cfg.Etcd.InstanceTTL,
 		Interval:     time.Duration(cfg.Etcd.InstanceTTL/3) * time.Second,
 	}
-	heatbeatResp, err := r.Registe(instance)
-	if err != nil {
-		return err
-	}
-	s.hb = heatbeatResp
-	return nil
 }
 
 // config 为全局变量, 只需要load 即可全局可用户

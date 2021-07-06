@@ -55,7 +55,6 @@ var serviceCmd = &cobra.Command{
 		}
 
 		// 注册服务
-
 		r, err := etcd_register.NewEtcdRegister(svr.node)
 		if err != nil {
 			svr.log.Warn(err)

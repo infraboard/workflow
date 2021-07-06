@@ -73,7 +73,7 @@ func (s *mapNodeStore) AddNode(n *node.Node) {
 	if n == nil {
 		return
 	}
-  
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if _, ok := s.nodes[n.Region]; !ok {
