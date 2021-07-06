@@ -55,13 +55,15 @@ var serviceCmd = &cobra.Command{
 		}
 
 		// 注册服务
-		r, err := etcd_register.NewEtcdRegister()
+		rn := MakeRegistryNode(cfg)
+		fmt.Printf("%+v", rn)
+		r, err := etcd_register.NewEtcdRegister(rn)
 		if err != nil {
 			svr.log.Warn(err)
 		}
 		r.Debug(zap.L().Named("Register"))
 		defer r.UnRegiste()
-		if err := svr.registry(r, cfg); err != nil {
+		if err := r.Registe(); err != nil {
 			return err
 		}
 
@@ -78,7 +80,7 @@ var serviceCmd = &cobra.Command{
 
 type service struct {
 	info informer.Informer
-	pc   *controller.PipelineTaskScheduler
+	pc   *controller.PipelineScheduler
 	hb   <-chan node.HeatbeatResonse
 	log  logger.Logger
 	stop context.CancelFunc
@@ -93,7 +95,7 @@ func newService(cnf *conf.Config) (*service, error) {
 
 	// Controller 实例
 	nodeStore := store.NewDeaultNodeStore()
-	ctl := controller.NewPipelineTaskScheduler(nodeStore, info)
+	ctl := controller.NewPipelineScheduler(nodeStore, info)
 	ctl.Debug(zap.L().Named("Pipeline"))
 	svr := &service{
 		info: info,
@@ -139,9 +141,9 @@ func (s *service) waitSign(sign chan os.Signal) {
 	}
 }
 
-func (s *service) registry(r node.Register, cfg *conf.Config) error {
+func MakeRegistryNode(cfg *conf.Config) *node.Node {
 	hn, _ := os.Hostname()
-	instance := &node.Node{
+	return &node.Node{
 		InstanceName: hn,
 		ServiceName:  version.ServiceName,
 		Type:         node.SchedulerType,
@@ -156,12 +158,6 @@ func (s *service) registry(r node.Register, cfg *conf.Config) error {
 		TTL:          cfg.Etcd.InstanceTTL,
 		Interval:     time.Duration(cfg.Etcd.InstanceTTL/3) * time.Second,
 	}
-	heatbeatResp, err := r.Registe(instance)
-	if err != nil {
-		return err
-	}
-	s.hb = heatbeatResp
-	return nil
 }
 
 // config 为全局变量, 只需要load 即可全局可用户

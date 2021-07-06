@@ -48,7 +48,8 @@ func (h *handler) QueryPipeline(w http.ResponseWriter, r *http.Request) {
 	}
 
 	page := request.NewPageRequestFromHTTP(r)
-	req := pipeline.NewQueryPipelineRequest(page)
+	req := pipeline.NewQueryPipelineRequest()
+	req.Page = &page.PageRequest
 
 	var header, trailer metadata.MD
 	dommains, err := h.service.QueryPipeline(

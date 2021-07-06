@@ -15,14 +15,18 @@ type Lister interface {
 	NodeLister
 }
 
+func NewQueryPipelineOptions() *QueryPipelineOptions {
+	return &QueryPipelineOptions{}
+}
+
 // QueryPipelineTaskOptions ListPipeline 查询条件
-type QueryPipelineTaskOptions struct {
+type QueryPipelineOptions struct {
 	Node string
 }
 
 // PipelineTaskLister 获取所有执行节点
 type PipelineLister interface {
-	ListPipeline(ctx context.Context, opts *QueryPipelineTaskOptions) (*pipeline.PipelineSet, error)
+	ListPipeline(ctx context.Context, opts *QueryPipelineOptions) (*pipeline.PipelineSet, error)
 }
 
 // StepUpdater todo

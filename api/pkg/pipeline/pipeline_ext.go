@@ -20,9 +20,9 @@ func NewCreatePipelineRequest() *CreatePipelineRequest {
 }
 
 // NewQueryPipelineRequest 查询book列表
-func NewQueryPipelineRequest(page *request.PageRequest) *QueryPipelineRequest {
+func NewQueryPipelineRequest() *QueryPipelineRequest {
 	return &QueryPipelineRequest{
-		Page: &page.PageRequest,
+		Page: &request.NewDefaultPageRequest().PageRequest,
 	}
 }
 

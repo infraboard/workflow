@@ -10,16 +10,16 @@ import (
 )
 
 // 添加节点后, 需要延迟扫描, 从新调度未调度的Pipeline
-func (c *PipelineTaskScheduler) addNode(n *node.Node) {
+func (c *PipelineScheduler) addNode(n *node.Node) {
 	c.nodes.AddNode(n)
 }
-func (c *PipelineTaskScheduler) delNode(n *node.Node) {
+func (c *PipelineScheduler) delNode(n *node.Node) {
 	c.nodes.DelNode(n)
 
 	// 1. 获取该节点上所有pipeline
 	ctx, cancle := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancle()
-	ps, err := c.lister.ListPipeline(ctx, &informer.QueryPipelineTaskOptions{Node: n.InstanceName})
+	ps, err := c.lister.ListPipeline(ctx, &informer.QueryPipelineOptions{Node: n.InstanceName})
 	if err != nil {
 		c.log.Errorf("list node pipelines error, %s", err)
 	}
@@ -30,17 +30,17 @@ func (c *PipelineTaskScheduler) delNode(n *node.Node) {
 	}
 }
 
-// 每添加一个pipeline task
-func (c *PipelineTaskScheduler) addPipelineTask(t *pipeline.Pipeline) {
+// 每添加一个pipeline
+func (c *PipelineScheduler) addPipeline(t *pipeline.Pipeline) {
 	c.log.Infof("receive add object: %s", t)
 	if err := t.Validate(); err != nil {
-		c.log.Errorf("invalidate node error, %s", err)
+		c.log.Errorf("invalidate pipeline error, %s", err)
 		return
 	}
 
 	// 已经被处理的task无效再处理
 	if t.SchedulerNodeName() != "" {
-		c.log.Infof("pipeline task %s has scheduler node: %s", t.SchedulerNodeName())
+		c.log.Infof("pipeline %s has scheduler node: %s", t.SchedulerNodeName())
 		return
 	}
 	// TODO: 使用分布式锁trylock处 理多个实例竞争调度问题
@@ -57,7 +57,7 @@ func (c *PipelineTaskScheduler) addPipelineTask(t *pipeline.Pipeline) {
 	}
 }
 
-func (c *PipelineTaskScheduler) addStep(s *pipeline.Step) {
+func (c *PipelineScheduler) addStep(s *pipeline.Step) {
 	c.log.Infof("receive add object: %s", s)
 	if err := s.Validate(); err != nil {
 		c.log.Errorf("invalidate node error, %s", err)
@@ -73,7 +73,7 @@ func (c *PipelineTaskScheduler) addStep(s *pipeline.Step) {
 	c.workqueue.AddRateLimited(s)
 }
 
-func (c *PipelineTaskScheduler) deleteStep(p *pipeline.Step) {
+func (c *PipelineScheduler) deleteStep(p *pipeline.Step) {
 	c.log.Infof("receive add object: %s", p)
 	if err := p.Validate(); err != nil {
 		c.log.Errorf("invalidate node error, %s", err)
@@ -83,6 +83,6 @@ func (c *PipelineTaskScheduler) deleteStep(p *pipeline.Step) {
 	// 未调度的交给调度
 }
 
-func (c *PipelineTaskScheduler) updateStep(oldObj, newObj *pipeline.Step) {
+func (c *PipelineScheduler) updateStep(oldObj, newObj *pipeline.Step) {
 
 }

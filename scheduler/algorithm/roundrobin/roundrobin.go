@@ -1,7 +1,6 @@
 package roundrobin
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 
@@ -33,10 +32,6 @@ type stepPicker struct {
 
 func (p *stepPicker) Pick(step *pipeline.Step) (*node.Node, error) {
 	if p.store.Len() == 0 {
-		return nil, errors.New("no available node")
-	}
-
-	if p.store.Len() == 0 {
 		return nil, fmt.Errorf("has no available nodes")
 	}
 	p.mu.Lock()
@@ -53,28 +48,24 @@ func (p *stepPicker) Pick(step *pipeline.Step) (*node.Node, error) {
 	return node, nil
 }
 
-// NewTaskPicker 实现分调度
-func NewTaskPicker(nodestore store.NodeStore) (algorithm.TaskPicker, error) {
+// NewPipelinePicker 实现分调度
+func NewPipelinePicker(nodestore store.NodeStore) (algorithm.PipelinePicker, error) {
 	base := &roundrobinPicker{
 		store: nodestore,
 		mu:    new(sync.Mutex),
 		next:  0,
 	}
-	return &taskPicker{base}, nil
+	return &pipelinePicker{base}, nil
 }
 
-type taskPicker struct {
+type pipelinePicker struct {
 	*roundrobinPicker
 }
 
-func (p *taskPicker) Pick(step *pipeline.Pipeline) (*node.Node, error) {
+func (p *pipelinePicker) Pick(step *pipeline.Pipeline) (*node.Node, error) {
 	if p.store.Len() == 0 {
-		return nil, errors.New("no available node")
+		return nil, fmt.Errorf("has no available scheduler")
 	}
-
-	// if p.store.Len() == 0 {
-	// 	return nil, fmt.Errorf("has no available nodes")
-	// }
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
