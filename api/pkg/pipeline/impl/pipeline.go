@@ -109,6 +109,23 @@ func (i *impl) DescribePipeline(ctx context.Context, req *pipeline.DescribePipel
 
 func (i *impl) DeletePipeline(ctx context.Context, req *pipeline.DeletePipelineRequest) (
 	*pipeline.Pipeline, error) {
+<<<<<<< HEAD
+	listKey := pipeline.EtcdPipelinePrefix()
+	i.log.Infof("list etcd pipeline resource key: %s", listKey)
+	resp, err := i.client.Delete(ctx, listKey, clientv3.WithPrefix())
+	if err != nil {
+		return nil, err
+	}
+	i.log.Debug("resp.Deleted:", resp.Deleted)
+
+	return &pipeline.Pipeline{}, nil
+}
+
+func (i *impl) CreateAction(ctx context.Context, req *pipeline.CreateActionRequest) (
+	*pipeline.Action, error) {
+
+=======
+>>>>>>> f6cdb9991c1c2442004db076e60a3d8d1f5edf6f
 	in, err := gcontext.GetGrpcInCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -117,13 +134,56 @@ func (i *impl) DeletePipeline(ctx context.Context, req *pipeline.DeletePipelineR
 	if tk == nil {
 		return nil, exception.NewUnauthorized("token required")
 	}
-	descKey := pipeline.PipeLineObjectKey(tk.Namespace, req.Id)
-	i.log.Infof("delete etcd pipeline resource key: %s", descKey)
-	resp, err := i.client.Delete(ctx, descKey, clientv3.WithPrevKV())
+<<<<<<< HEAD
+
+	p, err := pipeline.NewAction(req)
 	if err != nil {
 		return nil, err
 	}
 
+	p.NeedSecret = req.NeedSecret
+	p.CreateBy = tk.Account
+	p.Domain = tk.Domain
+	p.Namespace = tk.Namespace
+
+	value, err := json.Marshal(p)
+	if err != nil {
+		return nil, err
+	}
+
+	objKey := p.EtcdObjectKey()
+	fmt.Println("key:", objKey)
+	objValue := string(value)
+
+	if _, err := i.client.Put(context.Background(), objKey, objValue); err != nil {
+		return nil, fmt.Errorf("put action with key: %s, error, %s", objKey, err.Error())
+	}
+	i.log.Debugf("create action success, key: %s", objKey)
+
+	return p, nil
+}
+
+func (i *impl) QueryAction(ctx context.Context, req *pipeline.QueryActionRequest) (
+	*pipeline.ActionSet, error) {
+
+	listKey := pipeline.EtcdActionPrefix()
+	i.log.Debugf("list etcd action resource key: %s", listKey)
+	resp, err := i.client.Get(ctx, listKey, clientv3.WithPrefix())
+=======
+	descKey := pipeline.PipeLineObjectKey(tk.Namespace, req.Id)
+	i.log.Infof("delete etcd pipeline resource key: %s", descKey)
+	resp, err := i.client.Delete(ctx, descKey, clientv3.WithPrevKV())
+>>>>>>> f6cdb9991c1c2442004db076e60a3d8d1f5edf6f
+	if err != nil {
+		return nil, err
+	}
+
+<<<<<<< HEAD
+	ps := pipeline.NewActionSet()
+	for index := range resp.Kvs {
+		// 解析对象
+		ins, err := pipeline.LoadActionFromBytes(resp.Kvs[index].Value)
+=======
 	if resp.Deleted == 0 {
 		return nil, exception.NewNotFound("pipeline %s not found", req.Id)
 	}
@@ -132,21 +192,34 @@ func (i *impl) DeletePipeline(ctx context.Context, req *pipeline.DeletePipelineR
 	for index := range resp.PrevKvs {
 		// 解析对象
 		ins, err = pipeline.LoadPipelineFromBytes(resp.PrevKvs[index].Value)
+>>>>>>> f6cdb9991c1c2442004db076e60a3d8d1f5edf6f
 		if err != nil {
 			i.log.Error(err)
 			continue
 		}
+<<<<<<< HEAD
+		ps.Add(ins)
+	}
+	return ps, nil
+=======
 		ins.ResourceVersion = resp.Header.Revision
 	}
 	return ins, nil
+>>>>>>> f6cdb9991c1c2442004db076e60a3d8d1f5edf6f
 }
 
-func (i *impl) CreateAction(context.Context, *pipeline.CreateActionRequest) (
+func (i *impl) DeleteAction(ctx context.Context, req *pipeline.DeleteActionRequest) (
 	*pipeline.Action, error) {
-	return nil, nil
-}
 
-func (i *impl) QueryAction(context.Context, *pipeline.QueryActionRequest) (
-	*pipeline.ActionSet, error) {
-	return nil, nil
+	i.log.Debug("req:", req)
+	ac := &pipeline.Action{}
+	objKey := pipeline.EtcdActionPrefix()
+	i.log.Infof("list etcd action resource key: %s", objKey)
+	resp, err := i.client.Delete(ctx, objKey, clientv3.WithPrefix())
+	if err != nil {
+		return ac, fmt.Errorf("put action with key: %s, error, %s", objKey, err.Error())
+	}
+
+	i.log.Debugf("create action success, key num: %D", resp.Deleted)
+	return ac, nil
 }

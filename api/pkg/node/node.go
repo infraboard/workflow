@@ -33,6 +33,10 @@ func LoadNodeFromBytes(value []byte) (*Node, error) {
 	}
 
 	// 校验合法性
+	if string(value) == "" {
+		return nil, nil
+	}
+
 	if err := n.Validate(); err != nil {
 		return nil, err
 	}

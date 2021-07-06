@@ -11,7 +11,6 @@ import (
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-// Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
 // ServiceClient is the client API for Service service.
@@ -24,6 +23,7 @@ type ServiceClient interface {
 	DeletePipeline(ctx context.Context, in *DeletePipelineRequest, opts ...grpc.CallOption) (*Pipeline, error)
 	CreateAction(ctx context.Context, in *CreateActionRequest, opts ...grpc.CallOption) (*Action, error)
 	QueryAction(ctx context.Context, in *QueryActionRequest, opts ...grpc.CallOption) (*ActionSet, error)
+	DeleteAction(ctx context.Context, in *DeleteActionRequest, opts ...grpc.CallOption) (*Action, error)
 }
 
 type serviceClient struct {
@@ -88,6 +88,15 @@ func (c *serviceClient) QueryAction(ctx context.Context, in *QueryActionRequest,
 	return out, nil
 }
 
+func (c *serviceClient) DeleteAction(ctx context.Context, in *DeleteActionRequest, opts ...grpc.CallOption) (*Action, error) {
+	out := new(Action)
+	err := c.cc.Invoke(ctx, "/workflow.pipeline.Service/DeleteAction", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ServiceServer is the server API for Service service.
 // All implementations must embed UnimplementedServiceServer
 // for forward compatibility
@@ -98,6 +107,7 @@ type ServiceServer interface {
 	DeletePipeline(context.Context, *DeletePipelineRequest) (*Pipeline, error)
 	CreateAction(context.Context, *CreateActionRequest) (*Action, error)
 	QueryAction(context.Context, *QueryActionRequest) (*ActionSet, error)
+	DeleteAction(context.Context, *DeleteActionRequest) (*Action, error)
 	mustEmbedUnimplementedServiceServer()
 }
 
@@ -123,6 +133,9 @@ func (UnimplementedServiceServer) CreateAction(context.Context, *CreateActionReq
 func (UnimplementedServiceServer) QueryAction(context.Context, *QueryActionRequest) (*ActionSet, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method QueryAction not implemented")
 }
+func (UnimplementedServiceServer) DeleteAction(context.Context, *DeleteActionRequest) (*Action, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteAction not implemented")
+}
 func (UnimplementedServiceServer) mustEmbedUnimplementedServiceServer() {}
 
 // UnsafeServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -132,8 +145,8 @@ type UnsafeServiceServer interface {
 	mustEmbedUnimplementedServiceServer()
 }
 
-func RegisterServiceServer(s grpc.ServiceRegistrar, srv ServiceServer) {
-	s.RegisterService(&Service_ServiceDesc, srv)
+func RegisterServiceServer(s *grpc.Server, srv ServiceServer) {
+	s.RegisterService(&_Service_serviceDesc, srv)
 }
 
 func _Service_CreatePipeline_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -244,10 +257,25 @@ func _Service_QueryAction_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-// Service_ServiceDesc is the grpc.ServiceDesc for Service service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var Service_ServiceDesc = grpc.ServiceDesc{
+func _Service_DeleteAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteActionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).DeleteAction(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/workflow.pipeline.Service/DeleteAction",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).DeleteAction(ctx, req.(*DeleteActionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _Service_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "workflow.pipeline.Service",
 	HandlerType: (*ServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
@@ -274,6 +302,10 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "QueryAction",
 			Handler:    _Service_QueryAction_Handler,
+		},
+		{
+			MethodName: "DeleteAction",
+			Handler:    _Service_DeleteAction_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

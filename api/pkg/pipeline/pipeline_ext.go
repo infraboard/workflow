@@ -103,7 +103,8 @@ func (t *Pipeline) SetScheduleNode(nodeName string) {
 }
 
 func (p *Pipeline) EtcdObjectKey() string {
-	return fmt.Sprintf("%s/%s/%s", EtcdPipelinePrefix(), p.Namespace, p.Id)
+	// return fmt.Sprintf("%s/%s/%s", EtcdPipelinePrefix(), p.Namespace, p.Id)
+	return fmt.Sprintf("%s/%s", EtcdPipelinePrefix(), p.Id)
 }
 
 func (s *PipelineStatus) IsScheduled() bool {
@@ -158,7 +159,7 @@ func (s *Stage) NextStep() (nextSteps []*Step) {
 		step := s.Steps[i]
 
 		// 已经调度的Step不计入下一次调度范围
-		if step.HasScheduled() {
+		if !step.HasScheduled() {
 			continue
 		}
 
@@ -212,7 +213,7 @@ func (s *Step) ScheduledNodeName() string {
 }
 
 func (s *Step) HasScheduled() bool {
-	return s.ScheduledNodeName() != ""
+	return s.ScheduledNodeName() == ""
 }
 
 func (s *Step) BuildKey(pipelineId string, stage int32) {

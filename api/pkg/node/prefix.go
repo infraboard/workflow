@@ -7,9 +7,9 @@ import (
 )
 
 func EtcdNodePrefix() string {
-	return fmt.Sprintf("%s/%s/service", version.OrgName, version.ServiceName)
+	return fmt.Sprintf("workflow/%s/%s/service", version.OrgName, version.ServiceName)
 }
 
 func EtcdNodePrefixWithType(t Type) string {
-	return fmt.Sprintf("%s/%s/service/%s", version.OrgName, version.ServiceName, t)
+	return fmt.Sprintf("workflow/%s/%s/service/%s", version.OrgName, version.ServiceName, t)
 }

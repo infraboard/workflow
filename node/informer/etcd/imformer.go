@@ -10,16 +10,17 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 
 	"github.com/infraboard/workflow/conf"
-	"github.com/infraboard/workflow/scheduler/informer"
+	"github.com/infraboard/workflow/node/informer"
 )
 
 // NewScheduleInformer todo
-func NewSchedulerInformer(cnf conf.Etcd) (informer.Informer, error) {
+func NewNodeInformer(cnf conf.Etcd) (informer.Informer, error) {
 	if err := cnf.Validate(); err != nil {
 		return nil, err
 	}
 
 	info := &PipelineInformer{cnf: cnf, log: zap.L().Named("Informer")}
+
 	// 初始化客户端
 	config := clientv3.Config{
 		Endpoints:   cnf.Endpoints,
@@ -39,7 +40,7 @@ func NewSchedulerInformer(cnf conf.Etcd) (informer.Informer, error) {
 		return nil, fmt.Errorf("check etcd %s health by member list error, %s", cnf.Endpoints, err)
 	}
 
-	info.log.Infof("connect to etcd %s success", cnf.Endpoints)
+	info.log.Debugf("connect to etcd %s success", cnf.Endpoints)
 	info.client = client
 	return info, nil
 }
@@ -80,30 +81,3 @@ func (i *PipelineInformer) Lister() informer.Lister {
 	}
 	return i.lister
 }
-
-// func (i *PipelineInformer) OnAdd(n *node.Node) {
-// 	s, err := json.Marshal(&n)
-// 	if err != nil {
-// 		i.log.Debug(err)
-// 	}
-// 	i.log.Debug("add :", string(s))
-// 	return
-// }
-
-// func (i *PipelineInformer) OnUpdate(n *node.Node) {
-// 	s, err := json.Marshal(&n)
-// 	if err != nil {
-// 		i.log.Debug(err)
-// 	}
-// 	i.log.Debug("OnUpdate :", string(s))
-// 	return
-// }
-
-// func (i *PipelineInformer) OnDelete(n *node.Node) {
-// 	s, err := json.Marshal(&n)
-// 	if err != nil {
-// 		i.log.Debug(err)
-// 	}
-// 	i.log.Debug("OnDelete :", string(s))
-// 	return
-// }

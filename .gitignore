@@ -18,7 +18,9 @@ coverage.txt
 etc/workflow.toml
 etc/workflow.env
 etc/ssl
+etc/*
 workflow
 workflow-api
 workflow-scheduler
 workflow-node
+.vscode/*
