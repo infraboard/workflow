@@ -45,7 +45,6 @@ func NewEtcdRegister(node *node.Node) (node.Register, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(string(sjson))
 	etcdR.instanceValue = string(sjson)
 	etcdR.instanceKey = node.MakeRegistryKey()
 	return etcdR, nil
@@ -100,7 +99,7 @@ func (e *etcd) addOnce() error {
 func (e *etcd) keepAlive(ctx context.Context) {
 	// 不停的续约
 	interval := e.node.TTL / 5
-	e.Infof("lease interval %d", interval)
+	e.Infof("keep alive lease interval is %d second", interval)
 	tk := time.NewTicker(time.Duration(interval) * time.Second)
 	defer tk.Stop()
 	for {

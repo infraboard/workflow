@@ -32,15 +32,15 @@ func (c *PipelineScheduler) delNode(n *node.Node) {
 
 // 每添加一个pipeline
 func (c *PipelineScheduler) addPipeline(t *pipeline.Pipeline) {
-	c.log.Infof("receive add object: %s", t)
+	c.log.Infof("receive add pipeline: %s[%s]", t.Name, t.Id)
 	if err := t.Validate(); err != nil {
 		c.log.Errorf("invalidate pipeline error, %s", err)
 		return
 	}
 
 	// 已经被处理的task无效再处理
-	if t.SchedulerNodeName() != "" {
-		c.log.Infof("pipeline %s has scheduler node: %s", t.SchedulerNodeName())
+	if t.Status.IsComplete() {
+		c.log.Infof("pipeline %s has scheduler node: %s, and status is %s", t.SchedulerNodeName(), t.Status.Status)
 		return
 	}
 

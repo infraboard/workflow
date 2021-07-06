@@ -98,12 +98,16 @@ func (t *Pipeline) SchedulerNodeName() string {
 	return t.Status.SchedulerNode
 }
 
-func (t *Pipeline) AddScheduleNode(nodeName string) {
+func (t *Pipeline) SetScheduleNode(nodeName string) {
 	t.Status.SchedulerNode = nodeName
 }
 
 func (p *Pipeline) EtcdObjectKey() string {
 	return fmt.Sprintf("%s/%s/%s", EtcdPipelinePrefix(), p.Namespace, p.Id)
+}
+
+func (s *PipelineStatus) IsComplete() bool {
+	return s.Status.Equal(PIPELINE_STATUS_COMPLETE)
 }
 
 // NewPipelineSet todo
@@ -180,7 +184,7 @@ func (s *Step) EtcdObjectKey(prefix string) string {
 	return fmt.Sprintf("%s/%s", prefix, s.Key)
 }
 
-func (s *Step) AddScheduleNode(nodeName string) {
+func (s *Step) SetScheduleNode(nodeName string) {
 	s.Status.ScheduledNode = nodeName
 }
 

@@ -125,7 +125,7 @@ func (c *PipelineScheduler) Run(ctx context.Context) error {
 
 	// 看看是否有需要调度的
 	for i := range pt.Items {
-		if pt.Items[i].SchedulerNodeName() == "" {
+		if !pt.Items[i].Status.IsComplete() {
 			c.workqueue.Add(pt.Items[i])
 			listCount++
 		}
@@ -165,7 +165,6 @@ func (c *PipelineScheduler) updatesNodeStore(nodes []*node.Node) {
 		case node.SchedulerType:
 			c.log.Infof("add scheduler %s to store", n.Name())
 			c.scheduler.AddNode(n)
-			fmt.Println("xxx", c.scheduler.Len())
 		case node.NodeType:
 			c.log.Infof("add node %s to store", n.Name())
 			c.nodes.AddNode(n)
@@ -221,11 +220,13 @@ func (c *PipelineScheduler) processNextWorkItem() bool {
 			if err := c.schedulePipeline(v); err != nil {
 				return fmt.Errorf("error scheduled pipeline %s, %s", v.Id, err.Error())
 			}
+			c.log.Infof("pipeline successfully scheduled %s[%s]", v.Name, v.Id)
 		case *pipeline.Step:
 			c.log.Debugf("wait schedule step: %s", v.GetId())
 			if err := c.scheduleStep(v); err != nil {
 				return fmt.Errorf("error scheduled '%s': %s", v, err.Error())
 			}
+			c.log.Infof("step successfully scheduled %s[%s]", v.Name, v.Id)
 		default:
 			// As the item in the workqueue is actually invalid, we call
 			// Forget here else we'd go into a loop of attempting to
@@ -238,7 +239,7 @@ func (c *PipelineScheduler) processNextWorkItem() bool {
 		// Finally, if no error occurs we Forget this item so it does not
 		// get queued again until another change happens.
 		c.workqueue.Forget(obj)
-		c.log.Infof("Successfully scheduled '%s'", obj)
+
 		return nil
 	}(obj)
 	if err != nil {
@@ -271,7 +272,7 @@ func (c *PipelineScheduler) schedulePipeline(t *pipeline.Pipeline) error {
 	}
 
 	c.log.Debugf("choice scheduler %s for pipeline %s", node.InstanceName, t.Id)
-	t.AddScheduleNode(node.InstanceName)
+	t.SetScheduleNode(node.InstanceName)
 	// 清除一下其他数据
 	if err := c.lister.UpdatePipeline(t); err != nil {
 		c.log.Errorf("update scheduled pipeline error, %s", err)
@@ -293,7 +294,7 @@ func (c *PipelineScheduler) scheduleStep(step *pipeline.Step) error {
 	}
 
 	c.log.Debugf("choice node %s for step %s", node.InstanceName, step.Key)
-	step.AddScheduleNode(node.InstanceName)
+	step.SetScheduleNode(node.InstanceName)
 	// 清除一下其他数据
 	if err := c.lister.UpdateStep(step); err != nil {
 		c.log.Errorf("update scheduled step error, %s", err)
