@@ -32,18 +32,27 @@ func (c *PipelineScheduler) delNode(n *node.Node) {
 
 // 每添加一个pipeline
 func (c *PipelineScheduler) addPipeline(t *pipeline.Pipeline) {
-	c.log.Infof("receive add object: %s", t)
+	c.log.Debugf("receive add pipeline: %s[%s], status: %s", t.Name, t.Id, t.Status.Status)
 	if err := t.Validate(); err != nil {
 		c.log.Errorf("invalidate pipeline error, %s", err)
 		return
 	}
 
-	// 已经被处理的task无效再处理
-	if t.SchedulerNodeName() != "" {
-		c.log.Infof("pipeline %s has scheduler node: %s", t.SchedulerNodeName())
+	// 已经处理完成的无需处理
+	if t.Status.IsComplete() {
+		c.log.Debugf("skip run complete pipeline %s[%s], status: %s", t.Name, t.Id, t.Status.Status)
 		return
 	}
-	// TODO: 使用分布式锁trylock处 理多个实例竞争调度问题
+
+	// TODO: 使用分布式锁trylock处理 多个实例竞争调度问题
+
+	// 标记开始执行, 并更新保存
+	if !t.Status.IsRunning() {
+		t.Status.Run()
+		if err := c.lister.UpdatePipeline(t); err != nil {
+			c.log.Errorf("update pipeline %s[%s] status to store error, %s", t.Name, t.Id, err)
+		}
+	}
 
 	// 将需要调度的任务, 交给step调度器调度
 	steps := t.NextStep()
@@ -83,6 +92,7 @@ func (c *PipelineScheduler) deleteStep(p *pipeline.Step) {
 	// 未调度的交给调度
 }
 
+// 如果step有状态更新, 同步更新到Pipeline上去
 func (c *PipelineScheduler) updateStep(oldObj, newObj *pipeline.Step) {
 
 }

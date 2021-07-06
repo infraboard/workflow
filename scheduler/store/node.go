@@ -1,8 +1,6 @@
 package store
 
 import (
-	"container/list"
-	"fmt"
 	"sync"
 
 	"github.com/infraboard/workflow/api/pkg/node"
@@ -13,96 +11,89 @@ type NodeStore interface {
 	ListNode() []*node.Node
 	AddNodeSet([]*node.Node)
 	AddNode(*node.Node)
-	DelNode(*node.Node) error
-	GetByIndex(i int) (*node.Node, error)
+	DelNode(*node.Node)
 	Len() int
+	LenWithRegion(region string) int
 }
 
 // NewDeaultNodeStore 使用默认存储
 func NewDeaultNodeStore() NodeStore {
-	return &nodeStore{
-		nodes: list.New(),
+	return &mapNodeStore{
+		nodes: map[string][]*node.Node{},
 		mu:    new(sync.Mutex),
 	}
 }
 
 // key 为region
-type nodeStore struct {
-	nodes *list.List
+type mapNodeStore struct {
+	nodes map[string][]*node.Node
 	mu    *sync.Mutex
 }
 
-func (s *nodeStore) Len() int {
-	return s.nodes.Len()
+func (s *mapNodeStore) Len() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var count int
+	for key := range s.nodes {
+		count += len(s.nodes[key])
+	}
+	return count
 }
 
-func (s *nodeStore) ListNode() []*node.Node {
-	nodes := make([]*node.Node, 0, s.Len())
-	for e := s.nodes.Front(); e != nil; e = e.Next() {
-		nodes = append(nodes, e.Value.(*node.Node))
+func (s *mapNodeStore) LenWithRegion(region string) int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	v, ok := s.nodes[region]
+	if !ok {
+		return 0
 	}
-
-	return nodes
+	return len(v)
 }
 
-func (s *nodeStore) GetByIndex(i int) (*node.Node, error) {
-	if i > s.Len()-1 {
-		return nil, fmt.Errorf("out of index")
+func (s *mapNodeStore) ListNode() []*node.Node {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	ns := []*node.Node{}
+
+	for _, v := range s.nodes {
+		ns = append(ns, v...)
 	}
 
-	var index int
-	for e := s.nodes.Front(); e != nil; e = e.Next() {
-		if i == index {
-			return e.Value.(*node.Node), nil
-		}
-		index++
-	}
-
-	return nil, fmt.Errorf("not found")
+	return ns
 }
 
-func (s *nodeStore) GetByName(name string) (*node.Node, error) {
-	for e := s.nodes.Front(); e != nil; e = e.Next() {
-		n := e.Value.(*node.Node)
-		if n.Name() == name {
-			return n, nil
-		}
-	}
-
-	return nil, fmt.Errorf("%s node no found", name)
-}
-
-func (s *nodeStore) AddNodeSet(nodes []*node.Node) {
+func (s *mapNodeStore) AddNodeSet(nodes []*node.Node) {
 	for i := range nodes {
 		s.AddNode(nodes[i])
 	}
 }
 
-func (s *nodeStore) AddNode(n *node.Node) {
+func (s *mapNodeStore) AddNode(n *node.Node) {
 	if n == nil {
 		return
 	}
-
+  
 	s.mu.Lock()
 	defer s.mu.Unlock()
-
-	s.nodes.PushBack(n)
+	if _, ok := s.nodes[n.Region]; !ok {
+		s.nodes[n.Region] = []*node.Node{}
+	}
+	s.nodes[n.Region] = append(s.nodes[n.Region], n)
 }
 
-func (s *nodeStore) DelNode(n *node.Node) error {
+func (s *mapNodeStore) DelNode(node *node.Node) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-
-	if s.Len() == 0 {
-		return fmt.Errorf("no node to delete")
+	rn, ok := s.nodes[node.Region]
+	if !ok {
+		return
 	}
-
-	for e := s.nodes.Back(); e != nil; e = e.Next() {
-		if n.Name() == e.Value.(*node.Node).Name() {
-			s.nodes.Remove(e)
-			return nil
+	for i := 0; i < len(rn); i++ {
+		if rn[i].Name() == node.Name() {
+			rn = append(rn[:i], rn[i+1:]...)
+			i--
 		}
 	}
-
-	return fmt.Errorf("not found")
+	s.nodes[node.Region] = rn
 }

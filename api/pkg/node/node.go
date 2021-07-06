@@ -45,6 +45,7 @@ func LoadNodeFromBytes(value []byte) (*Node, error) {
 
 // Node todo
 type Node struct {
+	Region          string            `json:"region,omitempty"`
 	ResourceVersion int64             `json:"resourceVersion,omitempty"`
 	InstanceName    string            `json:"instance_name,omitempty"`
 	ServiceName     string            `json:"service_name,omitempty"`

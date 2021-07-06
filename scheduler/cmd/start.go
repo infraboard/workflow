@@ -55,9 +55,8 @@ var serviceCmd = &cobra.Command{
 		}
 
 		// 注册服务
-		rn := MakeRegistryNode(cfg)
-		fmt.Printf("%+v", rn)
-		r, err := etcd_register.NewEtcdRegister(rn)
+
+		r, err := etcd_register.NewEtcdRegister(svr.node)
 		if err != nil {
 			svr.log.Warn(err)
 		}
@@ -79,6 +78,7 @@ var serviceCmd = &cobra.Command{
 }
 
 type service struct {
+	node *node.Node
 	info informer.Informer
 	pc   *controller.PipelineScheduler
 	hb   <-chan node.HeatbeatResonse
@@ -86,21 +86,22 @@ type service struct {
 	stop context.CancelFunc
 }
 
-func newService(cnf *conf.Config) (*service, error) {
+func newService(cfg *conf.Config) (*service, error) {
 	// 实例化Informer
-	info, err := etcd_informer.NewSchedulerInformer(*cnf.Etcd)
+	info, err := etcd_informer.NewSchedulerInformer(*cfg.Etcd)
 	if err != nil {
 		return nil, err
 	}
 
+	rn := MakeRegistryNode(cfg)
 	// Controller 实例
-	nodeStore := store.NewDeaultNodeStore()
-	ctl := controller.NewPipelineScheduler(nodeStore, info)
+	ctl := controller.NewPipelineScheduler(rn.InstanceName, store.NewDeaultNodeStore(), store.NewDeaultNodeStore(), info)
 	ctl.Debug(zap.L().Named("Pipeline"))
 	svr := &service{
 		info: info,
 		pc:   ctl,
 		log:  zap.L().Named("CLI"),
+		node: rn,
 	}
 	return svr, nil
 }

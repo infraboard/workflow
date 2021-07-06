@@ -39,7 +39,7 @@ func NewSchedulerInformer(cnf conf.Etcd) (informer.Informer, error) {
 		return nil, fmt.Errorf("check etcd %s health by member list error, %s", cnf.Endpoints, err)
 	}
 
-	info.log.Debugf("connect to etcd %s success", cnf.Endpoints)
+	info.log.Infof("connect to etcd %s success", cnf.Endpoints)
 	info.client = client
 	return info, nil
 }
