@@ -56,7 +56,6 @@ var serviceCmd = &cobra.Command{
 
 		// 注册服务
 		rn := MakeRegistryNode(cfg)
-		fmt.Printf("%+v", rn)
 		r, err := etcd_register.NewEtcdRegister(rn)
 		if err != nil {
 			svr.log.Warn(err)
@@ -94,8 +93,7 @@ func newService(cnf *conf.Config) (*service, error) {
 	}
 
 	// Controller 实例
-	nodeStore := store.NewDeaultNodeStore()
-	ctl := controller.NewPipelineScheduler(nodeStore, info)
+	ctl := controller.NewPipelineScheduler(store.NewDeaultNodeStore(), store.NewDeaultNodeStore(), info)
 	ctl.Debug(zap.L().Named("Pipeline"))
 	svr := &service{
 		info: info,

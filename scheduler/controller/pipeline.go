@@ -12,6 +12,7 @@ import (
 	"github.com/infraboard/mcube/logger/zap"
 	"k8s.io/client-go/util/workqueue"
 
+	"github.com/infraboard/workflow/api/pkg/node"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/scheduler/algorithm"
 	"github.com/infraboard/workflow/scheduler/algorithm/roundrobin"
@@ -22,11 +23,13 @@ import (
 // NewPipelineScheduler pipeline controller
 func NewPipelineScheduler(
 	nodeStore store.NodeStore,
+	schedulerStore store.NodeStore,
 	inform informer.Informer,
 ) *PipelineScheduler {
 	wq := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "PipelineScheduler")
 	controller := &PipelineScheduler{
 		nodes:          nodeStore,
+		scheduler:      schedulerStore,
 		workqueue:      wq,
 		lister:         inform.Lister(),
 		workerNums:     4,
@@ -53,7 +56,7 @@ func NewPipelineScheduler(
 	}
 	controller.stepPicker = stepPicker
 
-	pipePicker, err := roundrobin.NewPipelinePicker(nodeStore)
+	pipePicker, err := roundrobin.NewPipelinePicker(schedulerStore)
 	if err != nil {
 		panic(err)
 	}
@@ -77,6 +80,7 @@ type PipelineScheduler struct {
 	stepPicker     algorithm.StepPicker
 	pipePicker     algorithm.PipelinePicker
 	nodes          store.NodeStore // 存储每个region的node信息
+	scheduler      store.NodeStore // 存储的调度器节点
 }
 
 // SetPicker 设置Node挑选器
@@ -85,7 +89,7 @@ func (c *PipelineScheduler) SetStepPicker(picker algorithm.StepPicker) {
 }
 
 // SetPicker 设置Node挑选器
-func (c *PipelineScheduler) SetTaskPicker(picker algorithm.PipelinePicker) {
+func (c *PipelineScheduler) SetPipelinePicker(picker algorithm.PipelinePicker) {
 	c.pipePicker = picker
 }
 
@@ -107,7 +111,10 @@ func (c *PipelineScheduler) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	c.nodes.AddNodeSet(nodes)
+
+	// 更新node存储
+	c.updatesNodeStore(nodes)
+
 	c.log.Infof("Sync All(%d) nodes success", len(nodes))
 	// 获取所有的pipeline
 	listCount := 0
@@ -150,6 +157,22 @@ func (c *PipelineScheduler) Run(ctx context.Context) error {
 	}
 	c.log.Infof("scheduler controller worker stopped commplet, now workers: %s", c.runningWorkerNames())
 	return nil
+}
+
+func (c *PipelineScheduler) updatesNodeStore(nodes []*node.Node) {
+	for _, n := range nodes {
+		switch n.Type {
+		case node.SchedulerType:
+			c.log.Infof("add scheduler %s to store", n.Name())
+			c.scheduler.AddNode(n)
+			fmt.Println("xxx", c.scheduler.Len())
+		case node.NodeType:
+			c.log.Infof("add node %s to store", n.Name())
+			c.nodes.AddNode(n)
+		default:
+			c.log.Infof("skip node type %s, %s", n.Type, n.Name())
+		}
+	}
 }
 
 // runWorker is a long-running function that will continually call the

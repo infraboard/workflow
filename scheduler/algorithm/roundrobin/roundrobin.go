@@ -31,16 +31,15 @@ type stepPicker struct {
 }
 
 func (p *stepPicker) Pick(step *pipeline.Step) (*node.Node, error) {
-	if p.store.Len() == 0 {
-		return nil, fmt.Errorf("has no available nodes")
-	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	node, err := p.store.GetByIndex(p.next)
-	if err != nil {
-		return nil, err
+	nodes := p.store.ListNode()
+	if len(nodes) == 0 {
+		return nil, fmt.Errorf("has no available nodes")
 	}
+
+	node := nodes[p.next]
 
 	// 修改状态
 	p.next = (p.next + 1) % p.store.Len()
@@ -63,16 +62,15 @@ type pipelinePicker struct {
 }
 
 func (p *pipelinePicker) Pick(step *pipeline.Pipeline) (*node.Node, error) {
-	if p.store.Len() == 0 {
-		return nil, fmt.Errorf("has no available scheduler")
-	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	node, err := p.store.GetByIndex(p.next)
-	if err != nil {
-		return nil, err
+	nodes := p.store.ListNode()
+	if len(nodes) == 0 {
+		return nil, fmt.Errorf("has no available nodes")
 	}
+
+	node := nodes[p.next]
 
 	// 修改状态
 	p.next = (p.next + 1) % p.store.Len()
