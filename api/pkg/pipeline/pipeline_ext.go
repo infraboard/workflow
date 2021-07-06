@@ -106,8 +106,27 @@ func (p *Pipeline) EtcdObjectKey() string {
 	return fmt.Sprintf("%s/%s/%s", EtcdPipelinePrefix(), p.Namespace, p.Id)
 }
 
+func (s *PipelineStatus) IsScheduled() bool {
+	return s.SchedulerNode != ""
+}
+
+func (s *PipelineStatus) MatchScheduler(schedulerName string) bool {
+	return s.SchedulerNode == schedulerName
+}
+
 func (s *PipelineStatus) IsComplete() bool {
 	return s.Status.Equal(PIPELINE_STATUS_COMPLETE)
+}
+
+func (s *PipelineStatus) IsRunning() bool {
+	return s.Status.Equal(PIPELINE_STATUS_EXECUTING)
+}
+
+func (s *PipelineStatus) Run() {
+	s.Status = PIPELINE_STATUS_EXECUTING
+	if s.StartAt != 0 {
+		s.StartAt = ftime.Now().Timestamp()
+	}
 }
 
 // NewPipelineSet todo

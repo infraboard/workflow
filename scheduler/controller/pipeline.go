@@ -22,12 +22,14 @@ import (
 
 // NewPipelineScheduler pipeline controller
 func NewPipelineScheduler(
+	schedulerName string,
 	nodeStore store.NodeStore,
 	schedulerStore store.NodeStore,
 	inform informer.Informer,
 ) *PipelineScheduler {
 	wq := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "PipelineScheduler")
 	controller := &PipelineScheduler{
+		schedulerName:  schedulerName,
 		nodes:          nodeStore,
 		scheduler:      schedulerStore,
 		workqueue:      wq,
@@ -81,6 +83,7 @@ type PipelineScheduler struct {
 	pipePicker     algorithm.PipelinePicker
 	nodes          store.NodeStore // 存储每个region的node信息
 	scheduler      store.NodeStore // 存储的调度器节点
+	schedulerName  string
 }
 
 // SetPicker 设置Node挑选器
@@ -103,10 +106,10 @@ func (c *PipelineScheduler) Debug(log logger.Logger) {
 // workers to finish processing their current work items.
 func (c *PipelineScheduler) Run(ctx context.Context) error {
 	// Start the informer factories to begin populating the informer caches
-	c.log.Info("Starting schedule control loop")
+	c.log.Infof("starting schedule control loop, schedule name: %s", c.schedulerName)
 
 	// 调用Lister 获得所有的cronjob 并添加cron
-	c.log.Info("Starting Sync(List) All nodes")
+	c.log.Info("starting sync(List) all nodes")
 	nodes, err := c.lister.ListNode(ctx)
 	if err != nil {
 		return err
@@ -115,19 +118,24 @@ func (c *PipelineScheduler) Run(ctx context.Context) error {
 	// 更新node存储
 	c.updatesNodeStore(nodes)
 
-	c.log.Infof("Sync All(%d) nodes success", len(nodes))
+	c.log.Infof("sync all(%d) nodes success", len(nodes))
 	// 获取所有的pipeline
 	listCount := 0
-	pt, err := c.lister.ListPipeline(ctx, nil)
+	ps, err := c.lister.ListPipeline(ctx, nil)
 	if err != nil {
 		return err
 	}
 
 	// 看看是否有需要调度的
-	for i := range pt.Items {
-		if !pt.Items[i].Status.IsComplete() {
-			c.workqueue.Add(pt.Items[i])
+	for i := range ps.Items {
+		p := ps.Items[i]
+		if !p.Status.IsScheduled() {
+			c.workqueue.Add(p)
 			listCount++
+		}
+
+		if p.Status.MatchScheduler(c.schedulerName) {
+			c.addPipeline(p)
 		}
 	}
 	c.log.Infof("%d pipeline need scheduled", listCount)
