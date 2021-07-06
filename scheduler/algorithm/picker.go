@@ -10,6 +10,6 @@ type StepPicker interface {
 	Pick(*pipeline.Step) (*node.Node, error)
 }
 
-type TaskPicker interface {
+type PipelinePicker interface {
 	Pick(*pipeline.Pipeline) (*node.Node, error)
 }

@@ -19,13 +19,13 @@ import (
 	"github.com/infraboard/workflow/scheduler/store"
 )
 
-// NewPipelineTaskScheduler pipeline controller
-func NewPipelineTaskScheduler(
+// NewPipelineScheduler pipeline controller
+func NewPipelineScheduler(
 	nodeStore store.NodeStore,
 	inform informer.Informer,
-) *PipelineTaskScheduler {
+) *PipelineScheduler {
 	wq := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "PipelineScheduler")
-	controller := &PipelineTaskScheduler{
+	controller := &PipelineScheduler{
 		nodes:          nodeStore,
 		workqueue:      wq,
 		lister:         inform.Lister(),
@@ -39,7 +39,7 @@ func NewPipelineTaskScheduler(
 		DeleteFunc: controller.delNode,
 	})
 	inform.Watcher().AddPipelineTaskEventHandler(informer.PipelineTaskEventHandlerFuncs{
-		AddFunc: controller.addPipelineTask,
+		AddFunc: controller.addPipeline,
 	})
 	inform.Watcher().AddStepEventHandler(informer.StepEventHandlerFuncs{
 		AddFunc:    controller.addStep,
@@ -53,16 +53,16 @@ func NewPipelineTaskScheduler(
 	}
 	controller.stepPicker = stepPicker
 
-	taskPicker, err := roundrobin.NewTaskPicker(nodeStore)
+	pipePicker, err := roundrobin.NewPipelinePicker(nodeStore)
 	if err != nil {
 		panic(err)
 	}
-	controller.taskPicker = taskPicker
+	controller.pipePicker = pipePicker
 	return controller
 }
 
 // PipelineTaskScheduler 调度器控制器
-type PipelineTaskScheduler struct {
+type PipelineScheduler struct {
 	// workqueue is a rate limited work queue. This is used to queue work to be
 	// processed instead of performing it as soon as a change happens. This
 	// means we can ensure we only process a fixed amount of resources at a
@@ -75,21 +75,21 @@ type PipelineTaskScheduler struct {
 	runningWorkers map[string]bool
 	wLock          sync.Mutex
 	stepPicker     algorithm.StepPicker
-	taskPicker     algorithm.TaskPicker
+	pipePicker     algorithm.PipelinePicker
 	nodes          store.NodeStore // 存储每个region的node信息
 }
 
 // SetPicker 设置Node挑选器
-func (c *PipelineTaskScheduler) SetStepPicker(picker algorithm.StepPicker) {
+func (c *PipelineScheduler) SetStepPicker(picker algorithm.StepPicker) {
 	c.stepPicker = picker
 }
 
 // SetPicker 设置Node挑选器
-func (c *PipelineTaskScheduler) SetTaskPicker(picker algorithm.TaskPicker) {
-	c.taskPicker = picker
+func (c *PipelineScheduler) SetTaskPicker(picker algorithm.PipelinePicker) {
+	c.pipePicker = picker
 }
 
-func (c *PipelineTaskScheduler) Debug(log logger.Logger) {
+func (c *PipelineScheduler) Debug(log logger.Logger) {
 	c.log = log
 }
 
@@ -97,9 +97,10 @@ func (c *PipelineTaskScheduler) Debug(log logger.Logger) {
 // as syncing informer caches and starting workers. It will block until stopCh
 // is closed, at which point it will shutdown the workqueue and wait for
 // workers to finish processing their current work items.
-func (c *PipelineTaskScheduler) Run(ctx context.Context) error {
+func (c *PipelineScheduler) Run(ctx context.Context) error {
 	// Start the informer factories to begin populating the informer caches
 	c.log.Info("Starting schedule control loop")
+
 	// 调用Lister 获得所有的cronjob 并添加cron
 	c.log.Info("Starting Sync(List) All nodes")
 	nodes, err := c.lister.ListNode(ctx)
@@ -154,7 +155,7 @@ func (c *PipelineTaskScheduler) Run(ctx context.Context) error {
 // runWorker is a long-running function that will continually call the
 // processNextWorkItem function in order to read and process a message on the
 // workqueue.
-func (c *PipelineTaskScheduler) runWorker(name string) {
+func (c *PipelineScheduler) runWorker(name string) {
 	isRunning, ok := c.runningWorkers[name]
 	if ok && isRunning {
 		c.log.Warnf("worker %s has running", name)
@@ -172,12 +173,11 @@ func (c *PipelineTaskScheduler) runWorker(name string) {
 		c.wLock.Unlock()
 		c.log.Infof("worker %s has stopped", name)
 	}
-	return
 }
 
 // processNextWorkItem will read a single work item off the workqueue and
 // attempt to process it, by calling the syncHandler.
-func (c *PipelineTaskScheduler) processNextWorkItem() bool {
+func (c *PipelineScheduler) processNextWorkItem() bool {
 	obj, shutdown := c.workqueue.Get()
 	if shutdown {
 		return false
@@ -195,8 +195,8 @@ func (c *PipelineTaskScheduler) processNextWorkItem() bool {
 		switch v := obj.(type) {
 		case *pipeline.Pipeline:
 			c.log.Debugf("wait schedule pipeline: %s", v.GetId())
-			if err := c.schedulePipelineTask(v); err != nil {
-				return fmt.Errorf("error scheduled '%s': %s", v, err.Error())
+			if err := c.schedulePipeline(v); err != nil {
+				return fmt.Errorf("error scheduled pipeline %s, %s", v.Id, err.Error())
 			}
 		case *pipeline.Step:
 			c.log.Debugf("wait schedule step: %s", v.GetId())
@@ -225,7 +225,7 @@ func (c *PipelineTaskScheduler) processNextWorkItem() bool {
 	return true
 }
 
-func (c *PipelineTaskScheduler) runningWorkerNames() string {
+func (c *PipelineScheduler) runningWorkerNames() string {
 	c.wLock.Lock()
 	defer c.wLock.Unlock()
 	kList := make([]string, 0, len(c.runningWorkers))
@@ -235,30 +235,30 @@ func (c *PipelineTaskScheduler) runningWorkerNames() string {
 	return strings.Join(kList, ",")
 }
 
-//
-func (c *PipelineTaskScheduler) schedulePipelineTask(t *pipeline.Pipeline) error {
-	node, err := c.taskPicker.Pick(t)
+// Pipeline 调度
+func (c *PipelineScheduler) schedulePipeline(t *pipeline.Pipeline) error {
+	node, err := c.pipePicker.Pick(t)
 	if err != nil {
 		return err
 	}
 
 	// 没有合法的node
 	if node == nil {
-		return fmt.Errorf("no excutable node")
+		return fmt.Errorf("no excutable scheduler")
 	}
 
-	c.log.Debugf("choice node %s for pipeline %s", node.InstanceName, t.Id)
+	c.log.Debugf("choice scheduler %s for pipeline %s", node.InstanceName, t.Id)
 	t.AddScheduleNode(node.InstanceName)
 	// 清除一下其他数据
 	if err := c.lister.UpdatePipeline(t); err != nil {
-		c.log.Errorf("update scheduled step error, %s", err)
+		c.log.Errorf("update scheduled pipeline error, %s", err)
 	}
 
 	return nil
 }
 
-// 单步调度
-func (c *PipelineTaskScheduler) scheduleStep(step *pipeline.Step) error {
+// Step任务调度
+func (c *PipelineScheduler) scheduleStep(step *pipeline.Step) error {
 	node, err := c.stepPicker.Pick(step)
 	if err != nil {
 		return err

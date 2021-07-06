@@ -16,31 +16,38 @@ import (
 )
 
 type etcd struct {
-	leaseID              clientv3.LeaseID
-	client               *clientv3.Client
-	requestTimeout       time.Duration
-	headbeatResponseChan chan node.HeatbeatResonse
-	isStopped            bool
-	instanceKey          string
-	stopInstance         chan struct{}
-	keepAliveStop        context.CancelFunc
+	leaseID        clientv3.LeaseID
+	client         *clientv3.Client
+	requestTimeout time.Duration
+	isStopped      bool
+	instanceKey    string
+	instanceValue  string
+	stopInstance   chan struct{}
+	keepAliveStop  context.CancelFunc
+	node           *node.Node
 	logger.Logger
-}
-type headbeatResponse struct {
-	ttl int64
-}
-
-func (h *headbeatResponse) TTL() int64 {
-	return h.ttl
 }
 
 // NewEtcdRegister 初始化一个基于etcd的实例注册器
-func NewEtcdRegister() (node.Register, error) {
+func NewEtcdRegister(node *node.Node) (node.Register, error) {
+	if err := node.Validate(); err != nil {
+		return nil, err
+	}
+
 	etcdR := new(etcd)
 	etcdR.client = conf.C().Etcd.GetClient()
 	etcdR.stopInstance = make(chan struct{}, 1)
 	etcdR.requestTimeout = time.Duration(5) * time.Second
-	etcdR.headbeatResponseChan = make(chan node.HeatbeatResonse, 3)
+	etcdR.node = node
+
+	// 注册服务的key
+	sjson, err := json.Marshal(node)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(string(sjson))
+	etcdR.instanceValue = string(sjson)
+	etcdR.instanceKey = node.MakeRegistryKey()
 	return etcdR, nil
 }
 
@@ -53,65 +60,47 @@ func NewEtcdRegister() (node.Register, error) {
 // interval is service refresh interval, eg. 10s
 // ttl is service ttl, eg. 15
 // TODO: 判断服务是否已经被其他人注册了, 如果注册了 则需要更换名称才能注册
-func (e *etcd) Registe(node *node.Node) (<-chan node.HeatbeatResonse, error) {
-	if err := node.Validate(); err != nil {
-		return nil, err
-	}
-	// 注册服务的key
-	sjson, err := json.Marshal(node)
-	if err != nil {
-		e.Errorf("marshal service object to json error, %s", err)
-	}
-	serviceValue := string(sjson)
-	serviceKey := node.MakeRegistryKey()
-
+func (e *etcd) Registe() error {
 	// 后台续约
 	// 并没有直接使用KeepAlive, 因为存在偶然端口, 就不续约的情况
 	ctx, cancel := context.WithCancel(context.Background())
 	e.keepAliveStop = cancel
-	e.instanceKey = serviceKey
 
-	go e.keepAlive(ctx, serviceKey, serviceValue, node.TTL, e.headbeatResponseChan)
-	return e.headbeatResponseChan, nil
+	// 初始化注册
+	if err := e.addOnce(); err != nil {
+		e.Errorf("registry error, %s", err)
+		return err
+	}
+	e.Infof("服务实例(%s)注册成功", e.instanceKey)
+
+	// keep alive
+	go e.keepAlive(ctx)
+	return nil
 }
 
 func (e *etcd) Debug(log logger.Logger) {
 	e.Logger = log
 }
 
-func (e *etcd) getLeaseID(ttl int64) (clientv3.LeaseID, error) {
-	resp, err := e.client.Lease.Grant(context.TODO(), ttl)
-	if err != nil {
-		return 0, err
-	}
-	e.leaseID = resp.ID
-	return e.leaseID, nil
-}
-
-func (e *etcd) addOnce(key, value string, ttl int64) error {
+func (e *etcd) addOnce() error {
 	// 获取leaseID
-	resp, err := e.client.Lease.Grant(context.TODO(), ttl)
+	resp, err := e.client.Lease.Grant(context.TODO(), e.node.TTL)
 	if err != nil {
 		return fmt.Errorf("get etcd lease id error, %s", err)
 	}
 	e.leaseID = resp.ID
 	// 写入key
-	if _, err := e.client.Put(context.Background(), key, value, clientv3.WithLease(e.leaseID)); err != nil {
-		return fmt.Errorf("registe service '%s' with ttl to etcd3 failed: %s", key, err.Error())
+	if _, err := e.client.Put(context.Background(), e.instanceKey, e.instanceValue, clientv3.WithLease(e.leaseID)); err != nil {
+		return fmt.Errorf("registe service '%s' with ttl to etcd3 failed: %s", e.instanceKey, err.Error())
 	}
-	e.instanceKey = key
+	e.instanceKey = e.instanceKey
 	return nil
 }
 
-func (e *etcd) keepAlive(ctx context.Context, key, value string, ttl int64, respChan chan node.HeatbeatResonse) {
-	// 初始化注册
-	if err := e.addOnce(key, value, ttl); err != nil {
-		e.Errorf("registry error, %s", err)
-		return
-	}
-	e.Infof("服务实例(%s)注册成功", key)
+func (e *etcd) keepAlive(ctx context.Context) {
 	// 不停的续约
-	interval := ttl / 5
+	interval := e.node.TTL / 5
+	e.Infof("lease interval %d", interval)
 	tk := time.NewTicker(time.Duration(interval) * time.Second)
 	defer tk.Stop()
 	for {
@@ -120,12 +109,14 @@ func (e *etcd) keepAlive(ctx context.Context, key, value string, ttl int64, resp
 			e.Infof("keepalive goroutine exit")
 			return
 		case <-tk.C:
-			Opctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+			Opctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+
 			resp, err := e.client.Lease.KeepAliveOnce(Opctx, e.leaseID)
 			if err != nil {
 				if strings.Contains(err.Error(), "requested lease not found") {
 					// 避免程序卡顿造成leaseID失效(比如mac 电脑休眠))
-					if err := e.addOnce(key, value, ttl); err != nil {
+					if err := e.addOnce(); err != nil {
 						e.Errorf("refresh registry error, %s", err)
 					} else {
 						e.Warn("refresh registry success")
@@ -133,7 +124,7 @@ func (e *etcd) keepAlive(ctx context.Context, key, value string, ttl int64, resp
 				}
 				e.Errorf("lease keep alive error, %s", err)
 			} else {
-				respChan <- &headbeatResponse{ttl: resp.TTL}
+				e.Debugf("heartbeat: %s", resp)
 			}
 		}
 	}

@@ -221,7 +221,9 @@ type _cache struct {
 }
 
 func newDefaultEtcd() *Etcd {
-	return &Etcd{}
+	return &Etcd{
+		InstanceTTL: 300,
+	}
 }
 
 type Etcd struct {
