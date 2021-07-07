@@ -49,6 +49,12 @@ func (i *shared) Run(ctx context.Context) error {
 	// 监听事件
 	i.watchAll(ctx)
 
+	// 后台处理事件
+	go i.dealEvents()
+	return nil
+}
+
+func (i *shared) dealEvents() {
 	// 处理所有事件
 	for {
 		select {

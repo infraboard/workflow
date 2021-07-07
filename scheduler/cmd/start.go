@@ -109,11 +109,9 @@ func (s *service) start() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	s.stop = cancel
 	defer cancel()
-	go func() {
-		if err := s.info.Watcher().Run(ctx); err != nil {
-			zap.L().Error(err)
-		}
-	}()
+	if err := s.info.Watcher().Run(ctx); err != nil {
+		zap.L().Error(err)
+	}
 
 	// 启动controller
 	if err := s.pc.Run(ctx); err != nil {

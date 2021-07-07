@@ -32,7 +32,7 @@ func (c *PipelineScheduler) delNode(n *node.Node) {
 
 // 每添加一个pipeline
 func (c *PipelineScheduler) addPipeline(t *pipeline.Pipeline) {
-	c.log.Debugf("receive add pipeline: %s status: %s", t.ShortDescribe(), t.Status.Status)
+	c.log.Debugf("[pipeline] receive add pipeline: %s status: %s", t.ShortDescribe(), t.Status.Status)
 	if err := t.Validate(); err != nil {
 		c.log.Errorf("invalidate pipeline error, %s", err)
 		return
@@ -52,6 +52,7 @@ func (c *PipelineScheduler) addPipeline(t *pipeline.Pipeline) {
 		if err := c.lister.UpdatePipeline(t); err != nil {
 			c.log.Errorf("update pipeline %s status to store error, %s", t.ShortDescribe(), err)
 		}
+		return
 	}
 
 	// 将需要调度的任务, 交给step调度器调度
@@ -59,7 +60,7 @@ func (c *PipelineScheduler) addPipeline(t *pipeline.Pipeline) {
 	c.log.Debugf("pipeline %s next step is %v", t.ShortDescribe(), steps)
 	for i := range steps {
 		step := steps[i]
-		c.log.Debugf("add pipeline step: %s", step.Key)
+		c.log.Debugf("create pipeline step: %s", step.Key)
 		err := c.lister.UpdateStep(step)
 		if err != nil {
 			c.log.Errorf(err.Error())
@@ -68,7 +69,7 @@ func (c *PipelineScheduler) addPipeline(t *pipeline.Pipeline) {
 }
 
 func (c *PipelineScheduler) addStep(s *pipeline.Step) {
-	c.log.Infof("receive add object: %s", s)
+	c.log.Infof("[step] receive add step: %s", s)
 	if err := s.Validate(); err != nil {
 		c.log.Errorf("invalidate node error, %s", err)
 		return
