@@ -84,7 +84,7 @@ func (s *Step) IsScheduled() bool {
 }
 
 func (s *Step) BuildKey(namespace, pipelineId string, stage int32) {
-	s.Key = fmt.Sprintf("%s/%s/%d.%d", namespace, pipelineId, stage, s.Id)
+	s.Key = fmt.Sprintf("%s.%s.%d.%d", namespace, pipelineId, stage, s.Id)
 }
 
 // NewQueryStepRequest 查询book列表
