@@ -223,6 +223,7 @@ type _cache struct {
 func newDefaultEtcd() *Etcd {
 	return &Etcd{
 		InstanceTTL: 300,
+		Prefix:      "inforboard",
 	}
 }
 
