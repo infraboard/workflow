@@ -161,7 +161,7 @@ message Stage {
 message Step {
 	// Key 运行时标识符
 	string key = 9 [
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"key" json:"key"'}
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"key" json:"key,omitempty"'}
         ];
 	// 步骤ID
 	int32 id = 1[

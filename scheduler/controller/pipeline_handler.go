@@ -32,7 +32,7 @@ func (c *PipelineScheduler) delNode(n *node.Node) {
 
 // 每添加一个pipeline
 func (c *PipelineScheduler) addPipeline(t *pipeline.Pipeline) {
-	c.log.Debugf("receive add pipeline: %s[%s], status: %s", t.Name, t.Id, t.Status.Status)
+	c.log.Debugf("receive add pipeline: %s status: %s", t.ShortDescribe(), t.Status.Status)
 	if err := t.Validate(); err != nil {
 		c.log.Errorf("invalidate pipeline error, %s", err)
 		return
@@ -40,7 +40,7 @@ func (c *PipelineScheduler) addPipeline(t *pipeline.Pipeline) {
 
 	// 已经处理完成的无需处理
 	if t.Status.IsComplete() {
-		c.log.Debugf("skip run complete pipeline %s[%s], status: %s", t.Name, t.Id, t.Status.Status)
+		c.log.Debugf("skip run complete pipeline %s, status: %s", t.ShortDescribe(), t.Status.Status)
 		return
 	}
 
@@ -50,12 +50,13 @@ func (c *PipelineScheduler) addPipeline(t *pipeline.Pipeline) {
 	if !t.Status.IsRunning() {
 		t.Status.Run()
 		if err := c.lister.UpdatePipeline(t); err != nil {
-			c.log.Errorf("update pipeline %s[%s] status to store error, %s", t.Name, t.Id, err)
+			c.log.Errorf("update pipeline %s status to store error, %s", t.ShortDescribe(), err)
 		}
 	}
 
 	// 将需要调度的任务, 交给step调度器调度
 	steps := t.NextStep()
+	c.log.Debugf("pipeline %s next step is %v", t.ShortDescribe(), steps)
 	for i := range steps {
 		step := steps[i]
 		c.log.Debugf("add pipeline step: %s", step.Key)

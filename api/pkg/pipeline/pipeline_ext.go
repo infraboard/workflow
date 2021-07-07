@@ -19,6 +19,10 @@ func NewCreatePipelineRequest() *CreatePipelineRequest {
 	return &CreatePipelineRequest{}
 }
 
+func NewDefaultStepStatus() *StepStatus {
+	return &StepStatus{}
+}
+
 // NewQueryPipelineRequest 查询book列表
 func NewQueryPipelineRequest() *QueryPipelineRequest {
 	return &QueryPipelineRequest{
@@ -31,6 +35,17 @@ func (req *CreatePipelineRequest) Validate() error {
 		return fmt.Errorf("no stages")
 	}
 	return validate.Struct(req)
+}
+
+func (req *CreatePipelineRequest) EnsureStep() {
+	for m := range req.Stages {
+		s := req.Stages[m]
+		for n := range s.Steps {
+			t := s.Steps[n]
+			t.Id = int32(n) + 1
+			t.Status = NewDefaultStepStatus()
+		}
+	}
 }
 
 func LoadPipelineFromBytes(payload []byte) (*Pipeline, error) {
@@ -60,6 +75,9 @@ func NewPipeline(req *CreatePipelineRequest) (*Pipeline, error) {
 		return nil, err
 	}
 
+	// 补充step id
+	req.EnsureStep()
+
 	p := &Pipeline{
 		Id:          xid.New().String(),
 		CreateAt:    ftime.Now().Timestamp(),
@@ -80,18 +98,17 @@ func (p *Pipeline) Validate() error {
 func (t *Pipeline) NextStep() (steps []*Step) {
 	for i := range t.Stages {
 		stage := t.Stages[i]
-		if !stage.HasNextStep() {
-			continue
-		}
-
 		steps = stage.NextStep()
 		for i := range steps {
 			steps[i].BuildKey(t.Id, stage.Id)
 		}
-		return
 	}
 
 	return
+}
+
+func (t *Pipeline) ShortDescribe() string {
+	return fmt.Sprintf("%s[%s]", t.Name, t.Id)
 }
 
 func (t *Pipeline) SchedulerNodeName() string {
@@ -144,14 +161,6 @@ func (s *Stage) StepCount() int {
 	return len(s.Steps)
 }
 
-func (s *Stage) HasNextStep() bool {
-	if s.StepCount() == 0 {
-		return false
-	}
-
-	return s.Steps[s.StepCount()-1].IsScheduled()
-}
-
 // 因为可能包含并行任务, 下一次执行的任务可能是多个
 func (s *Stage) NextStep() (nextSteps []*Step) {
 	for i := range s.Steps {
@@ -163,7 +172,6 @@ func (s *Stage) NextStep() (nextSteps []*Step) {
 		}
 
 		nextSteps = append(nextSteps, step)
-
 		// 遇到串行执行的step结束step
 		if !step.IsParallel {
 			return
@@ -208,6 +216,9 @@ func (s *Step) SetScheduleNode(nodeName string) {
 }
 
 func (s *Step) ScheduledNodeName() string {
+	if s.Status != nil {
+		return s.Status.ScheduledNode
+	}
 	return ""
 }
 
