@@ -41,11 +41,11 @@ client_secret = ""
 endpoints = ["10.40.33.68:2379","10.40.33.69:2379","10.40.33.70:2379"]
 username = "devops"
 password = "devops#123"
-prefix = "workflow_"
+prefix = ""
 instance_ttl = 60
 
 [nats]
 
 [bus]
-type = "kafka"
+type = "nats"
 
