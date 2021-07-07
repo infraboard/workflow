@@ -40,6 +40,7 @@ func (req *CreatePipelineRequest) Validate() error {
 func (req *CreatePipelineRequest) EnsureStep() {
 	for m := range req.Stages {
 		s := req.Stages[m]
+		s.Id = int32(m) + 1
 		for n := range s.Steps {
 			t := s.Steps[n]
 			t.Id = int32(n) + 1
@@ -100,7 +101,7 @@ func (t *Pipeline) NextStep() (steps []*Step) {
 		stage := t.Stages[i]
 		steps = stage.NextStep()
 		for i := range steps {
-			steps[i].BuildKey(t.Id, stage.Id)
+			steps[i].BuildKey(t.Namespace, t.Id, stage.Id)
 		}
 	}
 
@@ -207,10 +208,6 @@ func (s *Step) Validate() error {
 	return validate.Struct(s)
 }
 
-func (s *Step) EtcdObjectKey(prefix string) string {
-	return fmt.Sprintf("%s/%s", prefix, s.Key)
-}
-
 func (s *Step) SetScheduleNode(nodeName string) {
 	s.Status.ScheduledNode = nodeName
 }
@@ -226,8 +223,8 @@ func (s *Step) IsScheduled() bool {
 	return s.ScheduledNodeName() != ""
 }
 
-func (s *Step) BuildKey(pipelineId string, stage int32) {
-	s.Key = fmt.Sprintf("%s.%d.%d", pipelineId, stage, s.Id)
+func (s *Step) BuildKey(namespace, pipelineId string, stage int32) {
+	s.Key = fmt.Sprintf("%s/%s/%d.%d", namespace, pipelineId, stage, s.Id)
 }
 
 // NewQueryPipelineRequest 查询book列表

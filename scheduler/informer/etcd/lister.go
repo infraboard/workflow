@@ -52,7 +52,7 @@ func (l *lister) ListPipeline(ctx context.Context, opts *informer.QueryPipelineO
 		// 解析对象
 		pt, err := pipeline.LoadPipelineFromBytes(resp.Kvs[i].Value)
 		if err != nil {
-			l.log.Error(err)
+			l.log.Errorf("load pipeline [key: %s, value: %s] error, %s", resp.Kvs[i].Key, string(resp.Kvs[i].Value), err)
 			continue
 		}
 
@@ -63,7 +63,7 @@ func (l *lister) ListPipeline(ctx context.Context, opts *informer.QueryPipelineO
 }
 
 func (l *lister) UpdateStep(step *pipeline.Step) error {
-	objKey := step.EtcdObjectKey(pipeline.EtcdPipelinePrefix())
+	objKey := pipeline.StepObjectKey(step.Key)
 	objValue, err := json.Marshal(step)
 	if err != nil {
 		return err

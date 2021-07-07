@@ -11,6 +11,10 @@ func PipeLineObjectKey(namespace, id string) string {
 	return fmt.Sprintf("%s/%s/%s", EtcdPipelinePrefix(), namespace, id)
 }
 
+func StepObjectKey(key string) string {
+	return fmt.Sprintf("%s/%s", EtcdStepPrefix(), key)
+}
+
 func EtcdPipelinePrefix() string {
 	return fmt.Sprintf("%s/%s/pipelines", conf.C().Etcd.Prefix, version.ServiceName)
 }

@@ -169,7 +169,6 @@ func (i *impl) CreateAction(ctx context.Context, req *pipeline.CreateActionReque
 	}
 
 	objKey := p.EtcdObjectKey()
-	fmt.Println("key:", objKey)
 	objValue := string(value)
 
 	if _, err := i.client.Put(context.Background(), objKey, objValue); err != nil {

@@ -40,7 +40,7 @@ func (l *lister) ListNode(ctx context.Context) (ret []*node.Node, err error) {
 	return nodes, nil
 }
 
-func (l *lister) ListPipeline(ctx context.Context, opts *informer.QueryPipelineTaskOptions) (*pipeline.PipelineSet, error) {
+func (l *lister) ListPipeline(ctx context.Context, opts *informer.QueryPipelineOptions) (*pipeline.PipelineSet, error) {
 	listKey := pipeline.EtcdPipelinePrefix()
 	l.log.Infof("list etcd pipeline resource key: %s", listKey)
 	resp, err := l.client.Get(ctx, listKey, clientv3.WithPrefix())
@@ -52,7 +52,7 @@ func (l *lister) ListPipeline(ctx context.Context, opts *informer.QueryPipelineT
 		// 解析对象
 		pt, err := pipeline.LoadPipelineFromBytes(resp.Kvs[i].Value)
 		if err != nil {
-			l.log.Error(err)
+			l.log.Errorf("list pipeline [key: %s] error, %s", listKey, err)
 			continue
 		}
 
@@ -63,7 +63,7 @@ func (l *lister) ListPipeline(ctx context.Context, opts *informer.QueryPipelineT
 }
 
 func (l *lister) UpdateStep(step *pipeline.Step) error {
-	objKey := step.EtcdObjectKey(pipeline.EtcdPipelinePrefix())
+	objKey := pipeline.StepObjectKey(step.Key)
 	objValue, err := json.Marshal(step)
 	if err != nil {
 		return err

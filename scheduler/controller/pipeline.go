@@ -230,7 +230,7 @@ func (c *PipelineScheduler) processNextWorkItem() bool {
 			}
 			c.log.Infof("pipeline successfully scheduled %s[%s]", v.Name, v.Id)
 		case *pipeline.Step:
-			c.log.Debugf("wait schedule step: %s", v.GetId())
+			c.log.Debugf("wait schedule step: %s", v.Key)
 			if err := c.scheduleStep(v); err != nil {
 				return fmt.Errorf("error scheduled '%s': %s", v, err.Error())
 			}
