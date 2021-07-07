@@ -59,6 +59,8 @@ service Service {
 	rpc CreatePipeline(CreatePipelineRequest) returns(Pipeline);
 	rpc QueryPipeline(QueryPipelineRequest) returns(PipelineSet);
 	rpc DescribePipeline(DescribePipelineRequest) returns(Pipeline);
+	rpc QueryStep(QueryStepRequest) returns(StepSet);
+	rpc DescribeStep(DescribeStepRequest) returns(Step);
 	rpc DeletePipeline(DeletePipelineRequest) returns(Pipeline);
 	rpc CreateAction(CreateActionRequest) returns(Action);
 	rpc QueryAction(QueryActionRequest) returns(ActionSet);
@@ -219,6 +221,31 @@ message StepStatus {
         (google.protobuf.field_tag) = {struct_tag: 'bson:"message" json:"message"'}
         ];
 }
+
+// StepSet todo
+message StepSet {
+    int64 total = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"total" json:"total"'}
+        ];
+    repeated Step items = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"items" json:"items"'}
+        ];
+}
+
+// QueryStepRequest 查询Book请求
+message QueryStepRequest {
+    page.PageRequest page = 1;
+    string key = 2;
+}
+
+// DescribeStepRequest todo
+message DescribeStepRequest {
+	// 唯一ID
+	string key = 1[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"key"'}
+		];	
+}
+
 
 // PipelineStatus 当前状态
 message PipelineStatus {

@@ -28,6 +28,10 @@ func (h *handler) Registry(router router.SubRouter) {
 	r.Handle("GET", "/:id", h.DescribePipeline).AddLabel(label.Get)
 	r.Handle("DELETE", "/:id", h.DeletePipeline).AddLabel(label.Delete)
 
+	r.BasePath("steps")
+	r.Handle("GET", "/", h.QueryStep).AddLabel(label.List)
+	r.Handle("GET", "/:id", h.DescribeStep).AddLabel(label.Get)
+
 	r.BasePath("actions")
 	r.Handle("POST", "/", h.CreateAction).AddLabel(label.Create)
 	r.Handle("GET", "/", h.QueryAction).AddLabel(label.List)

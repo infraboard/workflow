@@ -13,21 +13,22 @@ import (
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 )
 
-func (h *handler) CreatePipeline(w http.ResponseWriter, r *http.Request) {
+// Action
+func (h *handler) CreateAction(w http.ResponseWriter, r *http.Request) {
 	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
 	if err != nil {
 		response.Failed(w, err)
 		return
 	}
 
-	req := pipeline.NewCreatePipelineRequest()
+	req := pipeline.NewCreateActionRequest()
 	if err := request.GetDataFromRequest(r, req); err != nil {
 		response.Failed(w, err)
 		return
 	}
 
 	var header, trailer metadata.MD
-	ins, err := h.service.CreatePipeline(
+	ins, err := h.service.CreateAction(
 		ctx.Context(),
 		req,
 		grpc.Header(&header),
@@ -40,7 +41,7 @@ func (h *handler) CreatePipeline(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, ins)
 }
 
-func (h *handler) QueryPipeline(w http.ResponseWriter, r *http.Request) {
+func (h *handler) QueryAction(w http.ResponseWriter, r *http.Request) {
 	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
 	if err != nil {
 		response.Failed(w, err)
@@ -48,11 +49,10 @@ func (h *handler) QueryPipeline(w http.ResponseWriter, r *http.Request) {
 	}
 
 	page := request.NewPageRequestFromHTTP(r)
-	req := pipeline.NewQueryPipelineRequest()
-	req.Page = &page.PageRequest
+	req := pipeline.NewQueryActionRequest(page)
 
 	var header, trailer metadata.MD
-	dommains, err := h.service.QueryPipeline(
+	actions, err := h.service.QueryAction(
 		ctx.Context(),
 		req,
 		grpc.Header(&header),
@@ -62,10 +62,10 @@ func (h *handler) QueryPipeline(w http.ResponseWriter, r *http.Request) {
 		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
 		return
 	}
-	response.Success(w, dommains)
+	response.Success(w, actions)
 }
 
-func (h *handler) DescribePipeline(w http.ResponseWriter, r *http.Request) {
+func (h *handler) DeleteAction(w http.ResponseWriter, r *http.Request) {
 	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
 	if err != nil {
 		response.Failed(w, err)
@@ -73,10 +73,10 @@ func (h *handler) DescribePipeline(w http.ResponseWriter, r *http.Request) {
 	}
 
 	hc := context.GetContext(r)
-	req := pipeline.NewDescribePipelineRequestWithID(hc.PS.ByName("id"))
+	req := pipeline.NewDeleteActionRequestWithName(hc.PS.ByName("name"))
 
 	var header, trailer metadata.MD
-	dommains, err := h.service.DescribePipeline(
+	action, err := h.service.DeleteAction(
 		ctx.Context(),
 		req,
 		grpc.Header(&header),
@@ -86,29 +86,5 @@ func (h *handler) DescribePipeline(w http.ResponseWriter, r *http.Request) {
 		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
 		return
 	}
-	response.Success(w, dommains)
-}
-
-func (h *handler) DeletePipeline(w http.ResponseWriter, r *http.Request) {
-	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
-	if err != nil {
-		response.Failed(w, err)
-		return
-	}
-
-	hc := context.GetContext(r)
-	req := pipeline.NewDeletePipelineRequestWithID(hc.PS.ByName("id"))
-
-	var header, trailer metadata.MD
-	dommains, err := h.service.DeletePipeline(
-		ctx.Context(),
-		req,
-		grpc.Header(&header),
-		grpc.Trailer(&trailer),
-	)
-	if err != nil {
-		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
-		return
-	}
-	response.Success(w, dommains)
+	response.Success(w, action)
 }
