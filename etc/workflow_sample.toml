@@ -25,9 +25,9 @@ database = "admin"
 
 [log]
 level = "debug"
-path_dir = ""
-format = ""
-to = "" 
+path = "logs"
+format = "text"
+to = "stdout"
 
 [keyauth]
 host = "10.40.44.101"

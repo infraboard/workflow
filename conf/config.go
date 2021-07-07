@@ -114,7 +114,7 @@ func newDefaultLog() *log {
 	return &log{
 		Level:   "debug",
 		PathDir: "logs",
-		Format:  "json",
+		Format:  "text",
 		To:      "stdout",
 	}
 }

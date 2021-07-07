@@ -80,30 +80,3 @@ func (i *PipelineInformer) Lister() informer.Lister {
 	}
 	return i.lister
 }
-
-// func (i *PipelineInformer) OnAdd(n *node.Node) {
-// 	s, err := json.Marshal(&n)
-// 	if err != nil {
-// 		i.log.Debug(err)
-// 	}
-// 	i.log.Debug("add :", string(s))
-// 	return
-// }
-
-// func (i *PipelineInformer) OnUpdate(n *node.Node) {
-// 	s, err := json.Marshal(&n)
-// 	if err != nil {
-// 		i.log.Debug(err)
-// 	}
-// 	i.log.Debug("OnUpdate :", string(s))
-// 	return
-// }
-
-// func (i *PipelineInformer) OnDelete(n *node.Node) {
-// 	s, err := json.Marshal(&n)
-// 	if err != nil {
-// 		i.log.Debug(err)
-// 	}
-// 	i.log.Debug("OnDelete :", string(s))
-// 	return
-// }
