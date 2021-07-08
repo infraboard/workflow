@@ -18,7 +18,7 @@ type shared struct {
 	log               logger.Logger
 	client            clientv3.Watcher
 	nodeHandler       informer.NodeEventHandler
-	pipelineHandler   informer.PipelineTaskEventHandler
+	pipelineHandler   informer.PipelineEventHandler
 	stepHandler       informer.StepEventHandler
 	nodeWatchChan     clientv3.WatchChan
 	pipelineWatchChan clientv3.WatchChan
@@ -31,7 +31,7 @@ func (i *shared) AddNodeEventHandler(h informer.NodeEventHandler) {
 }
 
 // AddPipelineEventHandler 添加事件处理回调
-func (i *shared) AddPipelineTaskEventHandler(h informer.PipelineTaskEventHandler) {
+func (i *shared) AddPipelineTaskEventHandler(h informer.PipelineEventHandler) {
 	i.pipelineHandler = h
 }
 
@@ -86,6 +86,9 @@ func (i *shared) isReady() error {
 	}
 	if i.pipelineHandler == nil {
 		return errors.New("PipelineEventHandler not add")
+	}
+	if i.stepHandler == nil {
+		return errors.New("StepEventHandler not add")
 	}
 	return nil
 }

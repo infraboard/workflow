@@ -10,7 +10,5 @@ type Watcher interface {
 	// AddEventHandler adds an event handler to the shared informer using the shared informer's resync
 	// period.  Events to a single handler are delivered sequentially, but there is no coordination
 	// between different handlers.
-	AddNodeEventHandler(handler NodeEventHandler)
-	AddPipelineTaskEventHandler(handler PipelineTaskEventHandler)
 	AddStepEventHandler(handler StepEventHandler)
 }

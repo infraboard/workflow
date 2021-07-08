@@ -19,7 +19,7 @@ func NewNodeInformer(cnf conf.Etcd) (informer.Informer, error) {
 		return nil, err
 	}
 
-	info := &PipelineInformer{cnf: cnf, log: zap.L().Named("Informer")}
+	info := &NodeInformer{cnf: cnf, log: zap.L().Named("Informer")}
 
 	// 初始化客户端
 	config := clientv3.Config{
@@ -45,8 +45,8 @@ func NewNodeInformer(cnf conf.Etcd) (informer.Informer, error) {
 	return info, nil
 }
 
-// PipelineInformer todo
-type PipelineInformer struct {
+// NodeInformer todo
+type NodeInformer struct {
 	cnf    conf.Etcd
 	log    logger.Logger
 	client *clientv3.Client
@@ -54,13 +54,13 @@ type PipelineInformer struct {
 	lister *lister
 }
 
-func (i *PipelineInformer) Debug(l logger.Logger) {
+func (i *NodeInformer) Debug(l logger.Logger) {
 	i.log = l
 	i.shared.log = l
 	i.lister.log = l
 }
 
-func (i *PipelineInformer) Watcher() informer.Watcher {
+func (i *NodeInformer) Watcher() informer.Watcher {
 	if i.shared != nil {
 		return i.shared
 	}
@@ -71,7 +71,7 @@ func (i *PipelineInformer) Watcher() informer.Watcher {
 	return i.shared
 }
 
-func (i *PipelineInformer) Lister() informer.Lister {
+func (i *NodeInformer) Lister() informer.Lister {
 	if i.lister != nil {
 		return i.lister
 	}

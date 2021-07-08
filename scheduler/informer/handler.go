@@ -69,7 +69,7 @@ func (r NodeEventHandlerFuncs) OnDelete(obj *node.Node) {
 //      it will get an object of type DeletedFinalStateUnknown. This can
 //      happen if the watch is closed and misses the delete event and we don't
 //      notice the deletion until the subsequent re-list.
-type PipelineTaskEventHandler interface {
+type PipelineEventHandler interface {
 	OnAdd(obj *pipeline.Pipeline)
 	OnUpdate(old, new *pipeline.Pipeline)
 	OnDelete(obj *pipeline.Pipeline)

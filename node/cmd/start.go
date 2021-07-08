@@ -102,13 +102,11 @@ func (s *service) start() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	s.stop = cancel
 	defer cancel()
-	go func() {
-		if err := s.info.Watcher().Run(ctx); err != nil {
-			zap.L().Error(err)
-		}
 
-	}()
-	fmt.Println("start service.....")
+	if err := s.info.Watcher().Run(ctx); err != nil {
+		s.log.Error(err)
+	}
+
 	dst := make(chan int)
 	n := 1
 	for {
@@ -155,7 +153,7 @@ func MakeRegistryNode(cfg *conf.Config) *node.Node {
 	return &node.Node{
 		InstanceName: hn + RandString(10),
 		ServiceName:  version.ServiceName,
-		Type:         node.SchedulerType,
+		Type:         node.NodeType,
 		Address:      cfg.HTTP.Host,
 		Version:      version.GIT_TAG,
 		GitBranch:    version.GIT_BRANCH,

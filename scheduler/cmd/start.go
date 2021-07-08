@@ -110,7 +110,7 @@ func (s *service) start() error {
 	s.stop = cancel
 	defer cancel()
 	if err := s.info.Watcher().Run(ctx); err != nil {
-		zap.L().Error(err)
+		s.log.Error(err)
 	}
 
 	// 启动controller
