@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/infraboard/mcube/logger"
@@ -75,21 +74,10 @@ func (n *Node) Validate() error {
 	return nil
 }
 
-// MakeRegistryKey 构建etcd对应的key
+// MakeObjectKey 构建etcd对应的key
 // 例如: inforboard/workflow/service/node/node-01
-func (n *Node) MakeRegistryKey() string {
-	return fmt.Sprintf("%s/%s/service/%s/%s", n.Prefix, n.ServiceName, n.Type, n.InstanceName)
-}
-
-// ParseInstanceKey 解析key中的服务信息
-func ParseInstanceKey(key string) (serviceName, instanceName string, serviceType Type, err error) {
-	kl := strings.Split(key, "/")
-	if len(kl) != 5 {
-		err = errors.New("key format error, must like inforboard/workflow/service/node/node-dev")
-		return
-	}
-	serviceName, serviceType, instanceName = kl[1], Type(kl[3]), kl[4]
-	return
+func (n *Node) MakeObjectKey() string {
+	return fmt.Sprintf("%s/%s/%s", EtcdNodePrefix(), n.Type, n.InstanceName)
 }
 
 // Register 服务注册接口

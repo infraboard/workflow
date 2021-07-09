@@ -1,4 +1,4 @@
-package controller
+package pipeline
 
 import (
 	"context"
@@ -14,51 +14,56 @@ import (
 
 	"github.com/infraboard/workflow/api/pkg/node"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/common/cache"
 	"github.com/infraboard/workflow/scheduler/algorithm"
 	"github.com/infraboard/workflow/scheduler/algorithm/roundrobin"
-	"github.com/infraboard/workflow/scheduler/informer"
-	"github.com/infraboard/workflow/scheduler/store"
+
+	node_informer "github.com/infraboard/workflow/common/informers/node"
+	pipeline_informer "github.com/infraboard/workflow/common/informers/pipeline"
+	step_informer "github.com/infraboard/workflow/common/informers/step"
 )
 
 // NewPipelineScheduler pipeline controller
 func NewPipelineScheduler(
 	schedulerName string,
-	nodeStore store.NodeStore,
-	schedulerStore store.NodeStore,
-	inform informer.Informer,
+	ni node_informer.Informer,
+	pi pipeline_informer.Informer,
+	si step_informer.Informer,
 ) *PipelineScheduler {
 	wq := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "PipelineScheduler")
 	controller := &PipelineScheduler{
 		schedulerName:  schedulerName,
-		nodes:          nodeStore,
-		scheduler:      schedulerStore,
+		nodes:          ni.GetStore(),
+		schedulers:     cache.NewIndexer(node_informer.MetaNamespaceKeyFunc, node_informer.DefaultStoreIndexers()),
+		ni:             ni,
+		pi:             pi,
+		si:             si,
 		workqueue:      wq,
-		lister:         inform.Lister(),
 		workerNums:     4,
 		log:            zap.L().Named("PipelineScheduler"),
 		runningWorkers: make(map[string]bool, 4),
 	}
 
-	inform.Watcher().AddNodeEventHandler(informer.NodeEventHandlerFuncs{
+	ni.Watcher().AddNodeEventHandler(node_informer.NodeEventHandlerFuncs{
 		AddFunc:    controller.addNode,
 		DeleteFunc: controller.delNode,
 	})
-	inform.Watcher().AddPipelineTaskEventHandler(informer.PipelineTaskEventHandlerFuncs{
+	pi.Watcher().AddPipelineTaskEventHandler(pipeline_informer.PipelineTaskEventHandlerFuncs{
 		AddFunc: controller.addPipeline,
 	})
-	inform.Watcher().AddStepEventHandler(informer.StepEventHandlerFuncs{
+	si.Watcher().AddStepEventHandler(step_informer.StepEventHandlerFuncs{
 		AddFunc:    controller.addStep,
 		UpdateFunc: controller.updateStep,
 		DeleteFunc: controller.deleteStep,
 	})
 
-	stepPicker, err := roundrobin.NewStepPicker(nodeStore)
+	stepPicker, err := roundrobin.NewStepPicker(ni.GetStore())
 	if err != nil {
 		panic(err)
 	}
 	controller.stepPicker = stepPicker
 
-	pipePicker, err := roundrobin.NewPipelinePicker(schedulerStore)
+	pipePicker, err := roundrobin.NewPipelinePicker(pi.GetStore())
 	if err != nil {
 		panic(err)
 	}
@@ -74,15 +79,17 @@ type PipelineScheduler struct {
 	// time, and makes it easy to ensure we are never processing the same item
 	// simultaneously in two different workers.
 	workqueue      workqueue.RateLimitingInterface
-	lister         informer.Lister
+	ni             node_informer.Informer
+	pi             pipeline_informer.Informer
+	si             step_informer.Informer
 	log            logger.Logger
 	workerNums     int
 	runningWorkers map[string]bool
 	wLock          sync.Mutex
 	stepPicker     algorithm.StepPicker
 	pipePicker     algorithm.PipelinePicker
-	nodes          store.NodeStore // 存储每个region的node信息
-	scheduler      store.NodeStore // 存储的调度器节点
+	nodes          cache.Store // 存储每个region的node信息
+	schedulers     cache.Store // 存储的调度器节点
 	schedulerName  string
 }
 
@@ -110,7 +117,7 @@ func (c *PipelineScheduler) Run(ctx context.Context) error {
 
 	// 调用Lister 获得所有的cronjob 并添加cron
 	c.log.Info("starting sync(List) all nodes")
-	nodes, err := c.lister.ListNode(ctx)
+	nodes, err := c.ni.Lister().List(ctx)
 	if err != nil {
 		return err
 	}
@@ -121,7 +128,7 @@ func (c *PipelineScheduler) Run(ctx context.Context) error {
 	c.log.Infof("sync all(%d) nodes success", len(nodes))
 	// 获取所有的pipeline
 	listCount := 0
-	ps, err := c.lister.ListPipeline(ctx, nil)
+	ps, err := c.pi.Lister().List(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -172,10 +179,10 @@ func (c *PipelineScheduler) updatesNodeStore(nodes []*node.Node) {
 		switch n.Type {
 		case node.SchedulerType:
 			c.log.Infof("add scheduler %s to store", n.Name())
-			c.scheduler.AddNode(n)
+			c.nodes.Add(n)
 		case node.NodeType:
 			c.log.Infof("add node %s to store", n.Name())
-			c.nodes.AddNode(n)
+			c.nodes.Add(n)
 		default:
 			c.log.Infof("skip node type %s, %s", n.Type, n.Name())
 		}
@@ -234,7 +241,7 @@ func (c *PipelineScheduler) processNextWorkItem() bool {
 			if err := c.scheduleStep(v); err != nil {
 				return fmt.Errorf("error scheduled '%s': %s", v, err.Error())
 			}
-			c.log.Infof("step successfully scheduled %s[%s]", v.Name, v.Id)
+			c.log.Infof("step successfully scheduled %s", v.Key)
 		default:
 			// As the item in the workqueue is actually invalid, we call
 			// Forget here else we'd go into a loop of attempting to
@@ -282,7 +289,7 @@ func (c *PipelineScheduler) schedulePipeline(t *pipeline.Pipeline) error {
 	c.log.Debugf("choice scheduler %s for pipeline %s", node.InstanceName, t.Id)
 	t.SetScheduleNode(node.InstanceName)
 	// 清除一下其他数据
-	if err := c.lister.UpdatePipeline(t); err != nil {
+	if err := c.pi.Recorder().Update(t); err != nil {
 		c.log.Errorf("update scheduled pipeline error, %s", err)
 	}
 
@@ -304,7 +311,7 @@ func (c *PipelineScheduler) scheduleStep(step *pipeline.Step) error {
 	c.log.Debugf("choice node %s for step %s", node.InstanceName, step.Key)
 	step.SetScheduleNode(node.InstanceName)
 	// 清除一下其他数据
-	if err := c.lister.UpdateStep(step); err != nil {
+	if err := c.si.Recorder().Update(step); err != nil {
 		c.log.Errorf("update scheduled step error, %s", err)
 	}
 	return nil

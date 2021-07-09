@@ -15,14 +15,18 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/infraboard/workflow/conf"
-	"github.com/infraboard/workflow/scheduler/controller"
-	"github.com/infraboard/workflow/scheduler/informer"
-	"github.com/infraboard/workflow/scheduler/store"
+	"github.com/infraboard/workflow/scheduler/controller/pipeline"
 	"github.com/infraboard/workflow/version"
 
 	"github.com/infraboard/workflow/api/pkg/node"
 	etcd_register "github.com/infraboard/workflow/api/pkg/node/impl"
-	etcd_informer "github.com/infraboard/workflow/scheduler/informer/etcd"
+
+	node_informer "github.com/infraboard/workflow/common/informers/node"
+	ni_impl "github.com/infraboard/workflow/common/informers/node/etcd"
+	pipeline_informer "github.com/infraboard/workflow/common/informers/pipeline"
+	pi_impl "github.com/infraboard/workflow/common/informers/pipeline/etcd"
+	step_informer "github.com/infraboard/workflow/common/informers/step"
+	si_impl "github.com/infraboard/workflow/common/informers/step/etcd"
 )
 
 var (
@@ -78,8 +82,10 @@ var serviceCmd = &cobra.Command{
 
 type service struct {
 	node *node.Node
-	info informer.Informer
-	pc   *controller.PipelineScheduler
+	ni   node_informer.Informer
+	pi   pipeline_informer.Informer
+	si   step_informer.Informer
+	pc   *pipeline.PipelineScheduler
 	hb   <-chan node.HeatbeatResonse
 	log  logger.Logger
 	stop context.CancelFunc
@@ -87,17 +93,19 @@ type service struct {
 
 func newService(cfg *conf.Config) (*service, error) {
 	// 实例化Informer
-	info, err := etcd_informer.NewSchedulerInformer(*cfg.Etcd)
-	if err != nil {
-		return nil, err
-	}
+	ni := ni_impl.NewInformer(cfg.Etcd.GetClient())
+	pi := pi_impl.NewInformerr(cfg.Etcd.GetClient())
+	si := si_impl.NewSInformer(cfg.Etcd.GetClient())
 
-	rn := MakeRegistryNode(cfg)
 	// Controller 实例
-	ctl := controller.NewPipelineScheduler(rn.InstanceName, store.NewDeaultNodeStore(), store.NewDeaultNodeStore(), info)
+	rn := MakeRegistryNode(cfg)
+
+	ctl := pipeline.NewPipelineScheduler(rn.InstanceName, ni, pi, si)
 	ctl.Debug(zap.L().Named("Pipeline"))
 	svr := &service{
-		info: info,
+		ni:   ni,
+		si:   si,
+		pi:   pi,
 		pc:   ctl,
 		log:  zap.L().Named("CLI"),
 		node: rn,
@@ -109,8 +117,15 @@ func (s *service) start() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	s.stop = cancel
 	defer cancel()
-	if err := s.info.Watcher().Run(ctx); err != nil {
-		s.log.Error(err)
+
+	if err := s.ni.Watcher().Run(ctx); err != nil {
+		return err
+	}
+	if err := s.pi.Watcher().Run(ctx); err != nil {
+		return err
+	}
+	if err := s.si.Watcher().Run(ctx); err != nil {
+		return err
 	}
 
 	// 启动controller

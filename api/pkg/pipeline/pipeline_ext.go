@@ -92,6 +92,12 @@ func NewPipeline(req *CreatePipelineRequest) (*Pipeline, error) {
 	return p, nil
 }
 
+// MakeObjectKey 构建etcd对应的key
+// 例如: inforboard/workflow/service/node/node-01
+func (p *Pipeline) MakeObjectKey() string {
+	return fmt.Sprintf("%s/%s/%s", EtcdPipelinePrefix(), p.Namespace, p.Id)
+}
+
 func (p *Pipeline) Validate() error {
 	return validate.Struct(p)
 }
@@ -170,4 +176,13 @@ func NewDeletePipelineRequestWithID(id string) *DeletePipelineRequest {
 	return &DeletePipelineRequest{
 		Id: id,
 	}
+}
+
+func NewQueryPipelineOptions() *QueryPipelineOptions {
+	return &QueryPipelineOptions{}
+}
+
+// QueryPipelineTaskOptions ListPipeline 查询条件
+type QueryPipelineOptions struct {
+	Node string
 }

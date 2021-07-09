@@ -6,18 +6,18 @@ import (
 
 	"github.com/infraboard/workflow/api/pkg/node"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/common/cache"
 	"github.com/infraboard/workflow/scheduler/algorithm"
-	"github.com/infraboard/workflow/scheduler/store"
 )
 
 type roundrobinPicker struct {
 	mu    *sync.Mutex
 	next  int
-	store store.NodeStore
+	store cache.Store
 }
 
 // NewStepPicker 实现分调度
-func NewStepPicker(nodestore store.NodeStore) (algorithm.StepPicker, error) {
+func NewStepPicker(nodestore cache.Store) (algorithm.StepPicker, error) {
 	base := &roundrobinPicker{
 		store: nodestore,
 		mu:    new(sync.Mutex),
@@ -34,21 +34,21 @@ func (p *stepPicker) Pick(step *pipeline.Step) (*node.Node, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	nodes := p.store.ListNode()
+	nodes := p.store.List()
 	if len(nodes) == 0 {
 		return nil, fmt.Errorf("has no available nodes")
 	}
 
-	node := nodes[p.next]
+	n := nodes[p.next]
 
 	// 修改状态
 	p.next = (p.next + 1) % p.store.Len()
 
-	return node, nil
+	return n.(*node.Node), nil
 }
 
 // NewPipelinePicker 实现分调度
-func NewPipelinePicker(nodestore store.NodeStore) (algorithm.PipelinePicker, error) {
+func NewPipelinePicker(nodestore cache.Store) (algorithm.PipelinePicker, error) {
 	base := &roundrobinPicker{
 		store: nodestore,
 		mu:    new(sync.Mutex),
@@ -65,15 +65,15 @@ func (p *pipelinePicker) Pick(step *pipeline.Pipeline) (*node.Node, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	nodes := p.store.ListNode()
+	nodes := p.store.List()
 	if len(nodes) == 0 {
 		return nil, fmt.Errorf("has no available nodes")
 	}
 
-	node := nodes[p.next]
+	n := nodes[p.next]
 
 	// 修改状态
 	p.next = (p.next + 1) % p.store.Len()
 
-	return node, nil
+	return n.(*node.Node), nil
 }

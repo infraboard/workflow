@@ -1,4 +1,4 @@
-package controller
+package pipeline
 
 import (
 	"context"
@@ -6,20 +6,19 @@ import (
 
 	"github.com/infraboard/workflow/api/pkg/node"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
-	"github.com/infraboard/workflow/scheduler/informer"
 )
 
 // 添加节点后, 需要延迟扫描, 从新调度未调度的Pipeline
 func (c *PipelineScheduler) addNode(n *node.Node) {
-	c.nodes.AddNode(n)
+	c.nodes.Add(n)
 }
 func (c *PipelineScheduler) delNode(n *node.Node) {
-	c.nodes.DelNode(n)
+	c.nodes.Delete(n)
 
 	// 1. 获取该节点上所有pipeline
 	ctx, cancle := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancle()
-	ps, err := c.lister.ListPipeline(ctx, &informer.QueryPipelineOptions{Node: n.InstanceName})
+	ps, err := c.pi.Lister().List(ctx, &pipeline.QueryPipelineOptions{Node: n.InstanceName})
 	if err != nil {
 		c.log.Errorf("list node pipelines error, %s", err)
 	}
@@ -49,7 +48,7 @@ func (c *PipelineScheduler) addPipeline(t *pipeline.Pipeline) {
 	// 标记开始执行, 并更新保存
 	if !t.Status.IsRunning() {
 		t.Status.Run()
-		if err := c.lister.UpdatePipeline(t); err != nil {
+		if err := c.pi.Recorder().Update(t); err != nil {
 			c.log.Errorf("update pipeline %s status to store error, %s", t.ShortDescribe(), err)
 		}
 		return
@@ -61,7 +60,7 @@ func (c *PipelineScheduler) addPipeline(t *pipeline.Pipeline) {
 	for i := range steps {
 		step := steps[i]
 		c.log.Debugf("create pipeline step: %s", step.Key)
-		err := c.lister.UpdateStep(step)
+		err := c.si.Recorder().Update(step)
 		if err != nil {
 			c.log.Errorf(err.Error())
 		}

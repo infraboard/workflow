@@ -64,6 +64,10 @@ func NewDefaultStep() *Step {
 	return &Step{}
 }
 
+func (s *Step) MakeObjectKey() string {
+	return StepObjectKey(s.Key)
+}
+
 func (s *Step) Validate() error {
 	return validate.Struct(s)
 }

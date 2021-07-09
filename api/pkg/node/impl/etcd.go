@@ -46,7 +46,7 @@ func NewEtcdRegister(node *node.Node) (node.Register, error) {
 		return nil, err
 	}
 	etcdR.instanceValue = string(sjson)
-	etcdR.instanceKey = node.MakeRegistryKey()
+	etcdR.instanceKey = node.MakeObjectKey()
 	return etcdR, nil
 }
 
