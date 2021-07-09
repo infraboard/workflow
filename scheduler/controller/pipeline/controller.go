@@ -57,13 +57,13 @@ func NewPipelineScheduler(
 		DeleteFunc: controller.deleteStep,
 	})
 
-	stepPicker, err := roundrobin.NewStepPicker(ni.GetStore())
+	stepPicker, err := roundrobin.NewStepPicker(controller.nodes)
 	if err != nil {
 		panic(err)
 	}
 	controller.stepPicker = stepPicker
 
-	pipePicker, err := roundrobin.NewPipelinePicker(pi.GetStore())
+	pipePicker, err := roundrobin.NewPipelinePicker(controller.schedulers)
 	if err != nil {
 		panic(err)
 	}
@@ -179,7 +179,7 @@ func (c *PipelineScheduler) updatesNodeStore(nodes []*node.Node) {
 		switch n.Type {
 		case node.SchedulerType:
 			c.log.Infof("add scheduler %s to store", n.Name())
-			c.nodes.Add(n)
+			c.schedulers.Add(n)
 		case node.NodeType:
 			c.log.Infof("add node %s to store", n.Name())
 			c.nodes.Add(n)
@@ -239,7 +239,7 @@ func (c *PipelineScheduler) processNextWorkItem() bool {
 		case *pipeline.Step:
 			c.log.Debugf("wait schedule step: %s", v.Key)
 			if err := c.scheduleStep(v); err != nil {
-				return fmt.Errorf("error scheduled '%s': %s", v, err.Error())
+				return fmt.Errorf("error scheduled '%s': %s", v.Key, err.Error())
 			}
 			c.log.Infof("step successfully scheduled %s", v.Key)
 		default:
@@ -308,7 +308,7 @@ func (c *PipelineScheduler) scheduleStep(step *pipeline.Step) error {
 		return fmt.Errorf("no excutable node")
 	}
 
-	c.log.Debugf("choice node %s for step %s", node.InstanceName, step.Key)
+	c.log.Debugf("choice [%s] %s for step %s", node.Type, node.InstanceName, step.Key)
 	step.SetScheduleNode(node.InstanceName)
 	// 清除一下其他数据
 	if err := c.si.Recorder().Update(step); err != nil {
