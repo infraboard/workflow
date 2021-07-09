@@ -86,8 +86,3 @@ type Register interface {
 	Registe() error
 	UnRegiste() error
 }
-
-// HeatbeatResonse 心态的返回
-type HeatbeatResonse interface {
-	TTL() int64
-}

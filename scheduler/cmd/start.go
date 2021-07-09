@@ -86,7 +86,6 @@ type service struct {
 	pi   pipeline_informer.Informer
 	si   step_informer.Informer
 	pc   *pipeline.PipelineScheduler
-	hb   <-chan node.HeatbeatResonse
 	log  logger.Logger
 	stop context.CancelFunc
 }
@@ -148,8 +147,6 @@ func (s *service) waitSign(sign chan os.Signal) {
 				s.log.Info("workflow scheduler service stoped.")
 				return
 			}
-		case <-s.hb:
-			s.log.Debug("hb is changed ----")
 		}
 	}
 }

@@ -6,7 +6,6 @@ import (
 	"github.com/infraboard/mcube/logger"
 	clientv3 "go.etcd.io/etcd/client/v3"
 
-	"github.com/infraboard/workflow/api/pkg/node"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 )
 
@@ -16,8 +15,8 @@ type lister struct {
 }
 
 func (l *lister) List(ctx context.Context) (ret []*pipeline.Step, err error) {
-	listKey := node.EtcdNodePrefixWithType(node.NodeType)
-	l.log.Infof("list etcd node resource key: %s", listKey)
+	listKey := pipeline.EtcdStepPrefix()
+	l.log.Infof("list etcd step resource key: %s", listKey)
 	resp, err := l.client.Get(ctx, listKey, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err

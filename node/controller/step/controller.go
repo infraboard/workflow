@@ -2,25 +2,28 @@ package step
 
 import (
 	"context"
-	"reflect"
+	"errors"
+	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
 	"k8s.io/client-go/util/workqueue"
 
-	"github.com/infraboard/workflow/api/pkg/node"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/common/informers/step"
 )
 
 // NewNodeScheduler pipeline controller
 func NewController(
+	nodeName string,
 	inform step.Informer,
 ) *Controller {
 	wq := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Step Controller")
 	controller := &Controller{
+		nodeName:       nodeName,
 		workqueue:      wq,
 		informer:       inform,
 		workerNums:     4,
@@ -49,7 +52,7 @@ type Controller struct {
 	workerNums     int
 	runningWorkers map[string]bool
 	wLock          sync.Mutex
-	// store          cache.Store
+	nodeName       string
 }
 
 func (c *Controller) Debug(log logger.Logger) {
@@ -62,80 +65,86 @@ func (c *Controller) Debug(log logger.Logger) {
 // workers to finish processing their current work items.
 func (c *Controller) Run(ctx context.Context) error {
 	// Start the informer factories to begin populating the informer caches
-	// c.log.Infof("starting schedule control loop, schedule name: %s", c.schedulerName)
+	c.log.Infof("starting step control loop, node name: %s", c.nodeName)
 
 	// // 调用Lister 获得所有的cronjob 并添加cron
-	// c.log.Info("starting sync(List) all nodes")
-	// nodes, err := c.lister.ListNode(ctx)
-	// if err != nil {
-	// 	return err
-	// }
+	c.log.Info("starting sync(List) all steps")
+	steps, err := c.informer.Lister().List(ctx)
+	if err != nil {
+		return err
+	}
 
-	// // 更新node存储
-	// c.updatesNodeStore(nodes)
+	// 新增所有的job
+	for i := range steps {
+		c.enqueueCronJobForAdd(steps[i])
+	}
+	c.log.Infof("sync all(%d) steps success", len(steps))
 
-	// c.log.Infof("sync all(%d) nodes success", len(nodes))
-	// // 获取所有的pipeline
-	// listCount := 0
-	// ps, err := c.lister.ListPipeline(ctx, nil)
-	// if err != nil {
-	// 	return err
-	// }
+	// 启动worker 处理来自Informer的事件
+	for i := 0; i < c.workerNums; i++ {
+		go c.runWorker(fmt.Sprintf("worker-%d", i))
+	}
 
-	// // 看看是否有需要调度的
-	// for i := range ps.Items {
-	// 	p := ps.Items[i]
-	// 	if !p.Status.IsScheduled() {
-	// 		c.workqueue.Add(p)
-	// 		listCount++
-	// 	}
+	<-ctx.Done()
+	// 停止controller
 
-	// 	if p.Status.MatchScheduler(c.schedulerName) {
-	// 		c.addPipeline(p)
-	// 	}
-	// }
-	// c.log.Infof("%d pipeline need scheduled", listCount)
+	// 关闭队列
+	c.workqueue.ShutDown()
+	// 停止worker
+	c.log.Infof("step controller stopping, waitting for worker stop...")
 
-	// // 启动worker 处理来自Informer的事件
-	// for i := 0; i < c.workerNums; i++ {
-	// 	go c.runWorker(fmt.Sprintf("worker-%d", i))
-	// }
-	// <-ctx.Done()
-	// // 关闭队列
-	// c.workqueue.ShutDown()
-	// // 停止worker
-	// c.log.Infof("scheduler controller stopping, waitting for worker stop...")
-	// // 等待worker退出
-	// var max int
-	// for {
-	// 	if len(c.runningWorkers) == 0 {
-	// 		break
-	// 	}
-	// 	c.log.Infof("waiting worker %s exit ...", c.runningWorkerNames())
-	// 	if max > 30 {
-	// 		c.log.Warnf("waiting worker %s max times(30s) force exit", c.runningWorkerNames())
-	// 		break
-	// 	}
-	// 	max++
-	// 	time.Sleep(1 * time.Second)
-	// }
-	// c.log.Infof("scheduler controller worker stopped commplet, now workers: %s", c.runningWorkerNames())
+	// 等待worker退出
+	var max int
+	for {
+		if len(c.runningWorkers) == 0 {
+			break
+		}
+		c.log.Infof("waiting worker %s exit ...", c.runningWorkerNames())
+		if max > 30 {
+			c.log.Warnf("waiting worker %s max times(30s) force exit", c.runningWorkerNames())
+			break
+		}
+		max++
+		time.Sleep(1 * time.Second)
+	}
+	c.log.Infof("step controller worker stopped commplet, now workers: %s", c.runningWorkerNames())
 	return nil
 }
 
-func (c *Controller) updatesNodeStore(nodes []*node.Node) {
-	// for _, n := range nodes {
-	// 	switch n.Type {
-	// 	case node.SchedulerType:
-	// 		c.log.Infof("add scheduler %s to store", n.Name())
-	// 		c.scheduler.AddNode(n)
-	// 	case node.NodeType:
-	// 		c.log.Infof("add node %s to store", n.Name())
-	// 		c.nodes.AddNode(n)
-	// 	default:
-	// 		c.log.Infof("skip node type %s, %s", n.Type, n.Name())
-	// 	}
-	// }
+// enqueueNetwork takes a Cronjob resource and converts it into a namespace/name
+// string which is then put onto the work queue. This method should *not* be
+// passed resources of any type other than Cronjob.
+func (c *Controller) enqueueCronJobForAdd(obj interface{}) {
+	c.log.Infof("receive add object: %s", obj)
+	s, ok := obj.(*pipeline.Step)
+	if !ok {
+		c.log.Errorf("not an *pipeline.Step obj")
+		return
+	}
+	if err := s.Validate(); err != nil {
+		c.log.Errorf("invalidate *pipeline.Step obj")
+		return
+	}
+	key := s.MakeObjectKey()
+	c.workqueue.AddRateLimited(key)
+}
+
+// enqueueNetworkForDelete takes a deleted Network resource and converts it into a namespace/name
+// string which is then put onto the work queue. This method should *not* be
+// passed resources of any type other than Network.
+func (c *Controller) enqueueCronJobForDelete(obj interface{}) {
+	c.log.Infof("receive delete object: %s", obj)
+	s, ok := obj.(*pipeline.Step)
+	if !ok {
+		c.log.Errorf("not an *pipeline.Step obj")
+		return
+	}
+	if err := s.Validate(); err != nil {
+		c.log.Errorf("invalidate *pipeline.Step obj")
+		return
+	}
+	key := s.MakeObjectKey()
+	c.workqueue.AddRateLimited(key)
 }
 
 // runWorker is a long-running function that will continually call the
@@ -178,33 +187,80 @@ func (c *Controller) processNextWorkItem() bool {
 		// put back on the workqueue and attempted again after a back-off
 		// period.
 		defer c.workqueue.Done(obj)
-		switch v := obj.(type) {
-		case *pipeline.Step:
-			c.log.Debugf("wait schedule step: %s", v.Key)
-			// if err := c.scheduleStep(v); err != nil {
-			// 	return fmt.Errorf("error scheduled '%s': %s", v, err.Error())
-			// }
-			c.log.Infof("step successfully scheduled %s[%s]", v.Name, v.Id)
-		default:
+		var key string
+		var ok bool
+
+		// We expect strings to come off the workqueue. These are of the
+		// form namespace/name. We do this as the delayed nature of the
+		// workqueue means the items in the informer cache may actually be
+		// more up to date that when the item was initially put onto the
+		// workqueue.
+		if key, ok = obj.(string); !ok {
 			// As the item in the workqueue is actually invalid, we call
 			// Forget here else we'd go into a loop of attempting to
 			// process a work item that is invalid.
 			c.workqueue.Forget(obj)
-			c.log.Errorf("unknow type for schedule: %s in workqueue", reflect.TypeOf(obj))
+			c.log.Errorf("expected string in workqueue but got %#v", obj)
 			return nil
 		}
+		c.log.Debugf("wait sync: %s", key)
 
+		// Run the syncHandler, passing it the namespace/name string of the
+		// Network resource to be synced.
+		if err := c.syncHandler(key); err != nil {
+			return fmt.Errorf("error syncing '%s': %s", key, err.Error())
+		}
 		// Finally, if no error occurs we Forget this item so it does not
 		// get queued again until another change happens.
 		c.workqueue.Forget(obj)
-
+		c.log.Infof("successfully synced '%s'", key)
 		return nil
+
 	}(obj)
 	if err != nil {
 		c.log.Error(err)
 		return true
 	}
 	return true
+}
+
+// syncHandler compares the actual state with the desired, and attempts to
+// converge the two. It then updates the Status block of the Network resource
+// with the current status of the resource.
+func (c *Controller) syncHandler(key string) error {
+	obj, ok, err := c.informer.GetStore().GetByKey(key)
+	if err != nil {
+		return err
+	}
+	// 如果不存在, 这期望行为为删除 (DEL)
+	if !ok {
+		c.log.Debugf("wating remove step: %s", key)
+		// j, err := informer.NewJobFromStoreKey(key)
+		// if err != nil {
+		// 	return err
+		// }
+		// c.cronPool.RemoveJob(j.HashID())
+		c.log.Infof("remove success, step: %s", key)
+		return nil
+	}
+
+	st, isOK := obj.(*pipeline.Step)
+	if !isOK {
+		return errors.New("invalidate *pipeline.Step obj")
+	}
+
+	c.log.Debug(st)
+
+	// 如果存在, 这期望行为为更新 (Update for DEL)
+	// if c.cronPool.IsJobExist(job.HashID()) {
+	// 	if err := c.cronPool.RemoveJob(job.HashID()); err != nil {
+	// 		c.log.Error(err)
+	// 	} else {
+	// 		c.log.Infof("成功移除Cron(%s): %s.%s", strings.TrimSpace(job.HashID()), job.ProviderName, job.ExcutorName)
+	// 	}
+	// }
+
+	return nil
 }
 
 func (c *Controller) runningWorkerNames() string {

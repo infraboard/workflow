@@ -17,11 +17,13 @@ import (
 
 	"github.com/infraboard/workflow/api/pkg/node"
 	"github.com/infraboard/workflow/conf"
-	"github.com/infraboard/workflow/node/informer"
 	"github.com/infraboard/workflow/version"
 
 	etcd_register "github.com/infraboard/workflow/api/pkg/node/impl"
-	etcd_informer "github.com/infraboard/workflow/node/informer/etcd"
+	informer "github.com/infraboard/workflow/common/informers/step"
+	si_impl "github.com/infraboard/workflow/common/informers/step/etcd"
+	"github.com/infraboard/workflow/node/controller/step"
+	controller "github.com/infraboard/workflow/node/controller/step"
 )
 
 var (
@@ -77,23 +79,27 @@ var serviceCmd = &cobra.Command{
 
 type service struct {
 	info informer.Informer
-	hb   <-chan node.HeatbeatResonse
 	log  logger.Logger
 	stop context.CancelFunc
 	node *node.Node
+	ctl  *step.Controller
 }
 
-func newService(cnf *conf.Config) (*service, error) {
+func newService(cfg *conf.Config) (*service, error) {
 	// 实例化Informer
-	info, err := etcd_informer.NewNodeInformer(*cnf.Etcd)
-	if err != nil {
-		return nil, err
-	}
+	info := si_impl.NewSInformer(cfg.Etcd.GetClient())
+
+	// Controller 实例
+	rn := MakeRegistryNode(cfg)
+
+	ctl := controller.NewController(rn.Name(), info)
+	ctl.Debug(zap.L().Named("Node"))
 
 	svr := &service{
 		info: info,
 		log:  zap.L().Named("CLI"),
-		node: MakeRegistryNode(cnf),
+		node: rn,
+		ctl:  ctl,
 	}
 	return svr, nil
 }
@@ -107,16 +113,12 @@ func (s *service) start() error {
 		s.log.Error(err)
 	}
 
-	dst := make(chan int)
-	n := 1
-	for {
-		select {
-		case <-ctx.Done():
-			return nil // returning not to leak the goroutine
-		case dst <- n:
-			n++
-		}
+	// 启动controller
+	if err := s.ctl.Run(ctx); err != nil {
+		return err
 	}
+
+	return nil
 }
 
 // 占不做信号的具体区别
@@ -132,8 +134,6 @@ func (s *service) waitSign(sign chan os.Signal) {
 				s.log.Info("workflow node service stoped.")
 				return
 			}
-		case <-s.hb:
-			// s.log.Debug(hb.TTL())
 		}
 	}
 }
@@ -151,7 +151,7 @@ func RandString(len int) string {
 func MakeRegistryNode(cfg *conf.Config) *node.Node {
 	hn, _ := os.Hostname()
 	return &node.Node{
-		InstanceName: hn + RandString(10),
+		InstanceName: hn,
 		ServiceName:  version.ServiceName,
 		Type:         node.NodeType,
 		Address:      cfg.HTTP.Host,
