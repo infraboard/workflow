@@ -55,6 +55,16 @@ enum PIPELINE_STATUS {
 	COMPLETE = 2;
 }
 
+// STEP_RUNNER step执行类型
+enum RUNNER_TYPE {
+	// 使用Node节点本地安装的Docker执行
+	DOCKER = 0;
+	// 使用K8s执行
+	K8s = 1;
+	// 本地执行, 用于在Node节点本地执行
+	LOCAL = 2;
+}
+
 service Service {
 	rpc CreatePipeline(CreatePipelineRequest) returns(Pipeline);
 	rpc QueryPipeline(QueryPipelineRequest) returns(PipelineSet);
@@ -341,9 +351,13 @@ message Action {
     string name = 8[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"name" json:"name" validate:"required"'}
         ];
-	// 镜像仓库地址
-	string image = 9[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"image" json:"image"'}
+	// 执行器类型, 默认采用Node节点本地Docker执行
+	RUNNER_TYPE runner_type = 13[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"runner_type" json:"runner_type"'}
+        ];
+	// 运行时的参数, 对于Docker和K8s而言, 参数为image
+	map<string, string> run_params = 14[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"run_params" json:"run_params"'}
         ];
 	// action运行时需要由系统注入的秘钥
 	repeated SYSTEM_SECRET need_secret = 10[
@@ -371,6 +385,10 @@ message ActionSet {
 
 
 message CreateActionRequest {
+	// 执行器类型, 默认采用Node节点本地Docker执行
+	RUNNER_TYPE runner_type = 7[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"runner_type"'}
+        ];
 	// 名称
 	string name = 1[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"name"'}
@@ -379,7 +397,11 @@ message CreateActionRequest {
 	string image = 2[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"image"'}
 		];
-	// action运行时需要由系统注入的秘钥
+	// 运行时的参数, 对于Docker和K8s而言, 参数为image
+	map<string, string> run_params = 8[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"run_params"'}
+        ];
+	// 运行时需要由系统注入的秘钥
 	repeated SYSTEM_SECRET need_secret = 3[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"need_secret"'}
 		];

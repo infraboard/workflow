@@ -75,7 +75,7 @@ func (n *Node) Validate() error {
 }
 
 func (n *Node) IsMatch(nodeName string) bool {
-	return n.Name() == nodeName
+	return n.InstanceName == nodeName
 }
 
 // MakeObjectKey 构建etcd对应的key

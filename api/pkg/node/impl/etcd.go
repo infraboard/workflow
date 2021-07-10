@@ -111,7 +111,7 @@ func (e *etcd) keepAlive(ctx context.Context) {
 			Opctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 
-			resp, err := e.client.Lease.KeepAliveOnce(Opctx, e.leaseID)
+			_, err := e.client.Lease.KeepAliveOnce(Opctx, e.leaseID)
 			if err != nil {
 				if strings.Contains(err.Error(), "requested lease not found") {
 					// 避免程序卡顿造成leaseID失效(比如mac 电脑休眠))
@@ -123,7 +123,7 @@ func (e *etcd) keepAlive(ctx context.Context) {
 				}
 				e.Errorf("lease keep alive error, %s", err)
 			} else {
-				e.Debugf("heartbeat: %s", resp)
+				e.Debugf("lease keep alive key: %s", e.instanceKey)
 			}
 		}
 	}

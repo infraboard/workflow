@@ -57,7 +57,8 @@ func NewAction(req *CreateActionRequest) (*Action, error) {
 		CreateAt:    ftime.Now().Timestamp(),
 		UpdateAt:    ftime.Now().Timestamp(),
 		Name:        req.Name,
-		Image:       req.Image,
+		RunnerType:  req.RunnerType,
+		RunParams:   req.RunParams,
 		Tags:        req.Tags,
 		Description: req.Description,
 	}
