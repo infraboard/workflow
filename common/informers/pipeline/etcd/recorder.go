@@ -17,6 +17,14 @@ type recorder struct {
 }
 
 func (l *recorder) Update(t *pipeline.Pipeline) error {
+	if t == nil {
+		return fmt.Errorf("update nil pipeline")
+	}
+
+	if l.client == nil {
+		return fmt.Errorf("etcd client is nil")
+	}
+
 	objKey := t.EtcdObjectKey()
 	objValue, err := json.Marshal(t)
 	if err != nil {

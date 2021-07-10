@@ -30,7 +30,7 @@ func NewPipelineScheduler(
 	pi pipeline_informer.Informer,
 	si step_informer.Informer,
 ) *PipelineScheduler {
-	wq := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "PipelineScheduler")
+	wq := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Pipeline")
 	controller := &PipelineScheduler{
 		schedulerName:  schedulerName,
 		nodes:          ni.GetStore(),
@@ -40,7 +40,7 @@ func NewPipelineScheduler(
 		si:             si,
 		workqueue:      wq,
 		workerNums:     4,
-		log:            zap.L().Named("PipelineScheduler"),
+		log:            zap.L().Named("Pipeline"),
 		runningWorkers: make(map[string]bool, 4),
 	}
 
@@ -175,16 +175,17 @@ func (c *PipelineScheduler) Run(ctx context.Context) error {
 }
 
 func (c *PipelineScheduler) updatesNodeStore(nodes []*node.Node) {
-	for _, n := range nodes {
+	for i := range nodes {
+		n := nodes[i]
 		switch n.Type {
 		case node.SchedulerType:
-			c.log.Infof("add scheduler %s to store", n.Name())
+			c.log.Infof("add [%s] %s to store", n.Type, n.Name())
 			c.schedulers.Add(n)
 		case node.NodeType:
-			c.log.Infof("add node %s to store", n.Name())
+			c.log.Infof("add [%s] %s to store", n.Type, n.Name())
 			c.nodes.Add(n)
 		default:
-			c.log.Infof("skip node type %s, %s", n.Type, n.Name())
+			c.log.Infof("skip [%s] %s to stroe, unknown type", n.Type, n.Name())
 		}
 	}
 }
@@ -305,7 +306,7 @@ func (c *PipelineScheduler) scheduleStep(step *pipeline.Step) error {
 
 	// 没有合法的node
 	if node == nil {
-		return fmt.Errorf("no excutable node")
+		return fmt.Errorf("no available nodes")
 	}
 
 	c.log.Debugf("choice [%s] %s for step %s", node.Type, node.InstanceName, step.Key)

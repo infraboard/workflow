@@ -33,5 +33,7 @@ func (l *lister) List(ctx context.Context) (ret []*node.Node, err error) {
 		node.ResourceVersion = resp.Header.Revision
 		nodes = append(nodes, node)
 	}
+
+	l.log.Infof("total nodes: %d", len(nodes))
 	return nodes, nil
 }
