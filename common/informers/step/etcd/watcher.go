@@ -27,10 +27,6 @@ func (i *shared) AddStepEventHandler(h informer.StepEventHandler) {
 	i.handler = h
 }
 
-func (i *shared) AddStepFilterHandler(f informer.StepFilterHandler) {
-	i.filter = f
-}
-
 // Run 启动 Watch
 func (i *shared) Run(ctx context.Context) error {
 	// 是否准备完成
@@ -84,9 +80,10 @@ func (i *shared) notifyStep(event *clientv3.Event, eventVersion int64) error {
 		return err
 	}
 
-	if i.filter != nil && !i.filter(new) {
-		i.log.Debugf("step %s not match this node, now is %s, expect %s", new.String(), i.nodeName, new.ScheduledNodeName())
-		return nil
+	if i.filter != nil {
+		if err := i.filter(new); err != nil {
+			return err
+		}
 	}
 
 	switch event.Type {
@@ -94,12 +91,14 @@ func (i *shared) notifyStep(event *clientv3.Event, eventVersion int64) error {
 		// 区分Update
 		if hasOld {
 			// 更新缓存
+			i.log.Debugf("update step: %s", new.Key)
 			if err := i.indexer.Update(new); err != nil {
 				i.log.Errorf("update indexer cache error, %s", err)
 			}
 			i.handler.OnUpdate(old.(*pipeline.Step), new)
 		} else {
 			// 添加缓存
+			i.log.Debugf("add step: %s", new.Key)
 			if err := i.indexer.Add(new); err != nil {
 				i.log.Errorf("add indexer cache error, %s", err)
 			}
@@ -110,6 +109,7 @@ func (i *shared) notifyStep(event *clientv3.Event, eventVersion int64) error {
 			return nil
 		}
 		// 清除缓存
+		i.log.Debugf("delete step: %s", new.Key)
 		if err := i.indexer.Delete(new); err != nil {
 			i.log.Errorf("delete indexer cache error, %s", err)
 		}

@@ -2,7 +2,6 @@ package step
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -31,9 +30,9 @@ func NewController(
 		runningWorkers: make(map[string]bool, 4),
 	}
 	inform.Watcher().AddStepEventHandler(step.StepEventHandlerFuncs{
-		AddFunc:    controller.addStep,
-		UpdateFunc: controller.updateStep,
-		DeleteFunc: controller.deleteStep,
+		AddFunc:    controller.enqueueStepForAdd,
+		UpdateFunc: controller.enqueueForUpdate,
+		DeleteFunc: controller.enqueueForDelete,
 	})
 
 	return controller
@@ -76,7 +75,7 @@ func (c *Controller) Run(ctx context.Context) error {
 
 	// 新增所有的job
 	for i := range steps {
-		c.enqueueCronJobForAdd(steps[i])
+		c.enqueueStepForAdd(steps[i])
 	}
 	c.log.Infof("sync all(%d) steps success", len(steps))
 
@@ -114,13 +113,27 @@ func (c *Controller) Run(ctx context.Context) error {
 // enqueueNetwork takes a Cronjob resource and converts it into a namespace/name
 // string which is then put onto the work queue. This method should *not* be
 // passed resources of any type other than Cronjob.
-func (c *Controller) enqueueCronJobForAdd(obj interface{}) {
-	c.log.Infof("receive add object: %s", obj)
-	s, ok := obj.(*pipeline.Step)
-	if !ok {
-		c.log.Errorf("not an *pipeline.Step obj")
+func (c *Controller) enqueueStepForAdd(s *pipeline.Step) {
+	c.log.Infof("receive add object: %s", s)
+	if err := s.Validate(); err != nil {
+		c.log.Errorf("invalidate *pipeline.Step obj")
 		return
 	}
+	c.informer.GetStore().Add(s)
+	key := s.MakeObjectKey()
+	c.workqueue.AddRateLimited(key)
+}
+
+// enqueueNetworkForDelete takes a deleted Network resource and converts it into a namespace/name
+// string which is then put onto the work queue. This method should *not* be
+// passed resources of any type other than Network.
+func (c *Controller) enqueueForDelete(s *pipeline.Step) {
+	c.log.Infof("receive delete object: %s", s)
+	// s, ok := obj.(*pipeline.Step)
+	// if !ok {
+	// 	c.log.Errorf("not an *pipeline.Step obj")
+	// 	return
+	// }
 	if err := s.Validate(); err != nil {
 		c.log.Errorf("invalidate *pipeline.Step obj")
 		return
@@ -129,22 +142,9 @@ func (c *Controller) enqueueCronJobForAdd(obj interface{}) {
 	c.workqueue.AddRateLimited(key)
 }
 
-// enqueueNetworkForDelete takes a deleted Network resource and converts it into a namespace/name
-// string which is then put onto the work queue. This method should *not* be
-// passed resources of any type other than Network.
-func (c *Controller) enqueueCronJobForDelete(obj interface{}) {
-	c.log.Infof("receive delete object: %s", obj)
-	s, ok := obj.(*pipeline.Step)
-	if !ok {
-		c.log.Errorf("not an *pipeline.Step obj")
-		return
-	}
-	if err := s.Validate(); err != nil {
-		c.log.Errorf("invalidate *pipeline.Step obj")
-		return
-	}
-	key := s.MakeObjectKey()
-	c.workqueue.AddRateLimited(key)
+// 如果step有状态更新, 同步更新到Pipeline上去
+func (c *Controller) enqueueForUpdate(oldObj, newObj *pipeline.Step) {
+	c.log.Infof("receive update object: old: %s, new: %s", oldObj, newObj)
 }
 
 // runWorker is a long-running function that will continually call the
@@ -222,45 +222,6 @@ func (c *Controller) processNextWorkItem() bool {
 		return true
 	}
 	return true
-}
-
-// syncHandler compares the actual state with the desired, and attempts to
-// converge the two. It then updates the Status block of the Network resource
-// with the current status of the resource.
-func (c *Controller) syncHandler(key string) error {
-	obj, ok, err := c.informer.GetStore().GetByKey(key)
-	if err != nil {
-		return err
-	}
-	// 如果不存在, 这期望行为为删除 (DEL)
-	if !ok {
-		c.log.Debugf("wating remove step: %s", key)
-		// j, err := informer.NewJobFromStoreKey(key)
-		// if err != nil {
-		// 	return err
-		// }
-		// c.cronPool.RemoveJob(j.HashID())
-		c.log.Infof("remove success, step: %s", key)
-		return nil
-	}
-
-	st, isOK := obj.(*pipeline.Step)
-	if !isOK {
-		return errors.New("invalidate *pipeline.Step obj")
-	}
-
-	c.log.Debug(st)
-
-	// 如果存在, 这期望行为为更新 (Update for DEL)
-	// if c.cronPool.IsJobExist(job.HashID()) {
-	// 	if err := c.cronPool.RemoveJob(job.HashID()); err != nil {
-	// 		c.log.Error(err)
-	// 	} else {
-	// 		c.log.Infof("成功移除Cron(%s): %s.%s", strings.TrimSpace(job.HashID()), job.ProviderName, job.ExcutorName)
-	// 	}
-	// }
-
-	return nil
 }
 
 func (c *Controller) runningWorkerNames() string {

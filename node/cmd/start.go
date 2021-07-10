@@ -86,11 +86,11 @@ type service struct {
 }
 
 func newService(cfg *conf.Config) (*service, error) {
-	// 实例化Informer
-	info := si_impl.NewSInformer(cfg.Etcd.GetClient())
-
 	// Controller 实例
 	rn := MakeRegistryNode(cfg)
+
+	// 实例化Informer
+	info := si_impl.NewFilterInformer(cfg.Etcd.GetClient(), informer.NewNodeFilter(rn))
 
 	ctl := controller.NewController(rn.Name(), info)
 	ctl.Debug(zap.L().Named("Node"))

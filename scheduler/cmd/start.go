@@ -94,7 +94,7 @@ func newService(cfg *conf.Config) (*service, error) {
 	// 实例化Informer
 	ni := ni_impl.NewInformer(cfg.Etcd.GetClient())
 	pi := pi_impl.NewInformerr(cfg.Etcd.GetClient())
-	si := si_impl.NewSInformer(cfg.Etcd.GetClient())
+	si := si_impl.NewInformer(cfg.Etcd.GetClient())
 
 	// Controller 实例
 	rn := MakeRegistryNode(cfg)

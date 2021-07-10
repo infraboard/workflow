@@ -2,7 +2,9 @@ package step
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/infraboard/workflow/api/pkg/node"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/common/cache"
 )
@@ -32,7 +34,6 @@ type Watcher interface {
 	// period.  Events to a single handler are delivered sequentially, but there is no coordination
 	// between different handlers.
 	AddStepEventHandler(handler StepEventHandler)
-	AddStepFilterHandler(handler StepFilterHandler)
 }
 
 // StepEventHandler can handle notifications for events that happen to a
@@ -85,4 +86,13 @@ func (r StepEventHandlerFuncs) OnDelete(obj *pipeline.Step) {
 	}
 }
 
-type StepFilterHandler func(obj *pipeline.Step) bool
+type StepFilterHandler func(obj *pipeline.Step) error
+
+func NewNodeFilter(node *node.Node) StepFilterHandler {
+	return func(obj *pipeline.Step) error {
+		if !node.IsMatch(obj.ScheduledNodeName()) {
+			return fmt.Errorf("step %s not match this node [%s], expect [%s]", obj.Key, node.Name(), obj.ScheduledNodeName())
+		}
+		return nil
+	}
+}

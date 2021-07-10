@@ -9,13 +9,18 @@ import (
 	informer "github.com/infraboard/workflow/common/informers/step"
 )
 
-// NewSInformer todo
-func NewSInformer(client *clientv3.Client) informer.Informer {
+func NewFilterInformer(client *clientv3.Client, filter informer.StepFilterHandler) informer.Informer {
 	return &Informer{
 		log:     zap.L().Named("Step"),
 		client:  client,
+		filter:  filter,
 		indexer: cache.NewIndexer(informer.MetaNamespaceKeyFunc, informer.DefaultStoreIndexers()),
 	}
+}
+
+// NewSInformer todo
+func NewInformer(client *clientv3.Client) informer.Informer {
+	return NewFilterInformer(client, nil)
 }
 
 // Informer todo
@@ -26,6 +31,7 @@ type Informer struct {
 	lister   *lister
 	recorder *recorder
 	indexer  cache.Indexer
+	filter   informer.StepFilterHandler
 }
 
 func (i *Informer) GetStore() cache.Store {
@@ -46,6 +52,7 @@ func (i *Informer) Watcher() informer.Watcher {
 		log:     i.log.Named("Watcher"),
 		client:  clientv3.NewWatcher(i.client),
 		indexer: i.indexer,
+		filter:  i.filter,
 	}
 	return i.shared
 }
@@ -57,6 +64,7 @@ func (i *Informer) Lister() informer.Lister {
 	i.lister = &lister{
 		log:    i.log.Named("Lister"),
 		client: clientv3.NewKV(i.client),
+		filter: i.filter,
 	}
 	return i.lister
 }

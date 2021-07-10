@@ -1,11 +1,60 @@
 package step
 
 import (
+	"errors"
+
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 )
 
+// syncHandler compares the actual state with the desired, and attempts to
+// converge the two. It then updates the Status block of the Network resource
+// with the current status of the resource.
+func (c *Controller) syncHandler(key string) error {
+	obj, ok, err := c.informer.GetStore().GetByKey(key)
+	if err != nil {
+		return err
+	}
+
+	st, isOK := obj.(*pipeline.Step)
+	if !isOK {
+		return errors.New("invalidate *pipeline.Step obj")
+	}
+
+	// 如果不存在, 这期望行为为删除 (DEL)
+	if !ok {
+		c.log.Debugf("wating remove step: %s", key)
+		if err := c.expectDelete(st); err != nil {
+			return err
+		}
+		c.log.Infof("remove success, step: %s", key)
+	}
+
+	c.log.Debug(st)
+
+	// 如果存在, 这期望行为为更新 (Update for DEL)
+	// if c.cronPool.IsJobExist(job.HashID()) {
+	// 	if err := c.cronPool.RemoveJob(job.HashID()); err != nil {
+	// 		c.log.Error(err)
+	// 	} else {
+	// 		c.log.Infof("成功移除Cron(%s): %s.%s", strings.TrimSpace(job.HashID()), job.ProviderName, job.ExcutorName)
+	// 	}
+	// }
+
+	return nil
+}
+
+func (c *Controller) expectDelete(s *pipeline.Step) error {
+	// j, err := informer.NewJobFromStoreKey(key)
+	// if err != nil {
+	// 	return err
+	// }
+	// c.cronPool.RemoveJob(j.HashID())
+
+	return nil
+}
+
 func (c *Controller) addStep(s *pipeline.Step) {
-	c.log.Infof("[step] receive add step: %s", s)
+	c.log.Infof("receive add step: %s", s)
 	if err := s.Validate(); err != nil {
 		c.log.Errorf("invalidate node error, %s", err)
 		return
@@ -28,9 +77,4 @@ func (c *Controller) deleteStep(p *pipeline.Step) {
 	}
 
 	// 未调度的交给调度
-}
-
-// 如果step有状态更新, 同步更新到Pipeline上去
-func (c *Controller) updateStep(oldObj, newObj *pipeline.Step) {
-
 }

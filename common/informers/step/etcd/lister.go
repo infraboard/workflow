@@ -7,11 +7,14 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 
 	"github.com/infraboard/workflow/api/pkg/pipeline"
+	informer "github.com/infraboard/workflow/common/informers/step"
 )
 
 type lister struct {
-	log    logger.Logger
-	client clientv3.KV
+	nodeName string
+	log      logger.Logger
+	client   clientv3.KV
+	filter   informer.StepFilterHandler
 }
 
 func (l *lister) List(ctx context.Context) (ret []*pipeline.Step, err error) {
@@ -29,6 +32,14 @@ func (l *lister) List(ctx context.Context) (ret []*pipeline.Step, err error) {
 			l.log.Error(err)
 			continue
 		}
+
+		if l.filter != nil {
+			if err := l.filter(ins); err != nil {
+				l.log.Error(err)
+				continue
+			}
+		}
+
 		set.Add(ins)
 	}
 

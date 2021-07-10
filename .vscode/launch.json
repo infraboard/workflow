@@ -21,6 +21,15 @@
             "program": "${workspaceFolder}/scheduler/main.go",
             "args": ["start"],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Node",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/node/main.go",
+            "args": ["start"],
+            "cwd": "${workspaceFolder}"
         }
     ]
 }

@@ -74,6 +74,10 @@ func (n *Node) Validate() error {
 	return nil
 }
 
+func (n *Node) IsMatch(nodeName string) bool {
+	return n.Name() == nodeName
+}
+
 // MakeObjectKey 构建etcd对应的key
 // 例如: inforboard/workflow/service/node/node-01
 func (n *Node) MakeObjectKey() string {
