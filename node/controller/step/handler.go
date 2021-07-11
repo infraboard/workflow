@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/node/controller/step/runner"
 )
 
 // syncHandler compares the actual state with the desired, and attempts to
@@ -29,8 +30,6 @@ func (c *Controller) syncHandler(key string) error {
 		c.log.Infof("remove success, step: %s", key)
 	}
 
-	c.log.Debug(st)
-
 	// 如果存在, 这期望行为为更新 (Update for DEL)
 	// if c.cronPool.IsJobExist(job.HashID()) {
 	// 	if err := c.cronPool.RemoveJob(job.HashID()); err != nil {
@@ -40,7 +39,7 @@ func (c *Controller) syncHandler(key string) error {
 	// 	}
 	// }
 
-	return nil
+	return runner.RunStep(st)
 }
 
 func (c *Controller) expectDelete(s *pipeline.Step) error {
