@@ -39,7 +39,7 @@ func (t SYSTEM_SECRET) IsIn(targets ...SYSTEM_SECRET) bool {
 // MarshalJSON todo
 func (t SYSTEM_SECRET) MarshalJSON() ([]byte, error) {
 	b := bytes.NewBufferString(`"`)
-	b.WriteString(t.String())
+	b.WriteString(strings.ToUpper(t.String()))
 	b.WriteString(`"`)
 	return b.Bytes(), nil
 }
@@ -84,7 +84,7 @@ func (t STEP_STATUS) IsIn(targets ...STEP_STATUS) bool {
 // MarshalJSON todo
 func (t STEP_STATUS) MarshalJSON() ([]byte, error) {
 	b := bytes.NewBufferString(`"`)
-	b.WriteString(t.String())
+	b.WriteString(strings.ToUpper(t.String()))
 	b.WriteString(`"`)
 	return b.Bytes(), nil
 }
@@ -129,7 +129,7 @@ func (t PIPELINE_STATUS) IsIn(targets ...PIPELINE_STATUS) bool {
 // MarshalJSON todo
 func (t PIPELINE_STATUS) MarshalJSON() ([]byte, error) {
 	b := bytes.NewBufferString(`"`)
-	b.WriteString(t.String())
+	b.WriteString(strings.ToUpper(t.String()))
 	b.WriteString(`"`)
 	return b.Bytes(), nil
 }
@@ -174,7 +174,7 @@ func (t RUNNER_TYPE) IsIn(targets ...RUNNER_TYPE) bool {
 // MarshalJSON todo
 func (t RUNNER_TYPE) MarshalJSON() ([]byte, error) {
 	b := bytes.NewBufferString(`"`)
-	b.WriteString(t.String())
+	b.WriteString(strings.ToUpper(t.String()))
 	b.WriteString(`"`)
 	return b.Bytes(), nil
 }

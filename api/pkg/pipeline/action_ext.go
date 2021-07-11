@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/infraboard/keyauth/pkg/token"
 	"github.com/infraboard/mcube/http/request"
+	"github.com/infraboard/mcube/pb/resource"
 	"github.com/infraboard/mcube/types/ftime"
 )
 
@@ -57,19 +59,28 @@ func NewAction(req *CreateActionRequest) (*Action, error) {
 		RunParams:    req.RunParams,
 		Tags:         req.Tags,
 		Description:  req.Description,
+		NeedSecret:   req.NeedSecret,
 	}
 
 	return p, nil
 }
 
-func (p *Action) Validate() error {
-	return validate.Struct(p)
+func (a *Action) UpdateOwner(tk *token.Token) {
+	a.CreateBy = tk.Account
+	a.Domain = tk.Domain
+	a.Namespace = tk.Namespace
 }
 
-func (p *Action) EtcdObjectKey() string {
-	return fmt.Sprintf("%s/%s", EtcdActionPrefix(), p.Name)
+func (a *Action) Validate() error {
+	return validate.Struct(a)
+}
 
-	// return fmt.Sprintf("%s/%s/%s", EtcdActionPrefix(), p.Namespace, p.Name)
+func (a *Action) EtcdObjectKey() string {
+	ns := a.VisiableMode.String()
+	if a.VisiableMode.Equal(resource.VisiableMode_NAMESPACE) {
+		ns = a.Namespace
+	}
+	return fmt.Sprintf("%s/%s/%s", EtcdActionPrefix(), ns, a.Name)
 }
 
 // NewActionSet todo
@@ -95,4 +106,13 @@ func NewDeleteActionRequestWithName(name string) *DeleteActionRequest {
 	return &DeleteActionRequest{
 		Name: name,
 	}
+}
+
+func (req *DeleteActionRequest) Namespace(tk *token.Token) string {
+	ns := req.VisiableMode.String()
+	if req.VisiableMode.Equal(resource.VisiableMode_NAMESPACE) {
+		ns = tk.Namespace
+	}
+
+	return ns
 }

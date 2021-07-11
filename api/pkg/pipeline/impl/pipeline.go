@@ -27,9 +27,7 @@ func (i *impl) CreatePipeline(ctx context.Context, req *pipeline.CreatePipelineR
 	if err != nil {
 		return nil, err
 	}
-	p.CreateBy = tk.Account
-	p.Domain = tk.Domain
-	p.Namespace = tk.Namespace
+	p.UpdateOwner(tk)
 
 	value, err := json.Marshal(p)
 	if err != nil {

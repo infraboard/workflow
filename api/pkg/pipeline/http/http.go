@@ -35,8 +35,11 @@ func (h *handler) Registry(router router.SubRouter) {
 	r.BasePath("actions")
 	r.Handle("POST", "/", h.CreateAction).AddLabel(label.Create)
 	r.Handle("GET", "/", h.QueryAction).AddLabel(label.List)
-	r.Handle("DELETE", "/:name", h.DeleteAction).AddLabel(label.Delete)
-
+	r.Handle("GET", "/:name", h.DescribeAction).AddLabel(label.Get)
+	r.Handle("DELETE", "/:name", h.DeleteNamespaceAction).AddLabel(label.Delete)
+	r.BasePath("global_actions")
+	r.Handle("POST", "/", h.CreateGlobalAction).AddLabel(label.Create)
+	r.Handle("DELETE", "/:name", h.DeleteGlobalAction).AddLabel(label.Delete)
 }
 
 func (h *handler) Config() error {

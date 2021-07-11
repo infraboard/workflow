@@ -75,6 +75,7 @@ service Service {
 	rpc DeletePipeline(DeletePipelineRequest) returns(Pipeline);
 	rpc CreateAction(CreateActionRequest) returns(Action);
 	rpc QueryAction(QueryActionRequest) returns(ActionSet);
+	rpc DescribeAction(DescribeActionRequest) returns(Action);
 	rpc DeleteAction(DeleteActionRequest) returns(Action);
 
 }
@@ -328,6 +329,14 @@ message QueryPipelineRequest {
 
 // Action 动作定义
 message Action {
+    // 名称
+    string name = 8[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"name" json:"name" validate:"required"'}
+        ];
+	// 资源版本
+	int64 resource_version = 16 [
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"resource_version" json:"resource_version,omitempty"'}
+        ];
 	// 所属域
 	string domain = 1[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"domain" json:"domain"'}
@@ -352,10 +361,6 @@ message Action {
 	string update_by = 6[
 		(google.protobuf.field_tag) = {struct_tag: 'bson:"update_by" json:"update_by"'}
 		];
-    // 名称
-    string name = 8[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"name" json:"name" validate:"required"'}
-        ];
 	// 可见模式
 	mcube.resource.VisiableMode visiable_mode = 15[
 		(google.protobuf.field_tag) = {struct_tag: 'bson:"visiable_mode" json:"visiable_mode"'}
@@ -392,7 +397,6 @@ message ActionSet {
         ];
 }
 
-
 message CreateActionRequest {
 	// 执行器类型, 默认采用Node节点本地Docker执行
 	RUNNER_TYPE runner_type = 7[
@@ -400,7 +404,7 @@ message CreateActionRequest {
         ];
 	// 名称
 	string name = 1[
-		(google.protobuf.field_tag) = {struct_tag: 'json:"name"'}
+		(google.protobuf.field_tag) = {struct_tag: 'json:"name" validate:"required"'}
 		];
 	// 可见模式
 	mcube.resource.VisiableMode visiable_mode = 6[
@@ -435,7 +439,11 @@ message DeleteActionRequest {
 	// 唯一name
 	string name = 1[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"name"'}
-		];	
+		];
+	// 可见模式
+	mcube.resource.VisiableMode visiable_mode = 2[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"visiable_mode"'}
+		];
 }
 
 // QueryPipelineRequest 查询Book请求

@@ -8,7 +8,7 @@ require (
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/infraboard/keyauth v0.5.0
-	github.com/infraboard/mcube v1.3.5
+	github.com/infraboard/mcube v1.3.6
 	github.com/rs/xid v1.3.0
 	github.com/spf13/cobra v1.1.3
 	go.etcd.io/etcd/api/v3 v3.5.0

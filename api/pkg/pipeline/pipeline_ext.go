@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/infraboard/keyauth/pkg/token"
 	"github.com/infraboard/mcube/http/request"
 	"github.com/infraboard/mcube/types/ftime"
 	"github.com/rs/xid"
@@ -96,6 +97,12 @@ func NewPipeline(req *CreatePipelineRequest) (*Pipeline, error) {
 // 例如: inforboard/workflow/service/node/node-01
 func (p *Pipeline) MakeObjectKey() string {
 	return fmt.Sprintf("%s/%s/%s", EtcdPipelinePrefix(), p.Namespace, p.Id)
+}
+
+func (p *Pipeline) UpdateOwner(tk *token.Token) {
+	p.CreateBy = tk.Account
+	p.Domain = tk.Domain
+	p.Namespace = tk.Namespace
 }
 
 func (p *Pipeline) Validate() error {
