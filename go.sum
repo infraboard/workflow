@@ -445,6 +445,8 @@ github.com/infraboard/keyauth v0.5.0/go.mod h1:fZAAdijeZjn5EoysLgRpo2KhQHxgxSL+i
 github.com/infraboard/mcube v1.3.1/go.mod h1:MoweXyplhn6YpLO4Yh9ufFHFO+u5a29xfFj2wVWZouc=
 github.com/infraboard/mcube v1.3.4 h1:j8kVN8cczQBOKY/Jcw8wweMUwvGY7NbYf/cgGABpnkY=
 github.com/infraboard/mcube v1.3.4/go.mod h1:MoweXyplhn6YpLO4Yh9ufFHFO+u5a29xfFj2wVWZouc=
+github.com/infraboard/mcube v1.3.5 h1:pG24gG02bloD6vf1iknEBAy6zirVOrCsfldj+C8SJEI=
+github.com/infraboard/mcube v1.3.5/go.mod h1:MoweXyplhn6YpLO4Yh9ufFHFO+u5a29xfFj2wVWZouc=
 github.com/jcmturner/gofork v1.0.0/go.mod h1:MK8+TM0La+2rjBD4jE12Kj1pCCxK7d2LK/UM3ncEo0o=
 github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869/go.mod h1:cJ6Cj7dQo+O6GJNiMx+Pa94qKj+TG8ONdKHgMNIyyag=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=

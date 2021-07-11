@@ -8,11 +8,6 @@ import (
 	"github.com/infraboard/mcube/types/ftime"
 )
 
-// use a single instance of Validate, it caches struct info
-// var (
-// 	validate = validator.New()
-// )
-
 func NewCreateActionRequest() *CreateActionRequest {
 	return &CreateActionRequest{}
 }
@@ -54,13 +49,14 @@ func NewAction(req *CreateActionRequest) (*Action, error) {
 	}
 
 	p := &Action{
-		CreateAt:    ftime.Now().Timestamp(),
-		UpdateAt:    ftime.Now().Timestamp(),
-		Name:        req.Name,
-		RunnerType:  req.RunnerType,
-		RunParams:   req.RunParams,
-		Tags:        req.Tags,
-		Description: req.Description,
+		CreateAt:     ftime.Now().Timestamp(),
+		UpdateAt:     ftime.Now().Timestamp(),
+		Name:         req.Name,
+		VisiableMode: req.VisiableMode,
+		RunnerType:   req.RunnerType,
+		RunParams:    req.RunParams,
+		Tags:         req.Tags,
+		Description:  req.Description,
 	}
 
 	return p, nil
