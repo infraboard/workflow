@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/infraboard/workflow/api/pkg/pipeline"
-	"github.com/infraboard/workflow/node/controller/step/runner"
+	"github.com/infraboard/workflow/node/controller/step/engine"
 )
 
 // syncHandler compares the actual state with the desired, and attempts to
@@ -39,7 +39,7 @@ func (c *Controller) syncHandler(key string) error {
 	// 	}
 	// }
 
-	return runner.RunStep(st)
+	return engine.RunStep(st)
 }
 
 func (c *Controller) expectDelete(s *pipeline.Step) error {

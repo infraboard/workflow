@@ -11,18 +11,22 @@ import (
 	"github.com/infraboard/mcube/logger/zap"
 	"k8s.io/client-go/util/workqueue"
 
+	"github.com/infraboard/workflow/api/client"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/common/informers/step"
+	"github.com/infraboard/workflow/node/controller/step/engine"
 )
 
 // NewNodeScheduler pipeline controller
 func NewController(
 	nodeName string,
 	inform step.Informer,
+	wc *client.Client,
 ) *Controller {
 	wq := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Step Controller")
 	controller := &Controller{
 		nodeName:       nodeName,
+		wc:             wc,
 		workqueue:      wq,
 		informer:       inform,
 		workerNums:     4,
@@ -52,6 +56,7 @@ type Controller struct {
 	runningWorkers map[string]bool
 	wLock          sync.Mutex
 	nodeName       string
+	wc             *client.Client
 }
 
 func (c *Controller) Debug(log logger.Logger) {
@@ -66,7 +71,13 @@ func (c *Controller) Run(ctx context.Context) error {
 	// Start the informer factories to begin populating the informer caches
 	c.log.Infof("starting step control loop, node name: %s", c.nodeName)
 
-	// // 调用Lister 获得所有的cronjob 并添加cron
+	// 初始化runner
+	c.log.Info("init runner engine")
+	if err := engine.Init(c.wc); err != nil {
+		return err
+	}
+
+	// 调用Lister 获得所有的cronjob 并添加cron
 	c.log.Info("starting sync(List) all steps")
 	steps, err := c.informer.Lister().List(ctx)
 	if err != nil {

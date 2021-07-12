@@ -15,6 +15,7 @@ import (
 	"github.com/infraboard/mcube/types/ftime"
 	"github.com/spf13/cobra"
 
+	"github.com/infraboard/workflow/api/client"
 	"github.com/infraboard/workflow/api/pkg/node"
 	"github.com/infraboard/workflow/conf"
 	"github.com/infraboard/workflow/version"
@@ -44,6 +45,11 @@ var serviceCmd = &cobra.Command{
 			return err
 		}
 		cfg := conf.C()
+
+		// 初始化全局client
+		if err := loadGRPCClient(cfg); err != nil {
+			return err
+		}
 
 		// 启动服务
 		ch := make(chan os.Signal, 1)
@@ -92,7 +98,7 @@ func newService(cfg *conf.Config) (*service, error) {
 	// 实例化Informer
 	info := si_impl.NewFilterInformer(cfg.Etcd.GetClient(), informer.NewNodeFilter(rn))
 
-	ctl := controller.NewController(rn.Name(), info)
+	ctl := controller.NewController(rn.Name(), info, client.C())
 	ctl.Debug(zap.L().Named("Node"))
 
 	svr := &service{
@@ -223,6 +229,21 @@ func loadGloabl(configType string) error {
 	}
 	zap.L().Named("Init").Info(logInitMsg)
 	return nil
+}
+
+// InitGRPCClient 初始化grpc客户端
+func loadGRPCClient(cfg *conf.Config) error {
+	cf := client.NewDefaultConfig()
+	cf.SetAddress(cfg.GRPC.Addr())
+	cf.SetClientCredentials(cfg.Keyauth.ClientID, cfg.Keyauth.ClientSecret)
+	cli, err := client.NewClient(cf)
+	if err != nil {
+		return err
+	}
+
+	client.SetGlobal(cli)
+
+	return err
 }
 
 func init() {
