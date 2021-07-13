@@ -10,7 +10,7 @@ require (
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
-	github.com/infraboard/keyauth v0.5.0
+	github.com/infraboard/keyauth v0.5.1
 	github.com/infraboard/mcube v1.3.6
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/rs/xid v1.3.0

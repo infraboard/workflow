@@ -430,7 +430,7 @@ type MountFile struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// 挂载目录名称
+	// 文件名称, 默认就是下载文件的名称
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name" bson:"name"`
 	// 文件下载地址
 	DownloadUrl string `protobuf:"bytes,2,opt,name=download_url,json=downloadUrl,proto3" json:"download_url" bson:"download_url"`

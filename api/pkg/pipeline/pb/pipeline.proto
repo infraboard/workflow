@@ -133,7 +133,7 @@ message MountData {
 }
 
 message MountFile {
-	// 挂载目录名称
+	// 文件名称, 默认就是下载文件的名称
 	string name = 1[
 		(google.protobuf.field_tag) = {struct_tag: 'bson:"name" json:"name"'}
 		];
