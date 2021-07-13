@@ -9,51 +9,6 @@ import (
 	"strings"
 )
 
-// ParseSYSTEM_SECRETFromString Parse SYSTEM_SECRET from string
-func ParseSYSTEM_SECRETFromString(str string) (SYSTEM_SECRET, error) {
-	key := strings.Trim(string(str), `"`)
-	v, ok := SYSTEM_SECRET_value[strings.ToUpper(key)]
-	if !ok {
-		return 0, fmt.Errorf("unknown SYSTEM_SECRET: %s", str)
-	}
-
-	return SYSTEM_SECRET(v), nil
-}
-
-// Equal type compare
-func (t SYSTEM_SECRET) Equal(target SYSTEM_SECRET) bool {
-	return t == target
-}
-
-// IsIn todo
-func (t SYSTEM_SECRET) IsIn(targets ...SYSTEM_SECRET) bool {
-	for _, target := range targets {
-		if t.Equal(target) {
-			return true
-		}
-	}
-
-	return false
-}
-
-// MarshalJSON todo
-func (t SYSTEM_SECRET) MarshalJSON() ([]byte, error) {
-	b := bytes.NewBufferString(`"`)
-	b.WriteString(strings.ToUpper(t.String()))
-	b.WriteString(`"`)
-	return b.Bytes(), nil
-}
-
-// UnmarshalJSON todo
-func (t *SYSTEM_SECRET) UnmarshalJSON(b []byte) error {
-	ins, err := ParseSYSTEM_SECRETFromString(string(b))
-	if err != nil {
-		return err
-	}
-	*t = ins
-	return nil
-}
-
 // ParseSTEP_STATUSFromString Parse STEP_STATUS from string
 func ParseSTEP_STATUSFromString(str string) (STEP_STATUS, error) {
 	key := strings.Trim(string(str), `"`)

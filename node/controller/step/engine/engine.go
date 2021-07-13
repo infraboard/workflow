@@ -23,15 +23,19 @@ func RunStep(s *pipeline.Step) error {
 	return engine.Run(s)
 }
 
-func Init(wc *client.Client) error {
+func Init(wc *client.Client) (err error) {
 	if wc == nil {
 		return fmt.Errorf("init runner error, workflow client is nil")
 	}
 
 	engine.wc = wc
-	engine.docker = docker.NewRunner()
+	engine.docker, err = docker.NewRunner()
 	engine.k8s = k8s.NewRunner()
 	engine.local = local.NewRunner()
+	if err != nil {
+		return err
+	}
+
 	engine.init = true
 	return nil
 }
@@ -46,10 +50,8 @@ type Engine struct {
 
 func (e *Engine) Run(s *pipeline.Step) error {
 	if !e.init {
-		return fmt.Errorf("runner engine not init")
+		return fmt.Errorf("engine not init")
 	}
-
-	fmt.Println(e.wc.Pipeline())
 
 	// 1.查询step对应的action定义
 	req := pipeline.NewDescribeActionRequestWithName(s.Name)

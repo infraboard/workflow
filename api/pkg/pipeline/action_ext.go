@@ -56,10 +56,9 @@ func NewAction(req *CreateActionRequest) (*Action, error) {
 		Name:         req.Name,
 		VisiableMode: req.VisiableMode,
 		RunnerType:   req.RunnerType,
-		RunParams:    req.RunParams,
+		ParamsDesc:   req.ParamsDesc,
 		Tags:         req.Tags,
 		Description:  req.Description,
-		NeedSecret:   req.NeedSecret,
 	}
 
 	return p, nil

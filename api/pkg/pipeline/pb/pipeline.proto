@@ -7,26 +7,6 @@ import "github.com/infraboard/mcube/cmd/protoc-gen-go-ext/extension/tag/tag.prot
 import "github.com/infraboard/mcube/pb/page/page.proto";
 import "github.com/infraboard/mcube/pb/resource/base.proto";
 
-// SYSTEM_SECRET 系统秘钥
-enum SYSTEM_SECRET {
-    NULL = 0;
-    // 拉取代码的秘钥
-    PULL_CODE = 1;
-	// 修改代码的秘钥
-	PUSH_CODE = 2;
-    // 拉取进行的秘钥
-    PULL_IMAGE = 3;
-	// 推送进行的秘钥
-	PUSH_IMAGE = 4;
-    // 拉取归档包的密码
-    PULL_OSS = 5;
-	// 推送归档包的密码
-	PUSH_OSS = 6;
-	// k8s连接的秘钥
-	K8S_DEPLOY = 7;
-	// 服务器主机登录密码
-	HOST_DEPLOY = 8;
-}
 
 // STEP_STATUS Step任务状态
 enum STEP_STATUS {
@@ -110,6 +90,14 @@ message Pipeline {
     string name = 7[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"name" json:"name"'}
         ];
+	// 全局参数, step执行时合并处理
+	map<string, string> with = 13[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"with" json:"with"'}
+		];
+	// 需要挂载的文件
+	MountData mount = 14[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"mount" json:"mount"'}
+		];
 	// 标签
 	map<string, string> tags = 8[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"tags" json:"tags"'}
@@ -129,6 +117,37 @@ message Pipeline {
 	// 具体编排阶段
 	repeated Stage stages = 12[
 		(google.protobuf.field_tag) = {struct_tag: 'bson:"stages" json:"stages"'}
+		];
+}
+
+// 挂载信息, 用于流水线执行过程中 数据共享
+message MountData {
+	// 挂载的根节点位置
+	string root = 1[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"root" json:"root"'}
+		];
+	// 需要挂载的文件列表
+	repeated MountFile files = 2[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"files" json:"files"'}
+		];
+}
+
+message MountFile {
+	// 挂载目录名称
+	string name = 1[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"name" json:"name"'}
+		];
+	// 文件下载地址
+	string download_url = 2[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"download_url" json:"download_url"'}
+		];
+	// 是否解压
+	bool unpack = 3[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"unpack" json:"unpack"'}
+		];
+	// 解压目录
+	string unpack_dir = 4[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"unpack_dir" json:"unpack_dir"'}
 		];
 }
 
@@ -303,6 +322,14 @@ message CreatePipelineRequest {
     string name = 1[
         (google.protobuf.field_tag) = {struct_tag: 'json:"name" validate:"required"'}
         ];
+	// 全局参数, Step执行时合并处理
+	map<string, string> with = 6[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"with" json:"with"'}
+		];
+	// 挂载文件
+	MountData mount = 7[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"mount" json:"mount"'}
+		];
 	// 标签
 	map<string, string> tags = 2[
         (google.protobuf.field_tag) = {struct_tag: 'json:"tags"'}
@@ -369,14 +396,10 @@ message Action {
 	RUNNER_TYPE runner_type = 13[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"runner_type" json:"runner_type"'}
         ];
-	// 运行时的参数, 对于Docker和K8s而言, 参数为image
-	map<string, string> run_params = 14[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"run_params" json:"run_params"'}
+	// 运行时的参数说明
+	map<string, ParamValueDesc> params_desc = 14[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"params_desc" json:"params_desc"'}
         ];
-	// action运行时需要由系统注入的秘钥
-	repeated SYSTEM_SECRET need_secret = 10[
-		(google.protobuf.field_tag) = {struct_tag: 'json:"need_secret"'}
-		];
 	// 标签
 	map<string, string> tags = 11[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"tags" json:"tags"'}
@@ -385,6 +408,21 @@ message Action {
 	string description = 12[
 		(google.protobuf.field_tag) = {struct_tag: 'bson:"description" json:"description"'}
 		];	
+}
+
+message ParamValueDesc {
+	// 可选/必传
+	bool required = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"required" json:"required"'}
+        ];
+	// 默认值, action运行时如果未传人，会填充默认值
+	string default = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"default" json:"default"'}
+        ];
+	// 值描述
+	string describe = 3[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"describe" json:"describe"'}
+        ];
 }
 
 // ActionSet todo
@@ -410,14 +448,10 @@ message CreateActionRequest {
 	mcube.resource.VisiableMode visiable_mode = 6[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"visiable_mode"'}
 		];
-	// 运行时的参数, 对于Docker和K8s而言, 参数为image
-	map<string, string> run_params = 2[
-        (google.protobuf.field_tag) = {struct_tag: 'json:"run_params"'}
+	// 运行时的参数说明
+	map<string, ParamValueDesc> params_desc = 14[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"params_desc" json:"params_desc"'}
         ];
-	// 运行时需要由系统注入的秘钥
-	repeated SYSTEM_SECRET need_secret = 3[
-		(google.protobuf.field_tag) = {struct_tag: 'json:"need_secret"'}
-		];
 	// 标签
 	map<string, string> tags = 4[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"tags"'}

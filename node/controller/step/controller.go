@@ -72,7 +72,7 @@ func (c *Controller) Run(ctx context.Context) error {
 	c.log.Infof("starting step control loop, node name: %s", c.nodeName)
 
 	// 初始化runner
-	c.log.Info("init runner engine")
+	c.log.Info("init controller engine")
 	if err := engine.Init(c.wc); err != nil {
 		return err
 	}

@@ -84,6 +84,8 @@ func NewPipeline(req *CreatePipelineRequest) (*Pipeline, error) {
 		Id:          xid.New().String(),
 		CreateAt:    ftime.Now().Timestamp(),
 		Name:        req.Name,
+		With:        req.With,
+		Mount:       req.Mount,
 		Tags:        req.Tags,
 		Description: req.Description,
 		On:          req.On,
