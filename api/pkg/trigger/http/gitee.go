@@ -34,6 +34,8 @@ func (h *handler) GiteeTrigger(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 根据URL, Clone镜像仓库
+
 	response.Success(w, event)
 }
 
@@ -47,6 +49,14 @@ func NewGiteeWebHookEvent() *GiteeWebHookEvent {
 type GiteeWebHookEvent struct {
 	*GiteeWebHookHeader
 	*GiteeWebHookBody
+}
+
+func (e *GiteeWebHookEvent) HeadCommit() *Commit {
+	if len(e.Commits) > 1 {
+		return e.Commits[0]
+	}
+
+	return nil
 }
 
 type GiteeWebHookHeader struct {
@@ -71,6 +81,7 @@ type GiteeWebHookBody struct {
 	Timestamp  int64            `json:"timestamp"`
 	Sign       string           `json:"sign"`
 	Repository *GiteeRepository `json:"repository"`
+	Commits    []*Commit        `json:"commits"`
 }
 
 // GiteeRepository todo
@@ -81,4 +92,23 @@ type GiteeRepository struct {
 	FullName   string `json:"full_name"`
 	GitHttpUrl string `json:"git_http_url"`
 	GitSshUrl  string `json:"git_ssh_url"`
+}
+
+type Commit struct {
+	ID        string    `json:"id"`
+	Message   string    `json:"message"`
+	Timestamp string    `json:"timestamp"`
+	Url       string    `json:"url"`
+	Added     []string  `json:"added"`
+	Removed   []string  `json:"removed"`
+	Modified  []string  `json:"modified"`
+	Committer Committer `json:"committer"`
+}
+
+type Committer struct {
+	ID       uint64 `json:"id"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	UserName string `json:"user_name"`
+	Url      string `json:"url"`
 }
