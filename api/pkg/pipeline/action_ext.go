@@ -82,6 +82,16 @@ func (a *Action) DefaultRunParam() map[string]string {
 	return param
 }
 
+func (a *Action) DefaultRunnerParam() map[string]string {
+	param := map[string]string{}
+	for k, v := range a.RunnerParams {
+		if v != nil && v.Default != "" {
+			param[k] = v.Default
+		}
+	}
+	return param
+}
+
 // ValidateParam 按照action的定义, 检查必传参数是否传人
 func (a *Action) ValidateParam(params map[string]string) error {
 	msg := []string{}

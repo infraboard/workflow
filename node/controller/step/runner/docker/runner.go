@@ -32,9 +32,15 @@ type Runner struct {
 	log logger.Logger
 }
 
-//
+// Runner Params:
+//   IMAGE_URL: 镜像URL, 比如: docker-build
+//   IMAGE_PULL_SECRET: 拉起镜像的凭证
+//   IMAGE_PUSH_SECRET: 推送镜像的凭证
+// Run Params:
+//   IMAGE_VERSION: 镜像版本 比如: v1
+//   GIT_SSH_URL: 代码仓库地址, 比如: git@gitee.com:infraboard/keyauth.git
+//   IMAGE_PUSH_URL:
 func (r *Runner) Run(ctx context.Context, req *runner.RunRequest) error {
-
 	return nil
 }
 

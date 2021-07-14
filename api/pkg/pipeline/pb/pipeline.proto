@@ -397,7 +397,7 @@ message Action {
         (google.protobuf.field_tag) = {struct_tag: 'bson:"runner_type" json:"runner_type"'}
         ];
 	// runner运行时参数
-	map<string, string> runner_params = 17[
+	map<string, ParamValueDesc> runner_params = 17[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"runner_params" json:"runner_params"'}
         ];
 	// step运行时的参数说明
@@ -453,7 +453,7 @@ message CreateActionRequest {
 		(google.protobuf.field_tag) = {struct_tag: 'json:"visiable_mode"'}
 		];
 	// runner运行时参数
-	map<string, string> runner_params = 2[
+	map<string, ParamValueDesc> runner_params = 2[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"runner_params" json:"runner_params"'}
         ];
 	// 运行时的参数说明

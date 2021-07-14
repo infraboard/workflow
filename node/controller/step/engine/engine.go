@@ -81,7 +81,7 @@ func (e *Engine) Run(s *pipeline.Step) {
 	}
 
 	// 加载Runner运行需要的参数
-	req.LoadRunnerParams(action.RunnerParams)
+	req.LoadRunnerParams(action.DefaultRunParam())
 
 	// 3.根据action定义的runner_type, 调用具体的runner
 	switch action.RunnerType {
