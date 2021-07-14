@@ -3,6 +3,7 @@ package pipeline
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/infraboard/keyauth/pkg/token"
 	"github.com/infraboard/mcube/http/request"
@@ -56,7 +57,8 @@ func NewAction(req *CreateActionRequest) (*Action, error) {
 		Name:         req.Name,
 		VisiableMode: req.VisiableMode,
 		RunnerType:   req.RunnerType,
-		ParamsDesc:   req.ParamsDesc,
+		RunnerParams: req.RunnerParams,
+		RunParams:    req.RunParams,
 		Tags:         req.Tags,
 		Description:  req.Description,
 	}
@@ -68,6 +70,34 @@ func (a *Action) UpdateOwner(tk *token.Token) {
 	a.CreateBy = tk.Account
 	a.Domain = tk.Domain
 	a.Namespace = tk.Namespace
+}
+
+func (a *Action) DefaultRunParam() map[string]string {
+	param := map[string]string{}
+	for k, v := range a.RunParams {
+		if v != nil && v.Default != "" {
+			param[k] = v.Default
+		}
+	}
+	return param
+}
+
+// ValidateParam 按照action的定义, 检查必传参数是否传人
+func (a *Action) ValidateParam(params map[string]string) error {
+	msg := []string{}
+	for k, v := range a.RunParams {
+		if v != nil && v.Required {
+			if pv, ok := params[k]; !ok || pv == "" {
+				msg = append(msg, "required param %s", k)
+			}
+		}
+	}
+
+	if len(msg) > 0 {
+		return fmt.Errorf(strings.Join(msg, ","))
+	}
+
+	return nil
 }
 
 func (a *Action) Validate() error {

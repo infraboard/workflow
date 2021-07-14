@@ -39,7 +39,12 @@ func (c *Controller) syncHandler(key string) error {
 	// 	}
 	// }
 
-	return engine.RunStep(st)
+	// 开始执行, 更新状态
+	st.Run()
+	engine.RunStep(st)
+	// 执行结束, 更新状态
+
+	return nil
 }
 
 func (c *Controller) expectDelete(s *pipeline.Step) error {

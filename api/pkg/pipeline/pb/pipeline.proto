@@ -122,7 +122,7 @@ message Pipeline {
 
 // 挂载信息, 用于流水线执行过程中 数据共享
 message MountData {
-	// 挂载的根节点位置
+	// 挂载的根节点位置, 默认挂载点: workflow
 	string root = 1[
 		(google.protobuf.field_tag) = {struct_tag: 'bson:"root" json:"root"'}
 		];
@@ -396,9 +396,13 @@ message Action {
 	RUNNER_TYPE runner_type = 13[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"runner_type" json:"runner_type"'}
         ];
-	// 运行时的参数说明
-	map<string, ParamValueDesc> params_desc = 14[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"params_desc" json:"params_desc"'}
+	// runner运行时参数
+	map<string, string> runner_params = 17[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"runner_params" json:"runner_params"'}
+        ];
+	// step运行时的参数说明
+	map<string, ParamValueDesc> run_params = 14[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"run_params" json:"run_params"'}
         ];
 	// 标签
 	map<string, string> tags = 11[
@@ -448,9 +452,13 @@ message CreateActionRequest {
 	mcube.resource.VisiableMode visiable_mode = 6[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"visiable_mode"'}
 		];
+	// runner运行时参数
+	map<string, string> runner_params = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"runner_params" json:"runner_params"'}
+        ];
 	// 运行时的参数说明
-	map<string, ParamValueDesc> params_desc = 14[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"params_desc" json:"params_desc"'}
+	map<string, ParamValueDesc> run_params = 3[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"run_params" json:"run_params"'}
         ];
 	// 标签
 	map<string, string> tags = 4[

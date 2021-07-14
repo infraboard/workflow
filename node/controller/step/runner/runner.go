@@ -19,11 +19,30 @@ type Runner interface {
 }
 
 func NewRunRequest(s *pipeline.Step) *RunRequest {
-	return &RunRequest{Step: s}
+	return &RunRequest{
+		Step:         s,
+		RunnerParams: map[string]string{},
+		RunParams:    map[string]string{},
+	}
 }
 
 type RunRequest struct {
-	Step *pipeline.Step
+	RunnerParams map[string]string   // runner 运行需要的参数
+	RunParams    map[string]string   // Pipeline定义的全局变量
+	Mount        *pipeline.MountData // pipeline定义的挂载文件
+	Step         *pipeline.Step      // 具体step
+}
+
+func (r *RunRequest) LoadRunParams(params map[string]string) {
+	for k, v := range params {
+		r.RunParams[k] = v
+	}
+}
+
+func (r *RunRequest) LoadRunnerParams(params map[string]string) {
+	for k, v := range params {
+		r.RunnerParams[k] = v
+	}
 }
 
 type LogRequest struct {

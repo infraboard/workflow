@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/infraboard/mcube/exception"
 	"github.com/infraboard/mcube/grpc/gcontext"
 
 	"github.com/infraboard/workflow/api/client"
@@ -19,8 +18,8 @@ var (
 	engine = &Engine{}
 )
 
-func RunStep(s *pipeline.Step) error {
-	return engine.Run(s)
+func RunStep(s *pipeline.Step) {
+	engine.Run(s)
 }
 
 func Init(wc *client.Client) (err error) {
@@ -48,28 +47,57 @@ type Engine struct {
 	init   bool
 }
 
-func (e *Engine) Run(s *pipeline.Step) error {
+// Run 运行Step
+// step的参数加载优先级:
+//   1. step 本身传人的
+//   2. pipeline 运行中产生的
+//   3. pipeline 全局传人
+//   4. action 默认默认值
+func (e *Engine) Run(s *pipeline.Step) {
 	if !e.init {
-		return fmt.Errorf("engine not init")
+		s.Failed(fmt.Errorf("engine not init"))
+		return
 	}
+
+	// 构造运行请求
+	req := runner.NewRunRequest(s)
 
 	// 1.查询step对应的action定义
-	req := pipeline.NewDescribeActionRequestWithName(s.Name)
+	descAction := pipeline.NewDescribeActionRequestWithName(s.Action)
 	ctx := gcontext.NewGrpcOutCtx()
-	a, err := e.wc.Pipeline().DescribeAction(ctx.Context(), req)
+	action, err := e.wc.Pipeline().DescribeAction(ctx.Context(), descAction)
 	if err != nil {
-		return err
+		s.Failed(err)
+		return
 	}
 
-	// 2.根据action定义的runner_type, 调用具体的runner
-	switch a.RunnerType {
+	// 加载运行时参数
+	req.LoadRunParams(action.DefaultRunParam())
+
+	// 校验参数合法性
+	if err := action.ValidateParam(req.RunParams); err != nil {
+		s.Failed(err)
+		return
+	}
+
+	// 加载Runner运行需要的参数
+	req.LoadRunnerParams(action.RunnerParams)
+
+	// 3.根据action定义的runner_type, 调用具体的runner
+	switch action.RunnerType {
 	case pipeline.RUNNER_TYPE_DOCKER:
-		return e.docker.Run(context.Background(), runner.NewRunRequest(s))
+		err = e.docker.Run(context.Background(), req)
 	case pipeline.RUNNER_TYPE_K8s:
-		return e.k8s.Run(context.Background(), runner.NewRunRequest(s))
+		err = e.k8s.Run(context.Background(), req)
 	case pipeline.RUNNER_TYPE_LOCAL:
-		return e.local.Run(context.Background(), runner.NewRunRequest(s))
+		err = e.local.Run(context.Background(), req)
 	default:
-		return exception.NewBadRequest("unknown runner type: %s", a.RunnerType)
+		s.Failed(fmt.Errorf("unknown runner type: %s", action.RunnerType))
+		return
+	}
+
+	if err != nil {
+		s.Failed(err)
+		return
 	}
 }

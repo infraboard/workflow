@@ -20,10 +20,6 @@ func NewCreatePipelineRequest() *CreatePipelineRequest {
 	return &CreatePipelineRequest{}
 }
 
-func NewDefaultStepStatus() *StepStatus {
-	return &StepStatus{}
-}
-
 // NewQueryPipelineRequest 查询book列表
 func NewQueryPipelineRequest() *QueryPipelineRequest {
 	return &QueryPipelineRequest{

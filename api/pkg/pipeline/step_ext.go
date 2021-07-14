@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/infraboard/mcube/http/request"
+	"github.com/infraboard/mcube/types/ftime"
 )
 
 func (s *Stage) StepCount() int {
@@ -61,7 +62,20 @@ func (s *StepSet) Add(item *Step) {
 }
 
 func NewDefaultStep() *Step {
-	return &Step{}
+	return &Step{
+		Status: NewDefaultStepStatus(),
+	}
+}
+
+func (s *Step) Run() {
+	s.Status.StartAt = ftime.Now().Timestamp()
+	s.Status.Status = STEP_STATUS_RUNNING
+}
+
+func (s *Step) Failed(err error) {
+	s.Status.EndAt = ftime.Now().Timestamp()
+	s.Status.Status = STEP_STATUS_FAILED
+	s.Status.Message = err.Error()
 }
 
 func (s *Step) MakeObjectKey() string {
@@ -89,6 +103,10 @@ func (s *Step) IsScheduled() bool {
 
 func (s *Step) BuildKey(namespace, pipelineId string, stage int32) {
 	s.Key = fmt.Sprintf("%s.%s.%d.%d", namespace, pipelineId, stage, s.Id)
+}
+
+func NewDefaultStepStatus() *StepStatus {
+	return &StepStatus{}
 }
 
 // NewQueryStepRequest 查询book列表

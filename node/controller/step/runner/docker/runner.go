@@ -32,7 +32,9 @@ type Runner struct {
 	log logger.Logger
 }
 
-func (r *Runner) Run(context.Context, *runner.RunRequest) error {
+//
+func (r *Runner) Run(ctx context.Context, req *runner.RunRequest) error {
+
 	return nil
 }
 
