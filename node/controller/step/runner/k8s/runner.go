@@ -13,8 +13,8 @@ func NewRunner() *Runner {
 
 type Runner struct{}
 
-func (r *Runner) Run(context.Context, *runner.RunRequest) error {
-	return nil
+func (r *Runner) Run(context.Context, *runner.RunRequest) {
+	return
 }
 
 func (r *Runner) Log(context.Context, *runner.LogRequest) (io.ReadCloser, error) {

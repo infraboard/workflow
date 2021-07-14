@@ -3,6 +3,7 @@ package pipeline
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/infraboard/mcube/http/request"
 	"github.com/infraboard/mcube/types/ftime"
@@ -72,10 +73,16 @@ func (s *Step) Run() {
 	s.Status.Status = STEP_STATUS_RUNNING
 }
 
-func (s *Step) Failed(err error) {
+func (s *Step) Failed(format string, a ...interface{}) {
 	s.Status.EndAt = ftime.Now().Timestamp()
 	s.Status.Status = STEP_STATUS_FAILED
-	s.Status.Message = err.Error()
+	s.Status.Message = fmt.Sprintf(format, a...)
+}
+
+func (s *Step) Success(resp map[string]string) {
+	s.Status.EndAt = ftime.Now().Timestamp()
+	s.Status.Status = STEP_STATUS_SUCCEEDED
+	s.Status.Response = resp
 }
 
 func (s *Step) MakeObjectKey() string {
@@ -103,6 +110,27 @@ func (s *Step) IsScheduled() bool {
 
 func (s *Step) BuildKey(namespace, pipelineId string, stage int32) {
 	s.Key = fmt.Sprintf("%s.%s.%d.%d", namespace, pipelineId, stage, s.Id)
+}
+
+func (s *Step) GetPipelineID() string {
+	return s.getKeyIndex(1)
+}
+
+func (s *Step) GetNamespace() string {
+	return s.getKeyIndex(0)
+}
+
+func (s *Step) getKeyIndex(index int) string {
+	kl := strings.Split(s.Key, ".")
+	if index+1 > len(kl) {
+		return ""
+	}
+
+	if len(kl) != 4 {
+		return ""
+	}
+
+	return kl[index]
 }
 
 func NewDefaultStepStatus() *StepStatus {

@@ -93,7 +93,7 @@ func (a *Action) DefaultRunnerParam() map[string]string {
 }
 
 // ValidateParam 按照action的定义, 检查必传参数是否传人
-func (a *Action) ValidateParam(params map[string]string) error {
+func (a *Action) ValidateRunParam(params map[string]string) error {
 	msg := []string{}
 	for k, v := range a.RunParams {
 		if v != nil && v.Required {
@@ -104,7 +104,25 @@ func (a *Action) ValidateParam(params map[string]string) error {
 	}
 
 	if len(msg) > 0 {
-		return fmt.Errorf(strings.Join(msg, ","))
+		return fmt.Errorf("validate run params error, %s", strings.Join(msg, ","))
+	}
+
+	return nil
+}
+
+// ValidateParam 按照action的定义, 检查必传参数是否传人
+func (a *Action) ValidateRunnerParam(params map[string]string) error {
+	msg := []string{}
+	for k, v := range a.RunnerParams {
+		if v != nil && v.Required {
+			if pv, ok := params[k]; !ok || pv == "" {
+				msg = append(msg, "required param %s", k)
+			}
+		}
+	}
+
+	if len(msg) > 0 {
+		return fmt.Errorf("validate runner params error, %s", strings.Join(msg, ","))
 	}
 
 	return nil

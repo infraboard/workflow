@@ -9,7 +9,7 @@ import (
 
 type Runner interface {
 	// 执行Step, 执行过后的关联信息保存在Status的Response里面
-	Run(context.Context, *RunRequest) error
+	Run(context.Context, *RunRequest)
 	// 获取Step执行过程中的日志流
 	Log(context.Context, *LogRequest) (io.ReadCloser, error)
 	// 连接到该执行环境
@@ -31,6 +31,10 @@ type RunRequest struct {
 	RunParams    map[string]string   // Pipeline定义的全局变量
 	Mount        *pipeline.MountData // pipeline定义的挂载文件
 	Step         *pipeline.Step      // 具体step
+}
+
+func (r *RunRequest) LoadMount(m *pipeline.MountData) {
+	r.Mount = m
 }
 
 func (r *RunRequest) LoadRunParams(params map[string]string) {

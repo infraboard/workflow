@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/infraboard/mcube/grpc/gcontext"
+	"github.com/infraboard/mcube/logger"
+	"github.com/infraboard/mcube/logger/zap"
 
 	"github.com/infraboard/workflow/api/client"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
@@ -31,6 +33,7 @@ func Init(wc *client.Client) (err error) {
 	engine.docker, err = docker.NewRunner()
 	engine.k8s = k8s.NewRunner()
 	engine.local = local.NewRunner()
+	engine.log = zap.L().Named("Runner.Engine")
 	if err != nil {
 		return err
 	}
@@ -45,6 +48,7 @@ type Engine struct {
 	k8s    runner.Runner
 	local  runner.Runner
 	init   bool
+	log    logger.Logger
 }
 
 // Run 运行Step
@@ -55,7 +59,7 @@ type Engine struct {
 //   4. action 默认默认值
 func (e *Engine) Run(s *pipeline.Step) {
 	if !e.init {
-		s.Failed(fmt.Errorf("engine not init"))
+		s.Failed("engine not init")
 		return
 	}
 
@@ -63,41 +67,52 @@ func (e *Engine) Run(s *pipeline.Step) {
 	req := runner.NewRunRequest(s)
 
 	// 1.查询step对应的action定义
-	descAction := pipeline.NewDescribeActionRequestWithName(s.Action)
+	descA := pipeline.NewDescribeActionRequestWithName(s.Action)
 	ctx := gcontext.NewGrpcOutCtx()
-	action, err := e.wc.Pipeline().DescribeAction(ctx.Context(), descAction)
+	action, err := e.wc.Pipeline().DescribeAction(ctx.Context(), descA)
 	if err != nil {
-		s.Failed(err)
+		s.Failed("describe step action error, %s", err)
+		return
+	}
+
+	// 2.查询Pipeline, 获取全局参数
+	descP := pipeline.NewDescribePipelineRequestWithID(s.GetPipelineID())
+	pl, err := e.wc.Pipeline().DescribePipeline(ctx.Context(), descP)
+	if err != nil {
+		s.Failed("describe step pipeline error, %s", err)
 		return
 	}
 
 	// 加载运行时参数
 	req.LoadRunParams(action.DefaultRunParam())
+	req.LoadRunParams(pl.With)
+	req.LoadMount(pl.Mount)
 
-	// 校验参数合法性
-	if err := action.ValidateParam(req.RunParams); err != nil {
-		s.Failed(err)
+	// 校验run参数合法性
+	if err := action.ValidateRunParam(req.RunParams); err != nil {
+		s.Failed(err.Error())
 		return
 	}
 
 	// 加载Runner运行需要的参数
 	req.LoadRunnerParams(action.DefaultRunParam())
 
-	// 3.根据action定义的runner_type, 调用具体的runner
-	switch action.RunnerType {
-	case pipeline.RUNNER_TYPE_DOCKER:
-		err = e.docker.Run(context.Background(), req)
-	case pipeline.RUNNER_TYPE_K8s:
-		err = e.k8s.Run(context.Background(), req)
-	case pipeline.RUNNER_TYPE_LOCAL:
-		err = e.local.Run(context.Background(), req)
-	default:
-		s.Failed(fmt.Errorf("unknown runner type: %s", action.RunnerType))
+	// 校验runner参数合法性
+	if err := action.ValidateRunnerParam(req.RunnerParams); err != nil {
+		s.Failed(err.Error())
 		return
 	}
 
-	if err != nil {
-		s.Failed(err)
+	// 3.根据action定义的runner_type, 调用具体的runner
+	switch action.RunnerType {
+	case pipeline.RUNNER_TYPE_DOCKER:
+		e.docker.Run(context.Background(), req)
+	case pipeline.RUNNER_TYPE_K8s:
+		e.k8s.Run(context.Background(), req)
+	case pipeline.RUNNER_TYPE_LOCAL:
+		e.local.Run(context.Background(), req)
+	default:
+		s.Failed("unknown runner type: %s", action.RunnerType)
 		return
 	}
 }

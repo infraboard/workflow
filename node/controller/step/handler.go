@@ -41,8 +41,15 @@ func (c *Controller) syncHandler(key string) error {
 
 	// 开始执行, 更新状态
 	st.Run()
-	engine.RunStep(st)
+	if err := c.informer.Recorder().Update(st); err != nil {
+		c.log.Errorf("update step start %s status error, %s", st.Key, err)
+	}
+
 	// 执行结束, 更新状态
+	engine.RunStep(st)
+	if err := c.informer.Recorder().Update(st); err != nil {
+		c.log.Errorf("update step end %s status error, %s", st.Key, err)
+	}
 
 	return nil
 }
