@@ -15,7 +15,7 @@ var (
 )
 
 var (
-	smapleStep   = &pipeline.Step{}
+	smapleStep   = &pipeline.Step{Key: "test"}
 	runnerParams = map[string]string{
 		"IMAGE_URL": "busybox",
 	}

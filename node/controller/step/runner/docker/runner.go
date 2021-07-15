@@ -14,6 +14,8 @@ import (
 
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/node/controller/step/runner"
+	"github.com/infraboard/workflow/node/controller/step/store"
+	"github.com/infraboard/workflow/node/controller/step/store/file"
 )
 
 const (
@@ -37,16 +39,22 @@ func NewRunner() (*Runner, error) {
 	log.Infof("docker runner connect success, version: %s", cli.ClientVersion())
 
 	return &Runner{
-		log: log,
-		cli: cli,
+		log:   log,
+		cli:   cli,
+		store: file.NewStore(),
 	}, nil
 }
 
 // Docker官方SDK使用说明: https://docs.docker.com/engine/api/sdk/examples/
 // Docker官方API使用说明: https://docs.docker.com/engine/api/v1.41/
 type Runner struct {
-	cli *client.Client
-	log logger.Logger
+	cli   *client.Client
+	log   logger.Logger
+	store store.WatcherOSS
+}
+
+func (r *Runner) SetLogStore(s store.WatcherOSS) {
+	r.store = s
 }
 
 // ContainerCreate参数说明:  https://docs.docker.com/engine/api/v1.41/#operation/ContainerCreate
@@ -59,8 +67,8 @@ type Runner struct {
 //   GIT_SSH_URL: 代码仓库地址, 比如: git@gitee.com:infraboard/keyauth.git
 //   IMAGE_PUSH_URL: 代码推送地址
 func (r *Runner) Run(ctx context.Context, in *runner.RunRequest) {
-	if in.Step == nil {
-		r.log.Errorf("step is nil")
+	if in.Step == nil || in.Step.Key == "" {
+		r.log.Errorf("step is nil or step key is \"\"")
 		return
 	}
 
@@ -70,26 +78,51 @@ func (r *Runner) Run(ctx context.Context, in *runner.RunRequest) {
 		return
 	}
 
+	resp, err := r.runContainer(ctx, req)
+	if err != nil {
+		req.Step.Failed("run container error, %s", err)
+		return
+	}
+
+	req.Step.Success(resp)
+}
+
+func (r *Runner) runContainer(ctx context.Context, req *dockerRunRequest) (respMap map[string]string, err error) {
+	respMap = map[string]string{}
+
+	// 日志记录
+	logID, err := r.store.CreateObject(context.Background(), req.Step.Key)
+	if err != nil {
+		return respMap, fmt.Errorf("create log error, %s", err)
+	}
+	req.Step.UpdateResponse(map[string]string{"log_type": r.store.StoreType(), "log_path": logID})
+
+	// 创建容器
 	resp, err := r.cli.ContainerCreate(ctx, &container.Config{
 		Image: req.Image(),
 		Env:   req.ContainerEnv(),
 	}, nil, nil, nil, req.ContainerName())
-
 	if err != nil {
-		in.Step.Failed("create container error, %s", err)
-		return
+		return respMap, fmt.Errorf("create container error, %s", err)
 	}
+	defer r.removeContainer(resp.ID)
 
+	// 启动容器
 	err = r.cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
 	if err != nil {
-		in.Step.Failed("run container error, %s", err)
-		return
+		return respMap, fmt.Errorf("run container error, %s", err)
 	}
 
-	in.Step.Success(map[string]string{
-		CONTAINER_ID_KEY:   resp.ID,
-		CONTAINER_WARN_KEY: strings.Join(resp.Warnings, ","),
-	})
+	respMap[CONTAINER_ID_KEY] = resp.ID
+	respMap[CONTAINER_WARN_KEY] = strings.Join(resp.Warnings, ",")
+	return respMap, nil
+}
+
+func (r *Runner) removeContainer(id string) {
+	err := r.cli.ContainerRemove(context.Background(), id, types.ContainerRemoveOptions{})
+	if err != nil {
+		r.log.Errorf("remove contain %s failed", err)
+	}
 }
 
 func (r *Runner) Log(context.Context, *runner.LogRequest) (io.ReadCloser, error) {
@@ -151,9 +184,9 @@ func (r *dockerRunRequest) mergeParams() map[string]string {
 }
 
 func (r *dockerRunRequest) Validate() error {
-	fmt.Println(r.Image())
 	if r.ImageURL() == "" {
 		return fmt.Errorf("%s missed", IMAGE_URL_KEY)
 	}
+
 	return nil
 }

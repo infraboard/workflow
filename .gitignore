@@ -14,6 +14,7 @@ dist/*
 
 cover.out
 coverage.txt
+runner_log
 
 etc/workflow.toml
 etc/workflow.env

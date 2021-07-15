@@ -82,7 +82,13 @@ func (s *Step) Failed(format string, a ...interface{}) {
 func (s *Step) Success(resp map[string]string) {
 	s.Status.EndAt = ftime.Now().Timestamp()
 	s.Status.Status = STEP_STATUS_SUCCEEDED
-	s.Status.Response = resp
+	s.UpdateResponse(resp)
+}
+
+func (s *Step) UpdateResponse(resp map[string]string) {
+	for k, v := range resp {
+		s.Status.Response[k] = v
+	}
 }
 
 func (s *Step) MakeObjectKey() string {
@@ -134,7 +140,9 @@ func (s *Step) getKeyIndex(index int) string {
 }
 
 func NewDefaultStepStatus() *StepStatus {
-	return &StepStatus{}
+	return &StepStatus{
+		Response: map[string]string{},
+	}
 }
 
 // NewQueryStepRequest 查询book列表

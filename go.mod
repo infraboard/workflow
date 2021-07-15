@@ -15,6 +15,7 @@ require (
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/rs/xid v1.3.0
 	github.com/spf13/cobra v1.1.3
+	github.com/stretchr/testify v1.7.0
 	go.etcd.io/etcd/api/v3 v3.5.0
 	go.etcd.io/etcd/client/v3 v3.5.0
 	go.mongodb.org/mongo-driver v1.5.2
