@@ -24,8 +24,10 @@ enum STEP_STATUS {
     CANCELED = 6;
 	// 忽略执行
 	SKIP = 7;
-	// 等待用户确认, 确认过后才能继续执行
-	CONFIRMING = 8;
+	// 审批中, 确认过后才能继续执行
+	AUDITING = 8;
+	// 审批拒绝
+	REFUSE = 9;
 }
 
 // PIPELINE_STATUS 流水线状态
@@ -222,13 +224,21 @@ message Step {
 	bool ignore_failed = 6[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"ignore_failed" json:"ignore_failed"'}
         ];
-	// 是否需要等待确认, 确认过后才能执行
-	bool wait_confirm =10[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"wait_confirm" json:"wait_confirm"'}
+	// 是否需要审批, 审批通过后才能执行
+	bool with_audit =10[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"with_audit" json:"with_audit"'}
         ];
-	// 等待时的提醒信息
-	string wait_tips = 11[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"wait_tips" json:"wait_tips"'}
+	// 审批参数, 有审批模块做具体实现
+	map<string, string> audit_params = 13[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"audit_params" json:"audit_params"'}
+        ];
+	// step执行完成后, 是否需要通知
+	bool with_notify = 11[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"with_notify" json:"with_notify"'}
+        ];
+	// 通知参数, 由通知模块做具体实现
+	map<string, string> notify_params = 12[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"notify_params" json:"notify_params"'}
         ];
 	// 调度标签
 	map<string, string> node_selector = 8[
@@ -257,13 +267,21 @@ message StepStatus {
 	string scheduled_node = 5[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"scheduled_node" json:"scheduled_node"'}
         ];
-	// 确认时间
-	int64 confirm_at = 9[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"confirm_at" json:"confirm_at,omitempty"'}
+	// 审批时间
+	int64 audit_at = 9[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"audit_at" json:"audit_at,omitempty"'}
         ];	
-	// 确认时的反馈信息
-	string confirm_message = 8[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"confirm_message" json:"confirm_message"'}
+	// 审批时的反馈信息
+	string audit_response = 8[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"audit_response" json:"audit_response"'}
+        ];
+	// 通知发送时间
+	int64 notify_at = 10[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"notify_at" json:"notify_at"'}
+        ];
+	// 通知失败信息, 如果没有表示成功
+	string notify_error = 11[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"notify_error" json:"notify_error"'}
         ];
     // 执行结果
     string message = 6[

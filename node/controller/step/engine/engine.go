@@ -95,7 +95,7 @@ func (e *Engine) Run(s *pipeline.Step) {
 	}
 
 	// 加载Runner运行需要的参数
-	req.LoadRunnerParams(action.DefaultRunParam())
+	req.LoadRunnerParams(action.DefaultRunnerParam())
 
 	// 校验runner参数合法性
 	if err := action.ValidateRunnerParam(req.RunnerParams); err != nil {

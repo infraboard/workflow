@@ -103,10 +103,8 @@ func (s *Step) SetScheduleNode(nodeName string) {
 	s.Status.ScheduledNode = nodeName
 }
 
-
-
-func (s *Step) IsConfirmed() bool {
-	return s.Status.ConfirmAt != 0
+func (s *Step) IsAudit() bool {
+	return s.Status.AuditAt != 0
 }
 
 func (s *Step) ScheduledNodeName() string {
