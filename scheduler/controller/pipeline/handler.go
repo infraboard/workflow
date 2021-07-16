@@ -80,6 +80,13 @@ func (c *PipelineScheduler) addStep(s *pipeline.Step) {
 		c.log.Infof("step %s has scheuled to node %s", s.Key, nn)
 	}
 
+	// 等待确认后调度
+	if s.WaitConfirm && !s.IsConfirmed() {
+		// TODO: 发送确认事件
+		s.Status.Status = pipeline.STEP_STATUS_CONFIRMING
+		c.log.Debug("send confirm notify")
+	}
+
 	c.workqueue.AddRateLimited(s)
 }
 

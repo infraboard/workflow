@@ -24,6 +24,8 @@ enum STEP_STATUS {
     CANCELED = 6;
 	// 忽略执行
 	SKIP = 7;
+	// 等待用户确认, 确认过后才能继续执行
+	CONFIRMING = 8;
 }
 
 // PIPELINE_STATUS 流水线状态
@@ -220,6 +222,14 @@ message Step {
 	bool ignore_failed = 6[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"ignore_failed" json:"ignore_failed"'}
         ];
+	// 是否需要等待确认, 确认过后才能执行
+	bool wait_confirm =10[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"wait_confirm" json:"wait_confirm"'}
+        ];
+	// 等待时的提醒信息
+	string wait_tips = 11[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"wait_tips" json:"wait_tips"'}
+        ];
 	// 调度标签
 	map<string, string> node_selector = 8[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"node_selector" json:"node_selector"'}
@@ -246,6 +256,14 @@ message StepStatus {
 	// 被调度到的节点
 	string scheduled_node = 5[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"scheduled_node" json:"scheduled_node"'}
+        ];
+	// 确认时间
+	int64 confirm_at = 9[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"confirm_at" json:"confirm_at,omitempty"'}
+        ];	
+	// 确认时的反馈信息
+	string confirm_message = 8[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"confirm_message" json:"confirm_message"'}
         ];
     // 执行结果
     string message = 6[

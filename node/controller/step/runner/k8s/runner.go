@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/infraboard/workflow/node/controller/step/runner"
-	"github.com/infraboard/workflow/node/controller/step/store"
 )
 
 func NewRunner() *Runner {
@@ -13,11 +12,6 @@ func NewRunner() *Runner {
 }
 
 type Runner struct {
-	store store.WatcherOSS
-}
-
-func (r *Runner) SetLogStore(s store.WatcherOSS) {
-	r.store = s
 }
 
 func (r *Runner) Run(context.Context, *runner.RunRequest) {

@@ -15,11 +15,11 @@ import (
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/node/controller/step/runner"
 	"github.com/infraboard/workflow/node/controller/step/store"
-	"github.com/infraboard/workflow/node/controller/step/store/file"
 )
 
 const (
 	IMAGE_URL_KEY     = "IMAGE_URL"
+	IMAGE_CMD_KEY     = "IMAGE_CMD"
 	IMAGE_VERSION_KEY = "IMAGE_VERSION"
 )
 
@@ -41,7 +41,7 @@ func NewRunner() (*Runner, error) {
 	return &Runner{
 		log:   log,
 		cli:   cli,
-		store: file.NewStore(),
+		store: store.NewStore(),
 	}, nil
 }
 
@@ -50,11 +50,7 @@ func NewRunner() (*Runner, error) {
 type Runner struct {
 	cli   *client.Client
 	log   logger.Logger
-	store store.WatcherOSS
-}
-
-func (r *Runner) SetLogStore(s store.WatcherOSS) {
-	r.store = s
+	store store.StoreFactory
 }
 
 // ContainerCreate参数说明:  https://docs.docker.com/engine/api/v1.41/#operation/ContainerCreate
@@ -90,32 +86,60 @@ func (r *Runner) Run(ctx context.Context, in *runner.RunRequest) {
 func (r *Runner) runContainer(ctx context.Context, req *dockerRunRequest) (respMap map[string]string, err error) {
 	respMap = map[string]string{}
 
-	// 日志记录
-	logID, err := r.store.CreateObject(context.Background(), req.Step.Key)
-	if err != nil {
-		return respMap, fmt.Errorf("create log error, %s", err)
-	}
-	req.Step.UpdateResponse(map[string]string{"log_type": r.store.StoreType(), "log_path": logID})
-
 	// 创建容器
 	resp, err := r.cli.ContainerCreate(ctx, &container.Config{
 		Image: req.Image(),
 		Env:   req.ContainerEnv(),
+		Cmd:   req.ContainerCMD(),
 	}, nil, nil, nil, req.ContainerName())
 	if err != nil {
 		return respMap, fmt.Errorf("create container error, %s", err)
 	}
-	defer r.removeContainer(resp.ID)
+
+	// 更新状态
+	up := r.store.NewFileUpdater(req.Step.Key)
+	respMap["log_driver"] = up.DriverName()
+	respMap["log_path"] = up.ObjectID()
+	respMap[CONTAINER_ID_KEY] = resp.ID
+	respMap[CONTAINER_WARN_KEY] = strings.Join(resp.Warnings, ",")
 
 	// 启动容器
 	err = r.cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
 	if err != nil {
+		// 启动失败则删除容器
+		r.removeContainer(resp.ID)
 		return respMap, fmt.Errorf("run container error, %s", err)
 	}
 
-	respMap[CONTAINER_ID_KEY] = resp.ID
-	respMap[CONTAINER_WARN_KEY] = strings.Join(resp.Warnings, ",")
+	r.waitDown(ctx, resp.ID, up)
 	return respMap, nil
+}
+
+func (r *Runner) waitDown(ctx context.Context, id string, uploader store.Uploader) error {
+	// 推出过后销毁docker
+	defer r.removeContainer(id)
+
+	// 记录容器的日志
+	out, err := r.cli.ContainerLogs(ctx, id, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
+	if err != nil {
+		return fmt.Errorf("get container log error, %s", err)
+	}
+
+	if err := uploader.Upload(ctx, out); err != nil {
+		return err
+	}
+
+	// 等待容器退出
+	statusCh, errCh := r.cli.ContainerWait(ctx, id, container.WaitConditionNotRunning)
+	select {
+	case err := <-errCh:
+		if err != nil {
+			panic(err)
+		}
+	case <-statusCh:
+	}
+
+	return nil
 }
 
 func (r *Runner) removeContainer(id string) {
@@ -173,6 +197,10 @@ func (r *dockerRunRequest) ContainerEnv() []string {
 		envs = append(envs, fmt.Sprintf("%s=%s", k, v))
 	}
 	return envs
+}
+
+func (r *dockerRunRequest) ContainerCMD() []string {
+	return strings.Split(r.RunnerParams[IMAGE_CMD_KEY], ",")
 }
 
 func (r *dockerRunRequest) mergeParams() map[string]string {

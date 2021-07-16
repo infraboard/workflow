@@ -103,6 +103,12 @@ func (s *Step) SetScheduleNode(nodeName string) {
 	s.Status.ScheduledNode = nodeName
 }
 
+
+
+func (s *Step) IsConfirmed() bool {
+	return s.Status.ConfirmAt != 0
+}
+
 func (s *Step) ScheduledNodeName() string {
 	if s.Status != nil {
 		return s.Status.ScheduledNode

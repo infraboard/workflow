@@ -5,12 +5,9 @@ import (
 	"io"
 
 	"github.com/infraboard/workflow/api/pkg/pipeline"
-	"github.com/infraboard/workflow/node/controller/step/store"
 )
 
 type Runner interface {
-	// 用于Step运行时日志保存
-	SetLogStore(store.WatcherOSS)
 	// 执行Step, 执行过后的关联信息保存在Status的Response里面
 	Run(context.Context, *RunRequest)
 	// 连接到该执行环境
