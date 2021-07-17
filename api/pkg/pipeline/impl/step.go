@@ -38,9 +38,13 @@ func (i *impl) DescribeStep(ctx context.Context, req *pipeline.DescribeStepReque
 	if err != nil {
 		return nil, err
 	}
-	tk := session.S().GetToken(in.GetAccessToKen())
-	if tk == nil {
-		return nil, exception.NewUnauthorized("token required")
+
+	if req.Namespace == "" {
+		tk := session.S().GetToken(in.GetAccessToKen())
+		if tk == nil {
+			return nil, exception.NewUnauthorized("token required")
+		}
+		req.Namespace = tk.Namespace
 	}
 
 	descKey := pipeline.StepObjectKey(req.Key)

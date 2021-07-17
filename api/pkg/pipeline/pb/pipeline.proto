@@ -317,6 +317,10 @@ message DescribeStepRequest {
 	// 唯一ID
 	string key = 1[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"key"'}
+		];
+	// 唯一name
+	string namespace = 2[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"namespace"'}
 		];	
 }
 
@@ -513,7 +517,11 @@ message DescribeActionRequest {
 	// 唯一name
 	string name = 1[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"name"'}
-		];	
+		];
+	// 唯一name
+	string namespace = 2[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"namespace"'}
+		];
 }
 
 message DeleteActionRequest {
@@ -544,6 +552,10 @@ message DescribePipelineRequest {
 	// 唯一ID
 	string id = 1[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"id"'}
-		];	
+		];
+	// 唯一name
+	string namespace = 2[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"namespace"'}
+		];
 }
 

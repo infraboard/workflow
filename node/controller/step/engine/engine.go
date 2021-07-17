@@ -66,11 +66,13 @@ func (e *Engine) Run(s *pipeline.Step) {
 		return
 	}
 
+	e.log.Debugf("start run step: %s", s.Key)
 	// 构造运行请求
 	req := runner.NewRunRequest(s, e.updateStep)
 
 	// 1.查询step对应的action定义
 	descA := pipeline.NewDescribeActionRequestWithName(s.Action)
+	descA.Namespace = s.GetNamespace()
 	ctx := gcontext.NewGrpcOutCtx()
 	action, err := e.wc.Pipeline().DescribeAction(ctx.Context(), descA)
 	if err != nil {
@@ -80,6 +82,7 @@ func (e *Engine) Run(s *pipeline.Step) {
 
 	// 2.查询Pipeline, 获取全局参数
 	descP := pipeline.NewDescribePipelineRequestWithID(s.GetPipelineID())
+	descP.Namespace = s.GetNamespace()
 	pl, err := e.wc.Pipeline().DescribePipeline(ctx.Context(), descP)
 	if err != nil {
 		s.Failed("describe step pipeline error, %s", err)

@@ -61,7 +61,7 @@ func (i *Informer) Lister() informer.Lister {
 }
 
 func (i *Informer) Recorder() informer.Recorder {
-	if i.lister != nil {
+	if i.recorder != nil {
 		return i.recorder
 	}
 	i.recorder = &recorder{

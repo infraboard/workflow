@@ -86,6 +86,9 @@ func (s *Step) Success(resp map[string]string) {
 }
 
 func (s *Step) UpdateResponse(resp map[string]string) {
+	if s.Status.Response == nil {
+		s.Status.Response = map[string]string{}
+	}
 	for k, v := range resp {
 		s.Status.Response[k] = v
 	}

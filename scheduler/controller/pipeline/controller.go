@@ -30,7 +30,7 @@ func NewPipelineScheduler(
 	pi pipeline_informer.Informer,
 	si step_informer.Informer,
 ) *PipelineScheduler {
-	wq := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Pipeline")
+	wq := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Pipeline Scheduler")
 	controller := &PipelineScheduler{
 		schedulerName:  schedulerName,
 		nodes:          ni.GetStore(),
@@ -303,8 +303,6 @@ func (c *PipelineScheduler) updatePipelineStatus(p *pipeline.Pipeline) {
 		c.log.Errorf("pipeline informer recorder missed")
 		return
 	}
-
-	fmt.Println("xxX", c.pi.Recorder(), p)
 
 	// 清除一下其他数据
 	if err := c.pi.Recorder().Update(p); err != nil {

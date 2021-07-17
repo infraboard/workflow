@@ -73,11 +73,16 @@ func (i *impl) DescribePipeline(ctx context.Context, req *pipeline.DescribePipel
 	if err != nil {
 		return nil, err
 	}
-	tk := session.S().GetToken(in.GetAccessToKen())
-	if tk == nil {
-		return nil, exception.NewUnauthorized("token required")
+
+	if req.Namespace == "" {
+		tk := session.S().GetToken(in.GetAccessToKen())
+		if tk == nil {
+			return nil, exception.NewUnauthorized("token required")
+		}
+		req.Namespace = tk.Namespace
 	}
-	descKey := pipeline.PipeLineObjectKey(tk.Namespace, req.Id)
+
+	descKey := pipeline.PipeLineObjectKey(req.Namespace, req.Id)
 	i.log.Infof("describe etcd pipeline resource key: %s", descKey)
 	resp, err := i.client.Get(ctx, descKey)
 	if err != nil {

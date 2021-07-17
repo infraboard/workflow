@@ -77,14 +77,19 @@ func (i *impl) DescribeAction(ctx context.Context, req *pipeline.DescribeActionR
 	if err != nil {
 		return nil, err
 	}
-	tk := session.S().GetToken(in.GetAccessToKen())
-	if tk == nil {
-		return nil, exception.NewUnauthorized("token required")
+
+	// 默认使用用户的namespace
+	if req.Namespace == "" {
+		tk := session.S().GetToken(in.GetAccessToKen())
+		if tk == nil {
+			return nil, exception.NewUnauthorized("token required")
+		}
+		req.Namespace = tk.Namespace
 	}
 
 	var ins *pipeline.Action
 	// 先搜索Namespace内
-	ins, err = i.describeAction(ctx, tk.Namespace, req)
+	ins, err = i.describeAction(ctx, req.Namespace, req)
 	if err != nil {
 		return nil, err
 	}
