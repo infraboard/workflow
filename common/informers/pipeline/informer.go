@@ -83,3 +83,5 @@ func (r PipelineTaskEventHandlerFuncs) OnDelete(obj *pipeline.Pipeline) {
 		r.DeleteFunc(obj)
 	}
 }
+
+type PipelineFilterHandler func(obj *pipeline.Pipeline) error

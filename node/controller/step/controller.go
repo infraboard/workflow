@@ -34,7 +34,7 @@ func NewController(
 		runningWorkers: make(map[string]bool, 4),
 	}
 	inform.Watcher().AddStepEventHandler(step.StepEventHandlerFuncs{
-		AddFunc:    controller.enqueueStepForAdd,
+		AddFunc:    controller.enqueueForAdd,
 		UpdateFunc: controller.enqueueForUpdate,
 		DeleteFunc: controller.enqueueForDelete,
 	})
@@ -86,7 +86,7 @@ func (c *Controller) Run(ctx context.Context) error {
 
 	// 新增所有的job
 	for i := range steps {
-		c.enqueueStepForAdd(steps[i])
+		c.enqueueForAdd(steps[i])
 	}
 	c.log.Infof("sync all(%d) steps success", len(steps))
 
@@ -124,12 +124,19 @@ func (c *Controller) Run(ctx context.Context) error {
 // enqueueNetwork takes a Cronjob resource and converts it into a namespace/name
 // string which is then put onto the work queue. This method should *not* be
 // passed resources of any type other than Cronjob.
-func (c *Controller) enqueueStepForAdd(s *pipeline.Step) {
+func (c *Controller) enqueueForAdd(s *pipeline.Step) {
 	c.log.Infof("receive add object: %s", s)
 	if err := s.Validate(); err != nil {
 		c.log.Errorf("invalidate *pipeline.Step obj")
 		return
 	}
+
+	// 判断入队条件, 已经执行完的无需重复处理
+	if s.IsComplete() {
+		c.log.Errorf("step %s is complete, skip enqueue", s.Key)
+		return
+	}
+
 	c.informer.GetStore().Add(s)
 	key := s.MakeObjectKey()
 	c.workqueue.AddRateLimited(key)
@@ -155,7 +162,7 @@ func (c *Controller) enqueueForDelete(s *pipeline.Step) {
 
 // 如果step有状态更新, 同步更新到Pipeline上去
 func (c *Controller) enqueueForUpdate(oldObj, newObj *pipeline.Step) {
-	c.log.Infof("receive update object: old: %s, new: %s", oldObj, newObj)
+	c.log.Infof("receive update object: old: %s, new: %s", oldObj.Key, newObj.Key)
 }
 
 // runWorker is a long-running function that will continually call the

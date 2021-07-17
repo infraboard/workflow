@@ -9,19 +9,22 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 
 	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/common/cache"
 	informer "github.com/infraboard/workflow/common/informers/pipeline"
 )
 
 type shared struct {
 	log               logger.Logger
 	client            clientv3.Watcher
-	pipelineHandler   informer.PipelineEventHandler
+	indexer           cache.Indexer
+	handler           informer.PipelineEventHandler
+	filter            informer.PipelineFilterHandler
 	pipelineWatchChan clientv3.WatchChan
 }
 
 // AddPipelineEventHandler 添加事件处理回调
 func (i *shared) AddPipelineTaskEventHandler(h informer.PipelineEventHandler) {
-	i.pipelineHandler = h
+	i.handler = h
 }
 
 // Run 启动 Watch
@@ -54,7 +57,7 @@ func (i *shared) dealEvents() {
 }
 
 func (i *shared) isReady() error {
-	if i.pipelineHandler == nil {
+	if i.handler == nil {
 		return errors.New("PipelineEventHandler not add")
 	}
 	return nil
@@ -67,17 +70,54 @@ func (i *shared) watch(ctx context.Context) {
 }
 
 func (i *shared) notifyPipeline(event *clientv3.Event, eventVersion int64) error {
+	i.log.Debugf("receive pipeline notify event, %s", event.Kv.Key)
+
 	// 解析对象
-	obj, err := pipeline.LoadPipelineFromBytes(event.Kv.Value)
+	new, err := pipeline.LoadPipelineFromBytes(event.Kv.Value)
 	if err != nil {
 		return err
 	}
-	obj.ResourceVersion = eventVersion
+	new.ResourceVersion = eventVersion
+
+	old, hasOld, err := i.indexer.GetByKey(new.MakeObjectKey())
+	if err != nil {
+		return err
+	}
+
+	if i.filter != nil {
+		if err := i.filter(new); err != nil {
+			return err
+		}
+	}
+
 	switch event.Type {
 	case mvccpb.PUT:
-		i.pipelineHandler.OnAdd(obj)
+		// 区分Update
+		if hasOld {
+			// 更新缓存
+			i.log.Debugf("update pipeline: %s", new.ShortDescribe())
+			if err := i.indexer.Update(new); err != nil {
+				i.log.Errorf("update indexer cache error, %s", err)
+			}
+			i.handler.OnUpdate(old.(*pipeline.Pipeline), new)
+		} else {
+			// 添加缓存
+			i.log.Debugf("add pipeline: %s", new.ShortDescribe())
+			if err := i.indexer.Add(new); err != nil {
+				i.log.Errorf("add indexer cache error, %s", err)
+			}
+			i.handler.OnAdd(new)
+		}
 	case mvccpb.DELETE:
-		i.pipelineHandler.OnDelete(obj)
+		if !hasOld {
+			return nil
+		}
+		// 清除缓存
+		i.log.Debugf("delete pipeline: %s", new.ShortDescribe())
+		if err := i.indexer.Delete(new); err != nil {
+			i.log.Errorf("delete indexer cache error, %s", err)
+		}
+		i.handler.OnDelete(new)
 	default:
 	}
 	return nil

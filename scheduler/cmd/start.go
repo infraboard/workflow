@@ -93,7 +93,7 @@ type service struct {
 func newService(cfg *conf.Config) (*service, error) {
 	// 实例化Informer
 	ni := ni_impl.NewInformer(cfg.Etcd.GetClient())
-	pi := pi_impl.NewInformerr(cfg.Etcd.GetClient())
+	pi := pi_impl.NewInformerr(cfg.Etcd.GetClient(), nil)
 	si := si_impl.NewInformer(cfg.Etcd.GetClient())
 
 	// Controller 实例

@@ -10,10 +10,11 @@ import (
 )
 
 // NewScheduleInformer todo
-func NewInformerr(client *clientv3.Client) informer.Informer {
+func NewInformerr(client *clientv3.Client, filter informer.PipelineFilterHandler) informer.Informer {
 	return &Informer{
 		log:     zap.L().Named("Pipeline"),
 		client:  client,
+		filter:  filter,
 		indexer: cache.NewIndexer(informer.MetaNamespaceKeyFunc, informer.DefaultStoreIndexers()),
 	}
 }
@@ -26,6 +27,7 @@ type Informer struct {
 	lister   *lister
 	recorder *recorder
 	indexer  cache.Indexer
+	filter   informer.PipelineFilterHandler
 }
 
 func (i *Informer) GetStore() cache.Store {
@@ -43,8 +45,10 @@ func (i *Informer) Watcher() informer.Watcher {
 		return i.shared
 	}
 	i.shared = &shared{
-		log:    i.log.Named("Watcher"),
-		client: clientv3.NewWatcher(i.client),
+		log:     i.log.Named("Watcher"),
+		client:  clientv3.NewWatcher(i.client),
+		indexer: i.indexer,
+		filter:  i.filter,
 	}
 	return i.shared
 }

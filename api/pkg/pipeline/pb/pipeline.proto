@@ -243,6 +243,10 @@ message Step {
 	map<string, string> notify_params = 12[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"notify_params" json:"notify_params"'}
         ];
+	// WebHook配置, 用于和其他系统联动, 比如各种机器人
+	WebHook webhook = 15[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"webhook" json:"webhook"'}
+        ];
 	// 调度标签
 	map<string, string> node_selector = 8[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"node_selector" json:"node_selector"'}
@@ -250,6 +254,21 @@ message Step {
 	// 当前步骤的状态
 	StepStatus status = 7[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"status" json:"status,omitempty"'}
+        ];
+}
+
+message WebHook {
+	// POST URL
+	string url = 1[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"url" json:"url"'}
+		];
+	// 需要自定义添加的头, 用于身份认证
+	map<string, string> header = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"header" json:"header"'}
+        ];
+	// 那些状态下触发
+	repeated STEP_STATUS status = 3[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"status" json:"status"'}
         ];
 }
 

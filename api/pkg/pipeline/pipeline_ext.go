@@ -107,13 +107,35 @@ func (p *Pipeline) Validate() error {
 	return validate.Struct(p)
 }
 
-func (t *Pipeline) NextStep() (steps []*Step) {
-	for i := range t.Stages {
-		stage := t.Stages[i]
+func (p *Pipeline) AddStage(item *Stage) {
+	p.Stages = append(p.Stages, item)
+}
+
+func (p *Pipeline) LastStage() *Stage {
+	total := len(p.Stages)
+	if total == 0 {
+		return nil
+	}
+
+	return p.Stages[total-1]
+}
+
+func (p *Pipeline) IsComplete() bool {
+	return len(p.NextStep()) == 0
+}
+
+func (p *Pipeline) NextStep() (steps []*Step) {
+	for i := range p.Stages {
+		stage := p.Stages[i]
+		if stage.IsComplete() {
+			continue
+		}
+
 		steps = stage.NextStep()
 		for i := range steps {
-			steps[i].BuildKey(t.Namespace, t.Id, stage.Id)
+			steps[i].BuildKey(p.Namespace, p.Id, stage.Id)
 		}
+		return steps
 	}
 
 	return
@@ -141,10 +163,6 @@ func (s *PipelineStatus) IsScheduled() bool {
 
 func (s *PipelineStatus) MatchScheduler(schedulerName string) bool {
 	return s.SchedulerNode == schedulerName
-}
-
-func (s *PipelineStatus) IsComplete() bool {
-	return s.Status.Equal(PIPELINE_STATUS_COMPLETE)
 }
 
 func (s *PipelineStatus) IsRunning() bool {

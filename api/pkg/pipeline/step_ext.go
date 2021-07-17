@@ -9,8 +9,26 @@ import (
 	"github.com/infraboard/mcube/types/ftime"
 )
 
+func NewDefaultStage() *Stage {
+	return &Stage{
+		Steps: []*Step{},
+	}
+}
+
 func (s *Stage) StepCount() int {
 	return len(s.Steps)
+}
+
+func (s *Stage) AddStep(item *Step) {
+	s.Steps = append(s.Steps, item)
+}
+
+func (s *Stage) LastStep() *Step {
+	if s.StepCount() == 0 {
+		return nil
+	}
+
+	return s.Steps[s.StepCount()-1]
 }
 
 // 因为可能包含并行任务, 下一次执行的任务可能是多个
@@ -19,7 +37,7 @@ func (s *Stage) NextStep() (nextSteps []*Step) {
 		step := s.Steps[i]
 
 		// 已经调度的Step不计入下一次调度范围
-		if step.IsScheduled() {
+		if step.IsScheduled() || step.IsComplete() {
 			continue
 		}
 
@@ -30,6 +48,16 @@ func (s *Stage) NextStep() (nextSteps []*Step) {
 		}
 	}
 	return
+}
+
+// 判断Stage最后一个任务是否完成
+func (s *Stage) IsComplete() bool {
+	step := s.LastStep()
+	if step == nil {
+		return true
+	}
+
+	return step.IsComplete()
 }
 
 // LoadStepFromBytes 解析etcd 的step数据
@@ -119,6 +147,20 @@ func (s *Step) ScheduledNodeName() string {
 
 func (s *Step) IsScheduled() bool {
 	return s.ScheduledNodeName() != ""
+}
+
+func (s *Step) IsComplete() bool {
+	if s.Status != nil {
+		return s.Status.Status.IsIn(
+			STEP_STATUS_SUCCEEDED,
+			STEP_STATUS_FAILED,
+			STEP_STATUS_CANCELED,
+			STEP_STATUS_SKIP,
+			STEP_STATUS_REFUSE,
+		)
+	}
+
+	return false
 }
 
 func (s *Step) BuildKey(namespace, pipelineId string, stage int32) {

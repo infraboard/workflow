@@ -49,12 +49,14 @@ func NewPipelineScheduler(
 		DeleteFunc: controller.delNode,
 	})
 	pi.Watcher().AddPipelineTaskEventHandler(pipeline_informer.PipelineTaskEventHandlerFuncs{
-		AddFunc: controller.addPipeline,
+		AddFunc:    controller.enqueueForPipelineAdd,
+		UpdateFunc: controller.enqueueForPipelineUpdate,
+		DeleteFunc: controller.enqueueForPipelineDelete,
 	})
 	si.Watcher().AddStepEventHandler(step_informer.StepEventHandlerFuncs{
-		AddFunc:    controller.addStep,
-		UpdateFunc: controller.updateStep,
-		DeleteFunc: controller.deleteStep,
+		AddFunc:    controller.enqueueForStepAdd,
+		UpdateFunc: controller.enqueueForStepUpdate,
+		DeleteFunc: controller.enqueueForStepDelete,
 	})
 
 	stepPicker, err := roundrobin.NewStepPicker(controller.nodes)
@@ -329,4 +331,82 @@ func (c *PipelineScheduler) scheduleStep(step *pipeline.Step) error {
 		c.log.Errorf("update scheduled step error, %s", err)
 	}
 	return nil
+}
+
+// enqueueNetwork takes a Cronjob resource and converts it into a namespace/name
+// string which is then put onto the work queue. This method should *not* be
+// passed resources of any type other than Cronjob.
+func (c *PipelineScheduler) enqueueForPipelineAdd(p *pipeline.Pipeline) {
+	c.log.Infof("receive add object: %s", p)
+	if err := p.Validate(); err != nil {
+		c.log.Errorf("validate pipeline error, %s", err)
+		return
+	}
+
+	// 判断入队条件, 已经执行完的无需重复处理
+	if p.IsComplete() {
+		c.log.Errorf("pipeline %s is complete, skip enqueue", p.ShortDescribe())
+		return
+	}
+
+	c.si.GetStore().Add(p)
+	key := p.MakeObjectKey()
+	c.workqueue.AddRateLimited(key)
+}
+
+// enqueueNetworkForDelete takes a deleted Network resource and converts it into a namespace/name
+// string which is then put onto the work queue. This method should *not* be
+// passed resources of any type other than Network.
+func (c *PipelineScheduler) enqueueForPipelineDelete(p *pipeline.Pipeline) {
+	c.log.Infof("receive delete object: %s", p)
+	if err := p.Validate(); err != nil {
+		c.log.Errorf("validate pipeline error, %s", err)
+		return
+	}
+	key := p.MakeObjectKey()
+	c.workqueue.AddRateLimited(key)
+}
+
+// 如果Pipeline有状态更新,
+func (c *PipelineScheduler) enqueueForPipelineUpdate(oldObj, newObj *pipeline.Pipeline) {
+	c.log.Infof("receive update object: old: %s, new: %s", oldObj.ShortDescribe(), newObj.ShortDescribe)
+}
+
+// enqueueNetwork takes a Cronjob resource and converts it into a namespace/name
+// string which is then put onto the work queue. This method should *not* be
+// passed resources of any type other than Cronjob.
+func (c *PipelineScheduler) enqueueForStepAdd(s *pipeline.Step) {
+	c.log.Infof("receive add object: %s", s)
+	if err := s.Validate(); err != nil {
+		c.log.Errorf("invalidate *pipeline.Step obj")
+		return
+	}
+
+	// 判断入队条件, 已经执行完的无需重复处理
+	if s.IsComplete() {
+		c.log.Errorf("step %s is complete, skip enqueue", s.Key)
+		return
+	}
+
+	c.si.GetStore().Add(s)
+	key := s.MakeObjectKey()
+	c.workqueue.AddRateLimited(key)
+}
+
+// enqueueNetworkForDelete takes a deleted Network resource and converts it into a namespace/name
+// string which is then put onto the work queue. This method should *not* be
+// passed resources of any type other than Network.
+func (c *PipelineScheduler) enqueueForStepDelete(s *pipeline.Step) {
+	c.log.Infof("receive delete object: %s", s)
+	if err := s.Validate(); err != nil {
+		c.log.Errorf("invalidate *pipeline.Step obj")
+		return
+	}
+	key := s.MakeObjectKey()
+	c.workqueue.AddRateLimited(key)
+}
+
+// 如果step有状态更新, 同步更新到Pipeline上去
+func (c *PipelineScheduler) enqueueForStepUpdate(oldObj, newObj *pipeline.Step) {
+	c.log.Infof("receive update object: old: %s, new: %s", oldObj.Key, newObj.Key)
 }
