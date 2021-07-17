@@ -73,7 +73,7 @@ func (c *Controller) Run(ctx context.Context) error {
 
 	// 初始化runner
 	c.log.Info("init controller engine")
-	if err := engine.Init(c.wc); err != nil {
+	if err := engine.Init(c.wc, c.informer.Recorder()); err != nil {
 		return err
 	}
 

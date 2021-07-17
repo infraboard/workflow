@@ -61,7 +61,6 @@ service Service {
 	rpc QueryAction(QueryActionRequest) returns(ActionSet);
 	rpc DescribeAction(DescribeActionRequest) returns(Action);
 	rpc DeleteAction(DeleteActionRequest) returns(Action);
-
 }
 
 // Pipeline todo

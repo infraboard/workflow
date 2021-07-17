@@ -10,6 +10,7 @@ import (
 
 	"github.com/infraboard/workflow/api/client"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/common/informers/step"
 	"github.com/infraboard/workflow/node/controller/step/runner"
 	"github.com/infraboard/workflow/node/controller/step/runner/docker"
 	"github.com/infraboard/workflow/node/controller/step/runner/k8s"
@@ -24,11 +25,12 @@ func RunStep(s *pipeline.Step) {
 	engine.Run(s)
 }
 
-func Init(wc *client.Client) (err error) {
+func Init(wc *client.Client, recorder step.Recorder) (err error) {
 	if wc == nil {
 		return fmt.Errorf("init runner error, workflow client is nil")
 	}
 
+	engine.recorder = recorder
 	engine.wc = wc
 	engine.docker, err = docker.NewRunner()
 	engine.k8s = k8s.NewRunner()
@@ -43,12 +45,13 @@ func Init(wc *client.Client) (err error) {
 }
 
 type Engine struct {
-	wc     *client.Client
-	docker runner.Runner
-	k8s    runner.Runner
-	local  runner.Runner
-	init   bool
-	log    logger.Logger
+	recorder step.Recorder
+	wc       *client.Client
+	docker   runner.Runner
+	k8s      runner.Runner
+	local    runner.Runner
+	init     bool
+	log      logger.Logger
 }
 
 // Run 运行Step
@@ -64,7 +67,7 @@ func (e *Engine) Run(s *pipeline.Step) {
 	}
 
 	// 构造运行请求
-	req := runner.NewRunRequest(s)
+	req := runner.NewRunRequest(s, e.updateStep)
 
 	// 1.查询step对应的action定义
 	descA := pipeline.NewDescribeActionRequestWithName(s.Action)
@@ -114,5 +117,11 @@ func (e *Engine) Run(s *pipeline.Step) {
 	default:
 		s.Failed("unknown runner type: %s", action.RunnerType)
 		return
+	}
+}
+
+func (e *Engine) updateStep(s *pipeline.Step) {
+	if err := e.recorder.Update(s); err != nil {
+		e.log.Errorf("update step status error, %s", err)
 	}
 }

@@ -16,19 +16,23 @@ type Runner interface {
 	Cancel(context.Context, *CancelRequest) error
 }
 
-func NewRunRequest(s *pipeline.Step) *RunRequest {
+func NewRunRequest(s *pipeline.Step, updater UpdateStepCallback) *RunRequest {
 	return &RunRequest{
 		Step:         s,
 		RunnerParams: map[string]string{},
 		RunParams:    map[string]string{},
+		Updater:      updater,
 	}
 }
 
+type UpdateStepCallback func(*pipeline.Step)
+
 type RunRequest struct {
 	RunnerParams map[string]string   // runner 运行需要的参数
-	RunParams    map[string]string   // Pipeline定义的全局变量
-	Mount        *pipeline.MountData // pipeline定义的挂载文件
+	RunParams    map[string]string   // step 运行需要的参数
+	Mount        *pipeline.MountData // 挂载文件
 	Step         *pipeline.Step      // 具体step
+	Updater      UpdateStepCallback  // 更新状态的回调
 }
 
 func (r *RunRequest) LoadMount(m *pipeline.MountData) {

@@ -2,6 +2,7 @@ package docker_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/infraboard/mcube/logger/zap"
@@ -22,25 +23,29 @@ var (
 	}
 )
 
+func testUpdater(s *pipeline.Step) {
+	fmt.Println(s)
+}
+
 func TestDockerRunNilStep(t *testing.T) {
-	req := runner.NewRunRequest(nil)
+	req := runner.NewRunRequest(nil, testUpdater)
 	dr.Run(context.Background(), req)
 }
 
 func TestDockerRunNULLStep(t *testing.T) {
-	req := runner.NewRunRequest(&pipeline.Step{})
+	req := runner.NewRunRequest(&pipeline.Step{}, testUpdater)
 	dr.Run(context.Background(), req)
 	t.Log(req.Step)
 }
 
 func TestDockerRunSampleStep(t *testing.T) {
-	req := runner.NewRunRequest(smapleStep)
+	req := runner.NewRunRequest(smapleStep, testUpdater)
 	dr.Run(context.Background(), req)
 	t.Log(smapleStep)
 }
 
 func TestDockerRunStepWithRunnerParams(t *testing.T) {
-	req := runner.NewRunRequest(smapleStep)
+	req := runner.NewRunRequest(smapleStep, testUpdater)
 	req.LoadRunnerParams(runnerParams)
 	dr.Run(context.Background(), req)
 	t.Log(smapleStep)

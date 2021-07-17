@@ -102,6 +102,7 @@ func (r *Runner) runContainer(ctx context.Context, req *dockerRunRequest) (respM
 	respMap["log_path"] = up.ObjectID()
 	respMap[CONTAINER_ID_KEY] = resp.ID
 	respMap[CONTAINER_WARN_KEY] = strings.Join(resp.Warnings, ",")
+	req.Updater(req.Step)
 
 	// 启动容器
 	err = r.cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
