@@ -97,12 +97,12 @@ func (r *Runner) runContainer(ctx context.Context, req *dockerRunRequest) (respM
 	}
 
 	// 更新状态
-	up := r.store.NewFileUpdater(req.Step.Key)
+	up := r.store.NewFileUploader(req.Step.Key)
 	respMap["log_driver"] = up.DriverName()
 	respMap["log_path"] = up.ObjectID()
 	respMap[CONTAINER_ID_KEY] = resp.ID
 	respMap[CONTAINER_WARN_KEY] = strings.Join(resp.Warnings, ",")
-	req.Updater(req.Step)
+	req.UpdateStepStatus()
 
 	// 启动容器
 	err = r.cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
@@ -117,7 +117,7 @@ func (r *Runner) runContainer(ctx context.Context, req *dockerRunRequest) (respM
 }
 
 func (r *Runner) waitDown(ctx context.Context, id string, uploader store.Uploader) error {
-	// 推出过后销毁docker
+	// 退出后销毁docker
 	defer r.removeContainer(id)
 
 	// 记录容器的日志

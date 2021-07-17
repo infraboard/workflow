@@ -70,11 +70,15 @@ func (i *shared) watch(ctx context.Context) {
 }
 
 func (i *shared) notifyStep(event *clientv3.Event, eventVersion int64) error {
+	i.log.Debugf("receive step notify event, %s", event.Kv.Key)
+
 	// 解析对象
 	new, err := pipeline.LoadStepFromBytes(event.Kv.Value)
 	if err != nil {
 		return err
 	}
+	new.ResourceVersion = eventVersion
+
 	old, hasOld, err := i.indexer.GetByKey(new.MakeObjectKey())
 	if err != nil {
 		return err

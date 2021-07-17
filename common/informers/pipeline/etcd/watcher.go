@@ -72,6 +72,7 @@ func (i *shared) notifyPipeline(event *clientv3.Event, eventVersion int64) error
 	if err != nil {
 		return err
 	}
+	obj.ResourceVersion = eventVersion
 	switch event.Type {
 	case mvccpb.PUT:
 		i.pipelineHandler.OnAdd(obj)

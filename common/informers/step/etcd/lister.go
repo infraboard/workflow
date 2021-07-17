@@ -40,6 +40,7 @@ func (l *lister) List(ctx context.Context) (ret []*pipeline.Step, err error) {
 			}
 		}
 
+		ins.ResourceVersion = resp.Header.Revision
 		set.Add(ins)
 	}
 

@@ -102,5 +102,5 @@ func (c *PipelineScheduler) deleteStep(p *pipeline.Step) {
 
 // 如果step有状态更新, 同步更新到Pipeline上去
 func (c *PipelineScheduler) updateStep(oldObj, newObj *pipeline.Step) {
-
+	c.log.Debugf("update step ...")
 }

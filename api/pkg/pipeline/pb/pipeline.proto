@@ -195,6 +195,10 @@ message Stage {
 }
 
 message Step {
+	// 资源版本
+	int64 resource_version = 14 [
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"resource_version" json:"resource_version,omitempty"'}
+        ];
 	// Key 运行时标识符
 	string key = 9 [
         (google.protobuf.field_tag) = {struct_tag: 'bson:"key" json:"key,omitempty"'}

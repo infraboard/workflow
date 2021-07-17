@@ -9,7 +9,7 @@ import (
 
 // 保存Runner运行中的日志
 type StoreFactory interface {
-	NewFileUpdater(key string) Uploader
+	NewFileUploader(key string) Uploader
 }
 
 // 用于上传日志
@@ -25,6 +25,6 @@ func NewStore() *Store {
 
 type Store struct{}
 
-func (s *Store) NewFileUpdater(key string) Uploader {
+func (s *Store) NewFileUploader(key string) Uploader {
 	return file.NewUploader(key)
 }

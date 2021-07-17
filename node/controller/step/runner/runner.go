@@ -21,7 +21,7 @@ func NewRunRequest(s *pipeline.Step, updater UpdateStepCallback) *RunRequest {
 		Step:         s,
 		RunnerParams: map[string]string{},
 		RunParams:    map[string]string{},
-		Updater:      updater,
+		updater:      updater,
 	}
 }
 
@@ -32,7 +32,11 @@ type RunRequest struct {
 	RunParams    map[string]string   // step 运行需要的参数
 	Mount        *pipeline.MountData // 挂载文件
 	Step         *pipeline.Step      // 具体step
-	Updater      UpdateStepCallback  // 更新状态的回调
+	updater      UpdateStepCallback  // 更新状态的回调
+}
+
+func (r *RunRequest) UpdateStepStatus() {
+	r.updater(r.Step)
 }
 
 func (r *RunRequest) LoadMount(m *pipeline.MountData) {

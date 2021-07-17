@@ -276,8 +276,8 @@ func (c *PipelineScheduler) runningWorkerNames() string {
 }
 
 // Pipeline 调度
-func (c *PipelineScheduler) schedulePipeline(t *pipeline.Pipeline) error {
-	node, err := c.pipePicker.Pick(t)
+func (c *PipelineScheduler) schedulePipeline(p *pipeline.Pipeline) error {
+	node, err := c.pipePicker.Pick(p)
 	if err != nil {
 		return err
 	}
@@ -287,14 +287,29 @@ func (c *PipelineScheduler) schedulePipeline(t *pipeline.Pipeline) error {
 		return fmt.Errorf("no excutable scheduler")
 	}
 
-	c.log.Debugf("choice scheduler %s for pipeline %s", node.InstanceName, t.Id)
-	t.SetScheduleNode(node.InstanceName)
-	// 清除一下其他数据
-	if err := c.pi.Recorder().Update(t); err != nil {
-		c.log.Errorf("update scheduled pipeline error, %s", err)
+	c.log.Debugf("choice scheduler %s for pipeline %s", node.InstanceName, p.Id)
+	p.SetScheduleNode(node.InstanceName)
+	c.updatePipelineStatus(p)
+	return nil
+}
+
+func (c *PipelineScheduler) updatePipelineStatus(p *pipeline.Pipeline) {
+	if p == nil {
+		c.log.Errorf("update pipeline is nil")
+		return
 	}
 
-	return nil
+	if c.pi.Recorder() == nil {
+		c.log.Errorf("pipeline informer recorder missed")
+		return
+	}
+
+	fmt.Println("xxX", c.pi.Recorder(), p)
+
+	// 清除一下其他数据
+	if err := c.pi.Recorder().Update(p); err != nil {
+		c.log.Errorf("update scheduled pipeline error, %s", err)
+	}
 }
 
 // Step任务调度

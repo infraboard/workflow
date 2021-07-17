@@ -41,17 +41,20 @@ func (c *Controller) syncHandler(key string) error {
 
 	// 开始执行, 更新状态
 	st.Run()
-	if err := c.informer.Recorder().Update(st); err != nil {
-		c.log.Errorf("update step start %s status error, %s", st.Key, err)
-	}
+	c.updateStepStatus(st)
 
 	// 执行结束, 更新状态
 	engine.RunStep(st)
-	if err := c.informer.Recorder().Update(st); err != nil {
-		c.log.Errorf("update step end %s status error, %s", st.Key, err)
-	}
+	c.updateStepStatus(st)
 
 	return nil
+}
+
+func (c *Controller) updateStepStatus(s *pipeline.Step) {
+	if err := c.informer.Recorder().Update(s); err != nil {
+		c.log.Errorf("update step end %s status error, %s", s.Key, err)
+	}
+	c.log.Debugf("update step status: %s", s.Status)
 }
 
 func (c *Controller) expectDelete(s *pipeline.Step) error {
