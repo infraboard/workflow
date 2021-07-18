@@ -59,7 +59,7 @@ func (s *Stage) NextStep() (nextSteps []*Step) {
 		step := s.Steps[i]
 
 		// 已经调度的Step不计入下一次调度范围
-		if step.IsScheduled() || step.IsComplete() {
+		if step.IsComplete() {
 			continue
 		}
 
@@ -72,14 +72,29 @@ func (s *Stage) NextStep() (nextSteps []*Step) {
 	return
 }
 
-// 判断Stage最后一个任务是否完成
-func (s *Stage) IsComplete() bool {
+// 判断Stage是否执行成功
+func (s *Stage) IsBreakNow() bool {
+	for i := range s.Steps {
+		step := s.Steps[i]
+		if step.IgnoreFailed {
+			continue
+		}
+		if step.IsBreakNow() {
+			return true
+		}
+	}
+
+	return false
+}
+
+// 最后一个step都没有中断
+func (s *Stage) IsPassed() bool {
 	step := s.LastStep()
 	if step == nil {
 		return true
 	}
 
-	return step.IsComplete()
+	return step.IsPassed()
 }
 
 // LoadStepFromBytes 解析etcd 的step数据
@@ -172,17 +187,46 @@ func (s *Step) IsScheduled() bool {
 }
 
 func (s *Step) IsComplete() bool {
-	if s.Status != nil {
-		return s.Status.Status.IsIn(
-			STEP_STATUS_SUCCEEDED,
-			STEP_STATUS_FAILED,
-			STEP_STATUS_CANCELED,
-			STEP_STATUS_SKIP,
-			STEP_STATUS_REFUSE,
-		)
+	if s.Status == nil {
+		return false
 	}
 
-	return false
+	return s.Status.Status.IsIn(
+		STEP_STATUS_SUCCEEDED,
+		STEP_STATUS_FAILED,
+		STEP_STATUS_CANCELED,
+		STEP_STATUS_SKIP,
+		STEP_STATUS_REFUSE,
+	)
+}
+
+func (s *Step) IsBreakNow() bool {
+	if s.Status == nil {
+		return false
+	}
+
+	return s.Status.Status.IsIn(
+		STEP_STATUS_FAILED,
+		STEP_STATUS_CANCELED,
+		STEP_STATUS_CANCELING,
+		STEP_STATUS_REFUSE,
+	)
+}
+
+func (s *Step) IsPassed() bool {
+	if s.Status == nil {
+		return false
+	}
+
+	// 忽略失败的已计算为通过
+	if s.IgnoreFailed && s.Status.Status.IsIn(STEP_STATUS_SUCCEEDED) {
+		return true
+	}
+
+	return s.Status.Status.IsIn(
+		STEP_STATUS_SUCCEEDED,
+		STEP_STATUS_SKIP,
+	)
 }
 
 func (s *Step) BuildKey(namespace, pipelineId string, stage int32) {

@@ -7,23 +7,34 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPipelineNextStep(t *testing.T) {
+func TestPipelineNextStepOK(t *testing.T) {
 	sample := SamplePipeline()
 	t.Log(sample)
 	t.Log(sample.NextStep())
 	sample.Stages[0].Steps[0].Success(map[string]string{"status": "ok"})
 	t.Log(sample.NextStep())
 	sample.Stages[0].Steps[1].Success(map[string]string{"status": "ok"})
-	t.Log(sample.Stages[0].IsComplete())
+	t.Log(sample.Stages[0].IsPassed())
 	t.Log(sample.NextStep())
 
 	sample.Stages[1].Steps[0].Success(map[string]string{"status": "ok"})
 	t.Log(sample.NextStep())
 	sample.Stages[1].Steps[1].Success(map[string]string{"status": "ok"})
-	t.Log(sample.Stages[1].IsComplete())
+	t.Log(sample.Stages[1].IsPassed())
 	t.Log(sample.NextStep())
+	t.Log(sample.HasNextStep())
+}
 
-	t.Log(sample.IsComplete())
+func TestPipelineNextStepBreak(t *testing.T) {
+	sample := SamplePipeline()
+	t.Log(sample)
+	t.Log(sample.NextStep())
+	sample.Stages[0].Steps[0].Success(map[string]string{"status": "ok"})
+	t.Log(sample.NextStep())
+	sample.Stages[0].Steps[1].Failed("step failed")
+	t.Log("step is passed: ", sample.Stages[0].IsPassed())
+	t.Log("next step: ", sample.NextStep())
+	t.Log(sample.HasNextStep())
 }
 
 func TestStageNextStep(t *testing.T) {
@@ -35,7 +46,7 @@ func TestStageNextStep(t *testing.T) {
 	sample.Steps[1].Success(map[string]string{"status": "ok"})
 	t.Log(sample)
 	t.Log(sample.NextStep())
-	t.Log(sample.IsComplete())
+	t.Log(sample.IsPassed())
 }
 
 func TestUpdateStep(t *testing.T) {

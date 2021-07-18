@@ -40,12 +40,12 @@ func NewPipelineController(
 	}
 
 	si.Watcher().AddStepEventHandler(step.StepEventHandlerFuncs{
-		UpdateFunc: controller.StepUpdate,
+		UpdateFunc: controller.stepUpdate,
 	})
 
 	pi.Watcher().AddPipelineTaskEventHandler(informer.PipelineTaskEventHandlerFuncs{
 		AddFunc:    controller.enqueueForAdd,
-		UpdateFunc: controller.enqueueForUpdate,
+		UpdateFunc: controller.pipelineUpdate,
 		DeleteFunc: controller.enqueueForDelete,
 	})
 
@@ -157,12 +157,6 @@ func (c *Controller) sync(ctx context.Context) error {
 		if p.IsComplete() {
 			c.log.Debugf("pipline %s is complete, skip scheduler",
 				p.ShortDescribe())
-			continue
-		}
-
-		if p.IsScheduled() {
-			c.log.Debugf("pipeline %s is scheduler %s, skip scheduler",
-				p.ShortDescribe(), p.ScheduledNodeName())
 			continue
 		}
 
@@ -297,9 +291,4 @@ func (c *Controller) enqueueForDelete(p *pipeline.Pipeline) {
 	}
 	key := p.MakeObjectKey()
 	c.workqueue.AddRateLimited(key)
-}
-
-// 如果Pipeline有状态更新,
-func (c *Controller) enqueueForUpdate(oldObj, newObj *pipeline.Pipeline) {
-	c.log.Infof("receive update object: old: %s, new: %s", oldObj.ShortDescribe(), newObj.ShortDescribe)
 }

@@ -146,8 +146,12 @@ func (p *Pipeline) LastStage() *Stage {
 	return p.Stages[total-1]
 }
 
+func (p *Pipeline) HasNextStep() bool {
+	return len(p.NextStep()) != 0
+}
+
 func (p *Pipeline) IsComplete() bool {
-	return len(p.NextStep()) == 0
+	return p.Status.Status.Equal(PIPELINE_STATUS_COMPLETE)
 }
 
 func (s *Pipeline) IsScheduled() bool {
@@ -175,10 +179,24 @@ func (p *Pipeline) Run() {
 	}
 }
 
+func (p *Pipeline) Complete() {
+	if p.Status == nil {
+		p.Status = NewDefaultPipelineStatus()
+	}
+	p.Status.Status = PIPELINE_STATUS_COMPLETE
+	p.Status.EndAt = ftime.Now().Timestamp()
+}
+
 func (p *Pipeline) NextStep() (steps []*Step) {
 	for i := range p.Stages {
 		stage := p.Stages[i]
-		if stage.IsComplete() {
+		// 如果stage中断后 就没有下一步了
+		if stage.IsBreakNow() {
+			return
+		}
+
+		// stage 通过了继续搜索下一个stage
+		if stage.IsPassed() {
 			continue
 		}
 
