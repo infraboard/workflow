@@ -31,6 +31,10 @@ func HttpEntry() *http.EntrySet {
 				FunctionName: "DescribeStep",
 			},
 			{
+				Path:         "/workflow.pipeline.Service/DeleteStep",
+				FunctionName: "DeleteStep",
+			},
+			{
 				Path:         "/workflow.pipeline.Service/DeletePipeline",
 				FunctionName: "DeletePipeline",
 			},

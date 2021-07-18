@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPipelineNextStep(t *testing.T) {
@@ -37,6 +38,19 @@ func TestStageNextStep(t *testing.T) {
 	t.Log(sample.IsComplete())
 }
 
+func TestUpdateStep(t *testing.T) {
+	should := assert.New(t)
+	sample := SamplePipeline()
+	s1 := pipeline.NewDefaultStep()
+	s1.Key = "..1.1"
+	s1.Action = "update01"
+	err := sample.UpdateStep(s1)
+
+	if should.NoError(err) {
+		t.Log(sample)
+	}
+}
+
 func SamplePipeline() *pipeline.Pipeline {
 	p := pipeline.NewDefaultPipeline()
 	p.AddStage(SampleStage("stage01"))
@@ -50,6 +64,7 @@ func SampleStage(name string) *pipeline.Stage {
 
 	s1 := pipeline.NewDefaultStep()
 	s1.Action = name + ".action01"
+	s1.Key = "..1.1"
 	s2 := pipeline.NewDefaultStep()
 	s2.Action = name + ".action02"
 	stage.AddStep(s1)

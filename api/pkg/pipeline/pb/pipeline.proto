@@ -56,6 +56,7 @@ service Service {
 	rpc DescribePipeline(DescribePipelineRequest) returns(Pipeline);
 	rpc QueryStep(QueryStepRequest) returns(StepSet);
 	rpc DescribeStep(DescribeStepRequest) returns(Step);
+	rpc DeleteStep(DeleteStepRequest) returns(Step);
 	rpc DeletePipeline(DeletePipelineRequest) returns(Pipeline);
 	rpc CreateAction(CreateActionRequest) returns(Action);
 	rpc QueryAction(QueryActionRequest) returns(ActionSet);
@@ -582,3 +583,9 @@ message DescribePipelineRequest {
 		];
 }
 
+message DeleteStepRequest {
+	// 唯一ID
+	string id = 1[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"id"'}
+		];
+}

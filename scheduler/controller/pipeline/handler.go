@@ -39,13 +39,13 @@ func (c *Controller) syncHandler(key string) error {
 }
 
 func (c *Controller) deletePipeline(*pipeline.Pipeline) error {
-	c.log.Debugf("sync elete pipeline ...")
+	c.log.Debugf("sync delete pipeline ...")
 	return nil
 }
 
 // 每添加一个pipeline
 func (c *Controller) addPipeline(p *pipeline.Pipeline) error {
-	c.log.Debugf("[pipeline] receive add pipeline: %s status: %s", p.ShortDescribe(), p.Status.Status)
+	c.log.Debugf("receive add pipeline: %s status: %s", p.ShortDescribe(), p.Status.Status)
 	if err := p.Validate(); err != nil {
 		return fmt.Errorf("invalidate pipeline error, %s", err)
 	}
@@ -81,8 +81,7 @@ func (c *Controller) addPipeline(p *pipeline.Pipeline) error {
 	for i := range steps {
 		step := steps[i]
 		c.log.Debugf("create pipeline step: %s", step.Key)
-		err := c.step.Update(step)
-		if err != nil {
+		if err := c.step.Recorder().Update(step); err != nil {
 			c.log.Errorf(err.Error())
 		}
 	}
@@ -123,4 +122,42 @@ func (c *Controller) updatePipelineStatus(p *pipeline.Pipeline) {
 	if err := c.informer.Recorder().Update(p); err != nil {
 		c.log.Errorf("update scheduled pipeline error, %s", err)
 	}
+}
+
+// step 如果完成后, 将状态记录到Pipeline上, 并删除step
+func (c *Controller) StepUpdate(old, new *pipeline.Step) {
+	if !new.IsComplete() {
+		c.log.Debugf("step status is %s, skip update to pipeline", new.Status.Status)
+		return
+	}
+
+	key := pipeline.PipeLineObjectKey(new.GetNamespace(), new.GetPipelineID())
+	obj, ok, err := c.informer.GetStore().GetByKey(key)
+	if err != nil {
+		c.log.Errorf("get pipeline from store error, %s", err)
+		return
+	}
+
+	if !ok {
+		c.log.Errorf("pipeline key %s not found in store cache", key)
+		return
+	}
+
+	p, isOK := obj.(*pipeline.Pipeline)
+	if !isOK {
+		c.log.Errorf("invalidate *pipeline.Pipeline obj")
+		return
+	}
+
+	if err := p.UpdateStep(new); err != nil {
+		c.log.Errorf("update pipeline step error, %s", err)
+		return
+	}
+
+	if err := c.informer.Recorder().Update(p); err != nil {
+		c.log.Errorf("update pipeline status to store error, %s", err)
+		return
+	}
+
+	c.log.Debugf("update pipeline %s step %s success", p.ShortDescribe(), new.Key)
 }

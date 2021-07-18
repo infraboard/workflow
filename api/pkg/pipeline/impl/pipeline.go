@@ -110,6 +110,7 @@ func (i *impl) DescribePipeline(ctx context.Context, req *pipeline.DescribePipel
 	return ins, nil
 }
 
+// DeletePipeline 删除时清除所有关联step
 func (i *impl) DeletePipeline(ctx context.Context, req *pipeline.DeletePipelineRequest) (
 	*pipeline.Pipeline, error) {
 	in, err := gcontext.GetGrpcInCtx(ctx)

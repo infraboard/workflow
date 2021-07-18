@@ -25,19 +25,23 @@ func NewPipelineController(
 	schedulerName string,
 	nodeStore cache.Store,
 	pi informer.Informer,
-	sr step.Recorder,
+	si step.Informer,
 
 ) *Controller {
 	wq := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Pipeline")
 	controller := &Controller{
 		schedulerName:  schedulerName,
 		informer:       pi,
-		step:           sr,
+		step:           si,
 		workqueue:      wq,
 		workerNums:     4,
 		log:            zap.L().Named("Pipeline"),
 		runningWorkers: make(map[string]bool, 4),
 	}
+
+	si.Watcher().AddStepEventHandler(step.StepEventHandlerFuncs{
+		UpdateFunc: controller.StepUpdate,
+	})
 
 	pi.Watcher().AddPipelineTaskEventHandler(informer.PipelineTaskEventHandlerFuncs{
 		AddFunc:    controller.enqueueForAdd,
@@ -62,7 +66,7 @@ type Controller struct {
 	// simultaneously in two different workers.
 	workqueue      workqueue.RateLimitingInterface
 	informer       informer.Informer
-	step           step.Recorder
+	step           step.Informer
 	log            logger.Logger
 	workerNums     int
 	runningWorkers map[string]bool
@@ -162,7 +166,7 @@ func (c *Controller) sync(ctx context.Context) error {
 			continue
 		}
 
-		if !p.Status.MatchScheduler(c.schedulerName) {
+		if !p.MatchScheduler(c.schedulerName) {
 			c.log.Debugf("pipeline %s scheduler %s is not match this scheduler %s",
 				p.ShortDescribe(), p.ScheduledNodeName(), c.schedulerName)
 			continue

@@ -13,7 +13,7 @@ import (
 
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/common/cache"
-	step_informer "github.com/infraboard/workflow/common/informers/step"
+	"github.com/infraboard/workflow/common/informers/step"
 	"github.com/infraboard/workflow/scheduler/algorithm"
 	"github.com/infraboard/workflow/scheduler/algorithm/roundrobin"
 )
@@ -22,7 +22,7 @@ import (
 func NewStepController(
 	schedulerName string,
 	nodeStore cache.Store,
-	si step_informer.Informer,
+	si step.Informer,
 ) *Controller {
 	wq := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Step")
 	controller := &Controller{
@@ -34,7 +34,7 @@ func NewStepController(
 		runningWorkers: make(map[string]bool, 4),
 	}
 
-	si.Watcher().AddStepEventHandler(step_informer.StepEventHandlerFuncs{
+	si.Watcher().AddStepEventHandler(step.StepEventHandlerFuncs{
 		AddFunc:    controller.enqueueForAdd,
 		UpdateFunc: controller.enqueueForUpdate,
 		DeleteFunc: controller.enqueueForDelete,
@@ -56,7 +56,7 @@ type Controller struct {
 	// time, and makes it easy to ensure we are never processing the same item
 	// simultaneously in two different workers.
 	workqueue      workqueue.RateLimitingInterface
-	informer       step_informer.Informer
+	informer       step.Informer
 	log            logger.Logger
 	workerNums     int
 	runningWorkers map[string]bool
@@ -130,12 +130,12 @@ func (c *Controller) sync(ctx context.Context) error {
 	for i := range steps {
 		s := steps[i]
 		if s.IsComplete() {
-			c.log.Debugf("step %s is complete, skip scheduler", s.Key)
+			c.log.Debugf("step %s is complete, skip schedule", s.Key)
 			continue
 		}
 
 		if s.IsScheduled() {
-			c.log.Debugf("step %s is scheduler %s, skip scheduler", s.Key, s.ScheduledNodeName())
+			c.log.Debugf("step %s is scheduler to %s, skip schedule", s.Key, s.ScheduledNodeName())
 			continue
 		}
 
@@ -269,10 +269,10 @@ func (c *Controller) enqueueForDelete(s *pipeline.Step) {
 // 如果step有状态更新, 判断step是否执行结束
 // 如果结束就将step的状态同步更新到Pipeline上去, 再删除step
 func (c *Controller) enqueueForUpdate(oldObj, newObj *pipeline.Step) {
+	c.log.Debugf("enqueue update ...")
+
 	if newObj.IsComplete() {
 		c.log.Errorf("step %s status is %s, skip sync to pipeline", newObj.Status.Status)
 		return
 	}
-
-	c.log.Debugf("enqueue update ...")
 }

@@ -111,8 +111,30 @@ func (p *Pipeline) Validate() error {
 	return validate.Struct(p)
 }
 
+func (p *Pipeline) UpdateStep(s *Step) error {
+	ns, id := s.GetNamespace(), s.GetPipelineID()
+	if ns != p.Namespace || id != p.Id {
+		return fmt.Errorf("this step not match this pipeline, id or namespace is not correct")
+	}
+
+	stage, err := p.GetStageByNumber(s.GetPipelineStageNumber())
+	if err != nil {
+		return fmt.Errorf("get stage error, %s", err)
+	}
+
+	return stage.UpdateStep(s)
+}
+
 func (p *Pipeline) AddStage(item *Stage) {
 	p.Stages = append(p.Stages, item)
+}
+
+func (p *Pipeline) GetStageByNumber(number int32) (*Stage, error) {
+	if int(number) > len(p.Stages) || number <= 0 {
+		return nil, fmt.Errorf("number range 1 ~ %d", len(p.Stages))
+	}
+
+	return p.Stages[number-1], nil
 }
 
 func (p *Pipeline) LastStage() *Stage {
@@ -186,8 +208,11 @@ func (p *Pipeline) EtcdObjectKey() string {
 	return fmt.Sprintf("%s/%s/%s", EtcdPipelinePrefix(), p.Namespace, p.Id)
 }
 
-func (s *PipelineStatus) MatchScheduler(schedulerName string) bool {
-	return s.SchedulerNode == schedulerName
+func (s *Pipeline) MatchScheduler(schedulerName string) bool {
+	if s.Status == nil {
+		return false
+	}
+	return s.Status.SchedulerNode == schedulerName
 }
 
 // NewPipelineSet todo

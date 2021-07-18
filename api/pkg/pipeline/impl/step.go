@@ -73,3 +73,29 @@ func (i *impl) DescribeStep(ctx context.Context, req *pipeline.DescribeStepReque
 	}
 	return ins, nil
 }
+
+func (i *impl) DeleteStep(ctx context.Context, req *pipeline.DeleteStepRequest) (
+	*pipeline.Step, error) {
+	descKey := pipeline.StepObjectKey(req.Id)
+	i.log.Infof("delete etcd pipeline resource key: %s", descKey)
+	resp, err := i.client.Delete(ctx, descKey, clientv3.WithPrevKV())
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.Deleted == 0 {
+		return nil, exception.NewNotFound("step %s not found", req.Id)
+	}
+
+	ins := pipeline.NewDefaultStep()
+	for index := range resp.PrevKvs {
+		// 解析对象
+		ins, err = pipeline.LoadStepFromBytes(resp.PrevKvs[index].Value)
+		if err != nil {
+			i.log.Error(err)
+			continue
+		}
+		ins.ResourceVersion = resp.Header.Revision
+	}
+	return ins, nil
+}

@@ -3,6 +3,7 @@ package pipeline
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/infraboard/mcube/http/request"
@@ -21,6 +22,27 @@ func (s *Stage) StepCount() int {
 
 func (s *Stage) AddStep(item *Step) {
 	s.Steps = append(s.Steps, item)
+}
+
+func (s *Stage) UpdateStep(item *Step) error {
+	step, err := s.GetStepByKey(item.Key)
+	if err != nil {
+		return err
+	}
+
+	*step = *item
+	return nil
+}
+
+func (s *Stage) GetStepByKey(key string) (*Step, error) {
+	for i := range s.Steps {
+		step := s.Steps[i]
+		if step.Key == key {
+			return step, nil
+		}
+	}
+
+	return nil, fmt.Errorf("step %s not found", key)
 }
 
 func (s *Stage) LastStep() *Step {
@@ -165,6 +187,16 @@ func (s *Step) IsComplete() bool {
 
 func (s *Step) BuildKey(namespace, pipelineId string, stage int32) {
 	s.Key = fmt.Sprintf("%s.%s.%d.%d", namespace, pipelineId, stage, s.Id)
+}
+
+func (s *Step) GetPipelineStepNumber() int32 {
+	n, _ := strconv.ParseInt(s.getKeyIndex(3), 10, 32)
+	return int32(n)
+}
+
+func (s *Step) GetPipelineStageNumber() int32 {
+	n, _ := strconv.ParseInt(s.getKeyIndex(2), 10, 32)
+	return int32(n)
 }
 
 func (s *Step) GetPipelineID() string {
