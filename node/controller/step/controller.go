@@ -77,6 +77,15 @@ func (c *Controller) Run(ctx context.Context) error {
 		return err
 	}
 
+	if err := c.sync(ctx); err != nil {
+		return err
+	}
+
+	c.waitDown(ctx)
+	return nil
+}
+
+func (c *Controller) sync(ctx context.Context) error {
 	// 调用Lister 获得所有的cronjob 并添加cron
 	c.log.Info("starting sync(List) all steps")
 	steps, err := c.informer.Lister().List(ctx)
@@ -95,6 +104,10 @@ func (c *Controller) Run(ctx context.Context) error {
 		go c.runWorker(fmt.Sprintf("worker-%d", i))
 	}
 
+	return nil
+}
+
+func (c *Controller) waitDown(ctx context.Context) {
 	<-ctx.Done()
 	// 停止controller
 
@@ -118,7 +131,6 @@ func (c *Controller) Run(ctx context.Context) error {
 		time.Sleep(1 * time.Second)
 	}
 	c.log.Infof("step controller worker stopped commplet, now workers: %s", c.runningWorkerNames())
-	return nil
 }
 
 // enqueueNetwork takes a Cronjob resource and converts it into a namespace/name
@@ -147,11 +159,6 @@ func (c *Controller) enqueueForAdd(s *pipeline.Step) {
 // passed resources of any type other than Network.
 func (c *Controller) enqueueForDelete(s *pipeline.Step) {
 	c.log.Infof("receive delete object: %s", s)
-	// s, ok := obj.(*pipeline.Step)
-	// if !ok {
-	// 	c.log.Errorf("not an *pipeline.Step obj")
-	// 	return
-	// }
 	if err := s.Validate(); err != nil {
 		c.log.Errorf("invalidate *pipeline.Step obj")
 		return

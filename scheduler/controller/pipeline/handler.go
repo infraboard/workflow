@@ -1,113 +1,126 @@
 package pipeline
 
 import (
-	"context"
-	"time"
+	"errors"
+	"fmt"
 
-	"github.com/infraboard/workflow/api/pkg/node"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 )
 
-// 添加节点后, 需要延迟扫描, 从新调度未调度的Pipeline
-func (c *PipelineScheduler) addNode(n *node.Node) {
-	c.nodes.Add(n)
-}
-func (c *PipelineScheduler) delNode(n *node.Node) {
-	c.nodes.Delete(n)
-
-	// 1. 获取该节点上所有pipeline
-	ctx, cancle := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancle()
-	ps, err := c.pi.Lister().List(ctx, &pipeline.QueryPipelineOptions{Node: n.InstanceName})
+// syncHandler compares the actual state with the desired, and attempts to
+// converge the two. It then updates the Status block of the Network resource
+// with the current status of the resource.
+func (c *Controller) syncHandler(key string) error {
+	obj, ok, err := c.informer.GetStore().GetByKey(key)
 	if err != nil {
-		c.log.Errorf("list node pipelines error, %s", err)
+		return err
 	}
 
-	// 2. 发送给调度队列
-	for i := range ps.Items {
-		c.workqueue.Add(ps.Items[i])
+	st, isOK := obj.(*pipeline.Pipeline)
+	if !isOK {
+		return errors.New("invalidate *pipeline.Pipeline obj")
 	}
+
+	// 如果不存在, 这期望行为为删除 (DEL)
+	if !ok {
+		c.log.Debugf("wating remove step: %s", key)
+		if err := c.deletePipeline(st); err != nil {
+			return err
+		}
+		c.log.Infof("remove success, step: %s", key)
+	}
+
+	// 添加
+	if err := c.addPipeline(st); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Controller) deletePipeline(*pipeline.Pipeline) error {
+	c.log.Debugf("sync elete pipeline ...")
+	return nil
 }
 
 // 每添加一个pipeline
-func (c *PipelineScheduler) addPipeline(p *pipeline.Pipeline) {
+func (c *Controller) addPipeline(p *pipeline.Pipeline) error {
 	c.log.Debugf("[pipeline] receive add pipeline: %s status: %s", p.ShortDescribe(), p.Status.Status)
 	if err := p.Validate(); err != nil {
-		c.log.Errorf("invalidate pipeline error, %s", err)
-		return
+		return fmt.Errorf("invalidate pipeline error, %s", err)
 	}
 
 	// 已经处理完成的无需处理
 	if p.IsComplete() {
-		c.log.Debugf("skip run complete pipeline %s, status: %s", p.ShortDescribe(), p.Status.Status)
-		return
+		return fmt.Errorf("skip run complete pipeline %s, status: %s", p.ShortDescribe(), p.Status.Status)
 	}
 
 	// TODO: 使用分布式锁trylock处理 多个实例竞争调度问题
 
+	// 执行调度
+	if err := c.schedulePipeline(p); err != nil {
+		return err
+	}
+
 	// 标记开始执行, 并更新保存
-	if !p.Status.IsRunning() {
-		p.Status.Run()
-		if err := c.pi.Recorder().Update(p); err != nil {
+	if !p.IsRunning() {
+		p.Run()
+		if err := c.informer.Recorder().Update(p); err != nil {
 			c.log.Errorf("update pipeline %s status to store error, %s", p.ShortDescribe(), err)
 		}
-		return
+		return nil
 	}
 
 	// 将需要调度的任务, 交给step调度器调度
+	if c.step == nil {
+		return fmt.Errorf("step recorder is nil")
+	}
+
 	steps := p.NextStep()
 	c.log.Debugf("pipeline %s next step is %v", p.ShortDescribe(), steps)
 	for i := range steps {
 		step := steps[i]
 		c.log.Debugf("create pipeline step: %s", step.Key)
-		err := c.si.Recorder().Update(step)
+		err := c.step.Update(step)
 		if err != nil {
 			c.log.Errorf(err.Error())
 		}
 	}
+
+	return nil
 }
 
-// func (c *PipelineScheduler) addStep(s *pipeline.Step) {
-// 	c.log.Infof("[step] receive add step: %s", s)
-// 	if err := s.Validate(); err != nil {
-// 		c.log.Errorf("invalidate node error, %s", err)
-// 		return
-// 	}
+// Pipeline 调度
+func (c *Controller) schedulePipeline(p *pipeline.Pipeline) error {
+	node, err := c.picker.Pick(p)
+	if err != nil {
+		return err
+	}
 
-// 	// 已经调度的任务不处理
-// 	nn := s.ScheduledNodeName()
-// 	if nn != "" {
-// 		c.log.Infof("step %s has scheuled to node %s", s.Key, nn)
-// 	}
+	// 没有合法的node
+	if node == nil {
+		return fmt.Errorf("no excutable scheduler")
+	}
 
-// 	// 判断是否需要审批, 审批通过后放行
-// 	if s.WithAudit && !s.IsAudit() {
-// 		// TODO: 发送审批事件
-// 		s.Status.Status = pipeline.STEP_STATUS_AUDITING
-// 		c.log.Debug("send audit notify")
-// 	}
+	c.log.Debugf("choice scheduler %s for pipeline %s", node.InstanceName, p.Id)
+	p.SetScheduleNode(node.InstanceName)
+	c.updatePipelineStatus(p)
+	return nil
+}
 
-// 	c.workqueue.AddRateLimited(s)
-// }
+func (c *Controller) updatePipelineStatus(p *pipeline.Pipeline) {
+	if p == nil {
+		c.log.Errorf("update pipeline is nil")
+		return
+	}
 
-// func (c *PipelineScheduler) deleteStep(p *pipeline.Step) {
-// 	c.log.Infof("receive add object: %s", p)
-// 	if err := p.Validate(); err != nil {
-// 		c.log.Errorf("invalidate node error, %s", err)
-// 		return
-// 	}
+	if c.informer.Recorder() == nil {
+		c.log.Errorf("pipeline informer recorder missed")
+		return
+	}
 
-// 	// 未调度的交给调度
-// }
-
-// // 如果step有状态更新, 判断step是否执行结束
-// // 如果结束就将step的状态同步更新到Pipeline上去, 再删除step
-// func (c *PipelineScheduler) updateStep(oldObj, newObj *pipeline.Step) {
-// 	if !newObj.IsComplete() {
-// 		c.log.Debugf("step %s status is %s, skip sync to pipeline", newObj.Status.Status)
-// 		return
-// 	}
-
-// 	c.log.Debugf("step %s status [%s] is complete, start sync to pipeline ...")
-
-// }
+	// 清除一下其他数据
+	if err := c.informer.Recorder().Update(p); err != nil {
+		c.log.Errorf("update scheduled pipeline error, %s", err)
+	}
+}

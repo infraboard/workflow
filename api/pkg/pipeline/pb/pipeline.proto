@@ -270,6 +270,10 @@ message WebHook {
 	repeated STEP_STATUS status = 3[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"status" json:"status"'}
         ];
+	// 简单的描述信息
+	string description = 4[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"description" json:"description"'}
+		];
 }
 
 message StepStatus {

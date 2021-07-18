@@ -67,6 +67,10 @@ func (n *Node) Name() string {
 	return fmt.Sprintf("%s.%s", n.ServiceName, n.InstanceName)
 }
 
+func (n *Node) ShortDescribe() string {
+	return n.Name()
+}
+
 func (n *Node) Validate() error {
 	if n.InstanceName == "" && n.ServiceName == "" || n.Type == "" {
 		return errors.New("service instance name or service_name or type not config")

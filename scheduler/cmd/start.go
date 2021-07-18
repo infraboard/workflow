@@ -14,12 +14,13 @@ import (
 	"github.com/infraboard/mcube/types/ftime"
 	"github.com/spf13/cobra"
 
-	"github.com/infraboard/workflow/conf"
-	"github.com/infraboard/workflow/scheduler/controller/pipeline"
-	"github.com/infraboard/workflow/version"
-
 	"github.com/infraboard/workflow/api/pkg/node"
 	etcd_register "github.com/infraboard/workflow/api/pkg/node/impl"
+	"github.com/infraboard/workflow/conf"
+	node_controller "github.com/infraboard/workflow/scheduler/controller/node"
+	"github.com/infraboard/workflow/scheduler/controller/pipeline"
+	"github.com/infraboard/workflow/scheduler/controller/step"
+	"github.com/infraboard/workflow/version"
 
 	node_informer "github.com/infraboard/workflow/common/informers/node"
 	ni_impl "github.com/infraboard/workflow/common/informers/node/etcd"
@@ -85,27 +86,33 @@ type service struct {
 	ni   node_informer.Informer
 	pi   pipeline_informer.Informer
 	si   step_informer.Informer
-	pc   *pipeline.PipelineScheduler
+	pc   *pipeline.Controller
+	nc   *node_controller.Controller
+	sc   *step.Controller
 	log  logger.Logger
 	stop context.CancelFunc
 }
 
 func newService(cfg *conf.Config) (*service, error) {
-	// 实例化Informer
-	ni := ni_impl.NewInformer(cfg.Etcd.GetClient())
-	pi := pi_impl.NewInformerr(cfg.Etcd.GetClient(), nil)
-	si := si_impl.NewInformer(cfg.Etcd.GetClient())
-
 	// Controller 实例
 	rn := MakeRegistryNode(cfg)
 
-	ctl := pipeline.NewPipelineScheduler(rn.InstanceName, ni, pi, si)
-	ctl.Debug(zap.L().Named("Pipeline"))
+	// 实例化Informer
+	ni := ni_impl.NewInformer(cfg.Etcd.GetClient(), nil)
+	si := si_impl.NewInformer(cfg.Etcd.GetClient())
+	pi := pi_impl.NewInformerr(cfg.Etcd.GetClient(), nil)
+
+	nc := node_controller.NewNodeController(ni)
+	pc := pipeline.NewPipelineController(rn.InstanceName, ni.GetStore(), pi, si.Recorder())
+	sc := step.NewStepController(rn.InstanceName, ni.GetStore(), si)
+
 	svr := &service{
 		ni:   ni,
 		si:   si,
 		pi:   pi,
-		pc:   ctl,
+		pc:   pc,
+		nc:   nc,
+		sc:   sc,
 		log:  zap.L().Named("CLI"),
 		node: rn,
 	}
@@ -117,20 +124,30 @@ func (s *service) start() error {
 	s.stop = cancel
 	defer cancel()
 
+	// 启动 node controller
 	if err := s.ni.Watcher().Run(ctx); err != nil {
 		return err
 	}
-	if err := s.pi.Watcher().Run(ctx); err != nil {
-		return err
-	}
-	if err := s.si.Watcher().Run(ctx); err != nil {
+	if err := s.nc.AsyncRun(ctx); err != nil {
 		return err
 	}
 
-	// 启动controller
-	if err := s.pc.Run(ctx); err != nil {
+	// 启动 pipeline controller
+	if err := s.pi.Watcher().Run(ctx); err != nil {
 		return err
 	}
+	if err := s.pc.AsyncRun(ctx); err != nil {
+		return err
+	}
+
+	// 启动 step controller
+	if err := s.si.Watcher().Run(ctx); err != nil {
+		return err
+	}
+	if err := s.sc.Run(ctx); err != nil {
+		return err
+	}
+
 	return nil
 }
 

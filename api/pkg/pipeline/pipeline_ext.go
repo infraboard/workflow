@@ -68,6 +68,10 @@ func NewDefaultPipeline() *Pipeline {
 	}
 }
 
+func NewDefaultPipelineStatus() *PipelineStatus {
+	return &PipelineStatus{}
+}
+
 func NewPipeline(req *CreatePipelineRequest) (*Pipeline, error) {
 	if err := req.Validate(); err != nil {
 		return nil, err
@@ -124,6 +128,31 @@ func (p *Pipeline) IsComplete() bool {
 	return len(p.NextStep()) == 0
 }
 
+func (s *Pipeline) IsScheduled() bool {
+	if s.Status == nil {
+		return false
+	}
+
+	return s.Status.SchedulerNode != ""
+}
+
+func (p *Pipeline) IsRunning() bool {
+	if p.Status == nil {
+		return false
+	}
+	return p.Status.Status.Equal(PIPELINE_STATUS_EXECUTING)
+}
+
+func (p *Pipeline) Run() {
+	if p.Status == nil {
+		p.Status = NewDefaultPipelineStatus()
+	}
+	p.Status.Status = PIPELINE_STATUS_EXECUTING
+	if p.Status.StartAt != 0 {
+		p.Status.StartAt = ftime.Now().Timestamp()
+	}
+}
+
 func (p *Pipeline) NextStep() (steps []*Step) {
 	for i := range p.Stages {
 		stage := p.Stages[i]
@@ -145,7 +174,7 @@ func (t *Pipeline) ShortDescribe() string {
 	return fmt.Sprintf("%s[%s]", t.Name, t.Id)
 }
 
-func (t *Pipeline) SchedulerNodeName() string {
+func (t *Pipeline) ScheduledNodeName() string {
 	return t.Status.SchedulerNode
 }
 
@@ -157,23 +186,8 @@ func (p *Pipeline) EtcdObjectKey() string {
 	return fmt.Sprintf("%s/%s/%s", EtcdPipelinePrefix(), p.Namespace, p.Id)
 }
 
-func (s *PipelineStatus) IsScheduled() bool {
-	return s.SchedulerNode != ""
-}
-
 func (s *PipelineStatus) MatchScheduler(schedulerName string) bool {
 	return s.SchedulerNode == schedulerName
-}
-
-func (s *PipelineStatus) IsRunning() bool {
-	return s.Status.Equal(PIPELINE_STATUS_EXECUTING)
-}
-
-func (s *PipelineStatus) Run() {
-	s.Status = PIPELINE_STATUS_EXECUTING
-	if s.StartAt != 0 {
-		s.StartAt = ftime.Now().Timestamp()
-	}
 }
 
 // NewPipelineSet todo

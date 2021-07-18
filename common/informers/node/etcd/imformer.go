@@ -10,10 +10,11 @@ import (
 )
 
 // NewNodeInformer todo
-func NewInformer(client *clientv3.Client) node.Informer {
+func NewInformer(client *clientv3.Client, filter node.NodeFilterHandler) node.Informer {
 	return &Informer{
 		log:     zap.L().Named("Node"),
 		client:  client,
+		filter:  filter,
 		indexer: cache.NewIndexer(node.MetaNamespaceKeyFunc, node.DefaultStoreIndexers()),
 	}
 }
@@ -25,6 +26,7 @@ type Informer struct {
 	shared  *shared
 	lister  *lister
 	indexer cache.Indexer
+	filter  node.NodeFilterHandler
 }
 
 func (i *Informer) GetStore() cache.Store {
@@ -42,8 +44,10 @@ func (i *Informer) Watcher() node.Watcher {
 		return i.shared
 	}
 	i.shared = &shared{
-		log:    i.log.Named("Watcher"),
-		client: clientv3.NewWatcher(i.client),
+		log:     i.log.Named("Watcher"),
+		client:  clientv3.NewWatcher(i.client),
+		indexer: i.indexer,
+		filter:  i.filter,
 	}
 	return i.shared
 }

@@ -2,9 +2,9 @@ package step
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/infraboard/workflow/api/pkg/pipeline"
-	"github.com/infraboard/workflow/node/controller/step/engine"
 )
 
 // syncHandler compares the actual state with the desired, and attempts to
@@ -30,29 +30,59 @@ func (c *Controller) syncHandler(key string) error {
 		c.log.Infof("remove success, step: %s", key)
 	}
 
-	// 添加step
+	// 添加
 	if err := c.addStep(st); err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func (c *Controller) addStep(s *pipeline.Step) error {
-	// 开始执行, 更新状态
-	s.Run()
-	c.updateStepStatus(s)
+	c.log.Infof("[step] receive add step: %s", s)
+	if err := s.Validate(); err != nil {
+		return fmt.Errorf("invalidate node error, %s", err)
+	}
 
-	// 执行结束, 更新状态
-	engine.RunStep(s)
-	c.updateStepStatus(s)
+	// 已经调度的任务不处理
+	nn := s.ScheduledNodeName()
+	if nn != "" {
+		c.log.Infof("step %s has scheuled to node %s", s.Key, nn)
+	}
+
+	// 判断是否需要审批, 审批通过后放行
+	if s.WithAudit && !s.IsAudit() {
+		// TODO: 发送审批事件
+		s.Status.Status = pipeline.STEP_STATUS_AUDITING
+		c.log.Debug("send audit notify")
+	}
+
+	if err := c.scheduleStep(s); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (c *Controller) updateStepStatus(s *pipeline.Step) {
-	if err := c.informer.Recorder().Update(s); err != nil {
-		c.log.Errorf("update step end %s status error, %s", s.Key, err)
+// Step任务调度
+func (c *Controller) scheduleStep(step *pipeline.Step) error {
+	node, err := c.picker.Pick(step)
+	if err != nil {
+		return err
 	}
-	c.log.Debugf("update step status: %s", s.Status)
+
+	// 没有合法的node
+	if node == nil {
+		return fmt.Errorf("no available nodes")
+	}
+
+	c.log.Debugf("choice [%s] %s for step %s", node.Type, node.InstanceName, step.Key)
+	step.SetScheduleNode(node.InstanceName)
+	// 清除一下其他数据
+	if err := c.informer.Recorder().Update(step); err != nil {
+		c.log.Errorf("update scheduled step error, %s", err)
+	}
+	return nil
 }
 
 func (c *Controller) deleteStep(p *pipeline.Step) error {

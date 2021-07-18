@@ -15,10 +15,20 @@ type lister struct {
 }
 
 // List 获取所有Node对象
-func (l *lister) List(ctx context.Context) (ret []*node.Node, err error) {
+func (l *lister) List(ctx context.Context, t node.Type) (ret []*node.Node, err error) {
+	listKey := node.EtcdNodePrefixWithType(t)
+	return l.list(ctx, listKey)
+}
+
+// List 获取所有Node对象
+func (l *lister) ListAll(ctx context.Context) (ret []*node.Node, err error) {
 	listKey := node.EtcdNodePrefix()
-	l.log.Infof("list etcd node resource key: %s", listKey)
-	resp, err := l.client.Get(ctx, listKey, clientv3.WithPrefix())
+	return l.list(ctx, listKey)
+}
+
+func (l *lister) list(ctx context.Context, key string) (ret []*node.Node, err error) {
+	l.log.Infof("list etcd node resource key: %s", key)
+	resp, err := l.client.Get(ctx, key, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
 	}

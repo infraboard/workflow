@@ -1,4 +1,4 @@
-package pipeline
+package step
 
 import (
 	"context"
@@ -13,39 +13,34 @@ import (
 
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/common/cache"
+	step_informer "github.com/infraboard/workflow/common/informers/step"
 	"github.com/infraboard/workflow/scheduler/algorithm"
 	"github.com/infraboard/workflow/scheduler/algorithm/roundrobin"
-
-	informer "github.com/infraboard/workflow/common/informers/pipeline"
-	"github.com/infraboard/workflow/common/informers/step"
 )
 
-// NewPipelineController pipeline controller
-func NewPipelineController(
+// NewStepController pipeline controller
+func NewStepController(
 	schedulerName string,
 	nodeStore cache.Store,
-	pi informer.Informer,
-	sr step.Recorder,
-
+	si step_informer.Informer,
 ) *Controller {
-	wq := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Pipeline")
+	wq := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Step")
 	controller := &Controller{
 		schedulerName:  schedulerName,
-		informer:       pi,
-		step:           sr,
+		informer:       si,
 		workqueue:      wq,
 		workerNums:     4,
-		log:            zap.L().Named("Pipeline"),
+		log:            zap.L().Named("Step"),
 		runningWorkers: make(map[string]bool, 4),
 	}
 
-	pi.Watcher().AddPipelineTaskEventHandler(informer.PipelineTaskEventHandlerFuncs{
+	si.Watcher().AddStepEventHandler(step_informer.StepEventHandlerFuncs{
 		AddFunc:    controller.enqueueForAdd,
 		UpdateFunc: controller.enqueueForUpdate,
 		DeleteFunc: controller.enqueueForDelete,
 	})
 
-	picker, err := roundrobin.NewPipelinePicker(nodeStore)
+	picker, err := roundrobin.NewStepPicker(nodeStore)
 	if err != nil {
 		panic(err)
 	}
@@ -61,18 +56,17 @@ type Controller struct {
 	// time, and makes it easy to ensure we are never processing the same item
 	// simultaneously in two different workers.
 	workqueue      workqueue.RateLimitingInterface
-	informer       informer.Informer
-	step           step.Recorder
+	informer       step_informer.Informer
 	log            logger.Logger
 	workerNums     int
 	runningWorkers map[string]bool
 	wLock          sync.Mutex
-	picker         algorithm.PipelinePicker
+	picker         algorithm.StepPicker
 	schedulerName  string
 }
 
 // SetPicker 设置Node挑选器
-func (c *Controller) SetPipelinePicker(picker algorithm.PipelinePicker) {
+func (c *Controller) SetStepPicker(picker algorithm.StepPicker) {
 	c.picker = picker
 }
 
@@ -80,23 +74,14 @@ func (c *Controller) Debug(log logger.Logger) {
 	c.log = log
 }
 
-func (c *Controller) Run(ctx context.Context) error {
-	return c.run(ctx, false)
-}
-
-func (c *Controller) AsyncRun(ctx context.Context) error {
-	return c.run(ctx, true)
-}
-
 // Run will set up the event handlers for types we are interested in, as well
 // as syncing informer caches and starting workers. It will block until stopCh
 // is closed, at which point it will shutdown the workqueue and wait for
 // workers to finish processing their current work items.
-func (c *Controller) run(ctx context.Context, async bool) error {
+func (c *Controller) Run(ctx context.Context) error {
 	// Start the informer factories to begin populating the informer caches
-	c.log.Infof("starting pipeline control loop, schedule name: %s", c.schedulerName)
+	c.log.Infof("starting step control loop, schedule name: %s", c.schedulerName)
 
-	// 获取所有的pipeline
 	if err := c.sync(ctx); err != nil {
 		return err
 	}
@@ -106,12 +91,7 @@ func (c *Controller) run(ctx context.Context, async bool) error {
 		go c.runWorker(fmt.Sprintf("worker-%d", i))
 	}
 
-	if async {
-		go c.waitDown(ctx)
-	} else {
-		c.waitDown(ctx)
-	}
-
+	c.waitDown(ctx)
 	return nil
 }
 
@@ -120,7 +100,7 @@ func (c *Controller) waitDown(ctx context.Context) {
 	// 关闭队列
 	c.workqueue.ShutDown()
 	// 停止worker
-	c.log.Infof("pipeline controller stopping, waitting for worker stop...")
+	c.log.Infof("step controller stopping, waitting for worker stop...")
 	// 等待worker退出
 	var max int
 	for {
@@ -135,43 +115,34 @@ func (c *Controller) waitDown(ctx context.Context) {
 		max++
 		time.Sleep(1 * time.Second)
 	}
-	c.log.Infof("pipeline controller worker stopped commplet, now workers: %s", c.runningWorkerNames())
+	c.log.Infof("step controller worker stopped commplet, now workers: %s", c.runningWorkerNames())
 }
 
 func (c *Controller) sync(ctx context.Context) error {
 	// 获取所有的pipeline
 	listCount := 0
-	ps, err := c.informer.Lister().List(ctx, nil)
+	steps, err := c.informer.Lister().List(ctx)
 	if err != nil {
 		return err
 	}
 
 	// 看看是否有需要调度的
-	for i := range ps.Items {
-		p := ps.Items[i]
-
-		if p.IsComplete() {
-			c.log.Debugf("pipline %s is complete, skip scheduler",
-				p.ShortDescribe())
+	for i := range steps {
+		s := steps[i]
+		if s.IsComplete() {
+			c.log.Debugf("step %s is complete, skip scheduler", s.Key)
 			continue
 		}
 
-		if p.IsScheduled() {
-			c.log.Debugf("pipeline %s is scheduler %s, skip scheduler",
-				p.ShortDescribe(), p.ScheduledNodeName())
+		if s.IsScheduled() {
+			c.log.Debugf("step %s is scheduler %s, skip scheduler", s.Key, s.ScheduledNodeName())
 			continue
 		}
 
-		if !p.Status.MatchScheduler(c.schedulerName) {
-			c.log.Debugf("pipeline %s scheduler %s is not match this scheduler %s",
-				p.ShortDescribe(), p.ScheduledNodeName(), c.schedulerName)
-			continue
-		}
-
-		c.enqueueForAdd(p)
+		c.enqueueForAdd(s)
 		listCount++
 	}
-	c.log.Infof("%d pipeline need schedule", listCount)
+	c.log.Infof("%d step need schedule", listCount)
 	return nil
 }
 
@@ -264,38 +235,44 @@ func (c *Controller) runningWorkerNames() string {
 // enqueueNetwork takes a Cronjob resource and converts it into a namespace/name
 // string which is then put onto the work queue. This method should *not* be
 // passed resources of any type other than Cronjob.
-func (c *Controller) enqueueForAdd(p *pipeline.Pipeline) {
-	c.log.Infof("receive add object: %s", p)
-	if err := p.Validate(); err != nil {
-		c.log.Errorf("validate pipeline error, %s", err)
+func (c *Controller) enqueueForAdd(s *pipeline.Step) {
+	c.log.Infof("receive add object: %s", s)
+	if err := s.Validate(); err != nil {
+		c.log.Errorf("invalidate *pipeline.Step obj")
 		return
 	}
 
 	// 判断入队条件, 已经执行完的无需重复处理
-	if p.IsComplete() {
-		c.log.Errorf("pipeline %s is complete, skip enqueue", p.ShortDescribe())
+	if s.IsComplete() {
+		c.log.Errorf("step %s is complete, skip enqueue", s.Key)
 		return
 	}
 
-	c.informer.GetStore().Add(p)
-	key := p.MakeObjectKey()
+	c.informer.GetStore().Add(s)
+	key := s.MakeObjectKey()
 	c.workqueue.AddRateLimited(key)
 }
 
 // enqueueNetworkForDelete takes a deleted Network resource and converts it into a namespace/name
 // string which is then put onto the work queue. This method should *not* be
 // passed resources of any type other than Network.
-func (c *Controller) enqueueForDelete(p *pipeline.Pipeline) {
-	c.log.Infof("receive delete object: %s", p)
-	if err := p.Validate(); err != nil {
-		c.log.Errorf("validate pipeline error, %s", err)
+func (c *Controller) enqueueForDelete(s *pipeline.Step) {
+	c.log.Infof("receive delete object: %s", s)
+	if err := s.Validate(); err != nil {
+		c.log.Errorf("invalidate *pipeline.Step obj")
 		return
 	}
-	key := p.MakeObjectKey()
+	key := s.MakeObjectKey()
 	c.workqueue.AddRateLimited(key)
 }
 
-// 如果Pipeline有状态更新,
-func (c *Controller) enqueueForUpdate(oldObj, newObj *pipeline.Pipeline) {
-	c.log.Infof("receive update object: old: %s, new: %s", oldObj.ShortDescribe(), newObj.ShortDescribe)
+// 如果step有状态更新, 判断step是否执行结束
+// 如果结束就将step的状态同步更新到Pipeline上去, 再删除step
+func (c *Controller) enqueueForUpdate(oldObj, newObj *pipeline.Step) {
+	if newObj.IsComplete() {
+		c.log.Errorf("step %s status is %s, skip sync to pipeline", newObj.Status.Status)
+		return
+	}
+
+	c.log.Debugf("enqueue update ...")
 }

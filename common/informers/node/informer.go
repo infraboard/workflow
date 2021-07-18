@@ -10,17 +10,20 @@ import (
 // CronJobInformer provides access to a shared informer and lister for
 // CronJobs.
 type Informer interface {
+	// Watcher Event
 	Watcher() Watcher
 	// List All Node
 	Lister() Lister
-	// 获取缓存
+	// node节点
 	GetStore() cache.Store
 }
 
 // Lister 获取所有执行节点
 type Lister interface {
 	// List lists all Node
-	List(context.Context) ([]*node.Node, error)
+	List(context.Context, node.Type) ([]*node.Node, error)
+	// List all
+	ListAll(context.Context) ([]*node.Node, error)
 }
 
 type Watcher interface {
@@ -82,3 +85,5 @@ func (r NodeEventHandlerFuncs) OnDelete(obj *node.Node) {
 		r.DeleteFunc(obj)
 	}
 }
+
+type NodeFilterHandler func(obj *node.Node) (error, bool)
