@@ -37,6 +37,25 @@ func TestPipelineNextStepBreak(t *testing.T) {
 	t.Log(sample.HasNextStep())
 }
 
+func TestPipelineCurrentFlowOK(t *testing.T) {
+	sample := SamplePipeline()
+	t.Log(sample)
+	t.Log(sample.NextStep())
+	sample.Stages[0].Steps[0].Success(map[string]string{"status": "ok"})
+	t.Log("current flow: ", sample.GetCurrentFlow())
+	t.Log("next: ", sample.NextStep())
+	// sample.Stages[0].Steps[1].Success(map[string]string{"status": "ok"})
+	// t.Log(sample.Stages[0].IsPassed())
+	// t.Log(sample.NextStep())
+
+	// sample.Stages[1].Steps[0].Success(map[string]string{"status": "ok"})
+	// t.Log(sample.NextStep())
+	// sample.Stages[1].Steps[1].Success(map[string]string{"status": "ok"})
+	// t.Log(sample.Stages[1].IsPassed())
+	// t.Log(sample.NextStep())
+	// t.Log(sample.HasNextStep())
+}
+
 func TestStageNextStep(t *testing.T) {
 	sample := SampleStage("stage01")
 	t.Log(sample)

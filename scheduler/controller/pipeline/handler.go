@@ -100,7 +100,7 @@ func (c *Controller) runPipelineNextStep(p *pipeline.Pipeline) error {
 	steps := p.NextStep()
 	c.log.Debugf("pipeline %s next step is %v", p.ShortDescribe(), steps)
 
-	// 判断这些step是否已经再运行, 如果已经运行则更新pipeline状态
+	// TODO: 判断这些step是否已经再运行, 如果已经运行则更新pipeline状态
 
 	// 有step则进行执行
 	for i := range steps {
@@ -187,15 +187,4 @@ func (c *Controller) stepUpdate(old, new *pipeline.Step) {
 	}
 
 	c.log.Debugf("update pipeline %s step %s success", p.ShortDescribe(), new.Key)
-}
-
-// pipeline有状态变化, 说明需要进行Next任务调度了
-func (c *Controller) pipelineUpdate(old, new *pipeline.Pipeline) {
-	c.log.Infof("receive update object: old: %s, new: %s", old.ShortDescribe(), new.ShortDescribe)
-
-	// 已经处理完成的无需处理
-	if new.IsComplete() {
-		c.log.Debugf("skip run complete pipeline %s, status: %s", new.ShortDescribe(), new.Status.Status)
-		return
-	}
 }

@@ -169,6 +169,26 @@ func (p *Pipeline) IsRunning() bool {
 	return p.Status.Status.Equal(PIPELINE_STATUS_EXECUTING)
 }
 
+func (p *Pipeline) NextFlowNumber() int64 {
+	if p.Status == nil {
+		return 1
+	}
+
+	return p.Status.GetCurrentFlow() + 1
+}
+
+func (p *Pipeline) CurrentFlowNumber() int64 {
+	if p.Status == nil {
+		return 0
+	}
+
+	return p.Status.GetCurrentFlow()
+}
+
+func (p *Pipeline) incFlow() {
+	p.Status.CurrentFlow++
+}
+
 func (p *Pipeline) Run() {
 	if p.Status == nil {
 		p.Status = NewDefaultPipelineStatus()
@@ -187,7 +207,40 @@ func (p *Pipeline) Complete() {
 	p.Status.EndAt = ftime.Now().Timestamp()
 }
 
+func (p *Pipeline) GetCurrentFlow() *Flow {
+	flow := p.CurrentFlowNumber()
+
+	// pipeline还没有运行
+	if flow == 0 {
+		return nil
+	}
+
+	for i := range p.Stages {
+		stage := p.Stages[i]
+		if f := stage.GetFlow(flow); f != nil {
+			return f
+		}
+	}
+
+	return nil
+}
+
+// 只有上一个flow执行完成后, 才会有下个fow
+// 注意: 多个并行的任务是不能跨stage同时执行的
+//      也就是说stage一定是串行的
 func (p *Pipeline) NextStep() (steps []*Step) {
+	if f := p.GetCurrentFlow(); f != nil {
+		// 如果有flow中断, pipeline 提前结束
+		if f.IsBreak() {
+			return
+		}
+
+		// 如果flow没有pass 说明还是在运行中, 不需要调度下以组step
+		if !f.IsPassed() {
+			return
+		}
+	}
+
 	for i := range p.Stages {
 		stage := p.Stages[i]
 		// 如果stage中断后 就没有下一步了
@@ -202,7 +255,13 @@ func (p *Pipeline) NextStep() (steps []*Step) {
 
 		steps = stage.NextStep()
 		for i := range steps {
+			step := steps[i]
 			steps[i].BuildKey(p.Namespace, p.Id, stage.Id)
+			step.setFlowNumber(p.NextFlowNumber())
+		}
+
+		if len(steps) > 0 {
+			p.incFlow()
 		}
 		return steps
 	}

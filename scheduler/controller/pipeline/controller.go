@@ -45,7 +45,7 @@ func NewPipelineController(
 
 	pi.Watcher().AddPipelineTaskEventHandler(informer.PipelineTaskEventHandlerFuncs{
 		AddFunc:    controller.enqueueForAdd,
-		UpdateFunc: controller.pipelineUpdate,
+		UpdateFunc: controller.enqueueForUpdate,
 		DeleteFunc: controller.enqueueForDelete,
 	})
 
@@ -290,5 +290,22 @@ func (c *Controller) enqueueForDelete(p *pipeline.Pipeline) {
 		return
 	}
 	key := p.MakeObjectKey()
+	c.workqueue.AddRateLimited(key)
+}
+
+// pipeline有状态变化, 并且状态变化是由step变化为comeplete引用的 则需要进行Next任务调度了
+func (c *Controller) enqueueForUpdate(old, new *pipeline.Pipeline) {
+	c.log.Infof("receive update object: old: %s, new: %s", old.ShortDescribe(), new.ShortDescribe)
+
+	// 已经处理完成的无需处理
+	if new.IsComplete() {
+		c.log.Debugf("skip run complete pipeline %s, status: %s", new.ShortDescribe(), new.Status.Status)
+		return
+	}
+
+	// 
+	new.NextStep()
+
+	key := new.MakeObjectKey()
 	c.workqueue.AddRateLimited(key)
 }

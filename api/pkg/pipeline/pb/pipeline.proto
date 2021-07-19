@@ -278,6 +278,10 @@ message WebHook {
 }
 
 message StepStatus {
+	// 当前该step的flow编号
+	int64 flow_number = 1[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"flow_number" json:"flow_number"'}
+		];
 	// 开始时间
 	int64 start_at = 2[
 		(google.protobuf.field_tag) = {struct_tag: 'bson:"start_at" json:"start_at"'}
@@ -351,6 +355,10 @@ message DescribeStepRequest {
 
 // PipelineStatus 当前状态
 message PipelineStatus {
+	// 当前正在执行step的flow number
+	int64 current_flow = 1[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"current_flow" json:"current_flow"'}
+		];
 	// 开始时间
 	int64 start_at = 2[
 		(google.protobuf.field_tag) = {struct_tag: 'bson:"start_at" json:"start_at"'}
@@ -371,6 +379,7 @@ message PipelineStatus {
     string message = 6[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"message" json:"message"'}
         ];
+
 }
 
 // PipelineSet todo

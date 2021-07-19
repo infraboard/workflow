@@ -10,6 +10,46 @@ import (
 	"github.com/infraboard/mcube/types/ftime"
 )
 
+func NewFlow(number int64, items []*Step) *Flow {
+	return &Flow{
+		number: number,
+		items:  items,
+	}
+}
+
+type Flow struct {
+	number int64
+	items  []*Step
+}
+
+// 判断 这个flow有没有中断
+func (f *Flow) IsBreak() bool {
+	for i := range f.items {
+		step := f.items[i]
+		// step break 算stage中断退出
+		if step.IsBreakNow() {
+			return true
+		}
+	}
+	return false
+}
+
+// 判断所有的step是不是都执行成功了
+func (f *Flow) IsPassed() bool {
+	count := 0
+	for i := range f.items {
+		step := f.items[i]
+		if step.IsPassed() {
+			count++
+		}
+	}
+	return count == len(f.items)
+}
+
+func (f *Flow) IsComplete() bool {
+	return f.IsBreak() || f.IsPassed()
+}
+
 func NewDefaultStage() *Stage {
 	return &Stage{
 		Steps: []*Step{},
@@ -70,6 +110,38 @@ func (s *Stage) NextStep() (nextSteps []*Step) {
 		}
 	}
 	return
+}
+
+func (s *Stage) GetFlow(flowNumber int64) *Flow {
+	steps := []*Step{}
+	for i := range s.Steps {
+		step := s.Steps[i]
+
+		if step.FlowNumber() > flowNumber {
+			return nil
+		}
+
+		if step.FlowNumber() == flowNumber {
+			steps = append(steps, step)
+		}
+	}
+
+	if len(steps) == 0 {
+		return nil
+	}
+
+	return NewFlow(flowNumber, steps)
+}
+
+func (s *Stage) IsRunning() bool {
+	for i := range s.Steps {
+		step := s.Steps[i]
+
+		if step.IsRunning() {
+			return true
+		}
+	}
+	return false
 }
 
 // 判断Stage是否执行成功
@@ -138,6 +210,18 @@ func (s *Step) Run() {
 	s.Status.Status = STEP_STATUS_RUNNING
 }
 
+func (s *Step) FlowNumber() int64 {
+	if s.Status == nil {
+		return 0
+	}
+
+	return s.Status.FlowNumber
+}
+
+func (s *Step) setFlowNumber(n int64) {
+	s.Status.FlowNumber = n
+}
+
 func (s *Step) Failed(format string, a ...interface{}) {
 	s.Status.EndAt = ftime.Now().Timestamp()
 	s.Status.Status = STEP_STATUS_FAILED
@@ -200,8 +284,25 @@ func (s *Step) IsComplete() bool {
 	)
 }
 
+func (s *Step) IsRunning() bool {
+	if s.Status == nil {
+		return false
+	}
+
+	return s.Status.Status.IsIn(
+		STEP_STATUS_RUNNING,
+		STEP_STATUS_CANCELING,
+		STEP_STATUS_AUDITING,
+	)
+}
+
 func (s *Step) IsBreakNow() bool {
 	if s.Status == nil {
+		return false
+	}
+
+	// 忽略失败的已计算为通过
+	if s.IgnoreFailed {
 		return false
 	}
 
@@ -219,7 +320,7 @@ func (s *Step) IsPassed() bool {
 	}
 
 	// 忽略失败的已计算为通过
-	if s.IgnoreFailed && s.Status.Status.IsIn(STEP_STATUS_SUCCEEDED) {
+	if s.IgnoreFailed {
 		return true
 	}
 
