@@ -154,11 +154,6 @@ func (c *Controller) runPipelineNextStep(steps []*pipeline.Step) error {
 	for i := range steps {
 		ins := steps[i]
 
-		// 如果开启审核，需要通过后，才能执行
-		if !c.isAllow(ins) {
-			continue
-		}
-
 		c.log.Debugf("create pipeline step: %s", ins.Key)
 		if err := c.step.Recorder().Update(ins); err != nil {
 			c.log.Errorf(err.Error())

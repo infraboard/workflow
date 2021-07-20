@@ -49,9 +49,9 @@ func (c *Controller) addStep(s *pipeline.Step) error {
 		return fmt.Errorf("step %s has scheuled to node %s", s.Key, s.ScheduledNodeName())
 	}
 
-	// 未审批或者审批未通过的不与调度
-	if s.WithAudit && !s.AuditPass() {
-		return fmt.Errorf("step with audit but audit status is %s", s.Status.AuditResponse)
+	// 如果开启审核，需要通过后，才能执行
+	if !c.isAllow(s) {
+		return fmt.Errorf("step not allow")
 	}
 
 	if err := c.scheduleStep(s); err != nil {
@@ -59,6 +59,27 @@ func (c *Controller) addStep(s *pipeline.Step) error {
 	}
 
 	return nil
+}
+
+func (c *Controller) isAllow(s *pipeline.Step) bool {
+	if !s.WithAudit {
+		return true
+	}
+
+	// TODO: 如果未处理, 发送通知
+	if !s.HasSendAuditNotify() {
+		// TODO:
+		c.log.Errorf("send notify ...")
+		s.MarkSendAuditNotify()
+		// 更新step
+	}
+
+	if s.AuditPass() {
+		c.log.Debugf("step %s waiting for audit", s.Key)
+		return true
+	}
+
+	return false
 }
 
 // Step任务调度
