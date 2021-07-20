@@ -9,7 +9,6 @@ import (
 
 func TestPipelineNextStepOK(t *testing.T) {
 	sample := SamplePipeline()
-	t.Log(sample)
 	t.Log(sample.NextStep())
 	sample.Stages[0].Steps[0].Success(map[string]string{"status": "ok"})
 	t.Log(sample.NextStep())
@@ -21,8 +20,9 @@ func TestPipelineNextStepOK(t *testing.T) {
 	t.Log(sample.NextStep())
 	sample.Stages[1].Steps[1].Success(map[string]string{"status": "ok"})
 	t.Log(sample.Stages[1].IsPassed())
-	t.Log(sample.NextStep())
-	t.Log(sample.HasNextStep())
+
+	steps, ok := sample.NextStep()
+	t.Log("is complete: ", ok, "steps: ", steps)
 }
 
 func TestPipelineNextStepBreak(t *testing.T) {
@@ -33,8 +33,8 @@ func TestPipelineNextStepBreak(t *testing.T) {
 	t.Log(sample.NextStep())
 	sample.Stages[0].Steps[1].Failed("step failed")
 	t.Log("step is passed: ", sample.Stages[0].IsPassed())
-	t.Log("next step: ", sample.NextStep())
-	t.Log(sample.HasNextStep())
+	steps, ok := sample.NextStep()
+	t.Log("is complete: ", ok, "steps: ", steps)
 }
 
 func TestPipelineCurrentFlowOK(t *testing.T) {
@@ -43,17 +43,18 @@ func TestPipelineCurrentFlowOK(t *testing.T) {
 	t.Log(sample.NextStep())
 	sample.Stages[0].Steps[0].Success(map[string]string{"status": "ok"})
 	t.Log("current flow: ", sample.GetCurrentFlow())
-	t.Log("next: ", sample.NextStep())
-	// sample.Stages[0].Steps[1].Success(map[string]string{"status": "ok"})
-	// t.Log(sample.Stages[0].IsPassed())
-	// t.Log(sample.NextStep())
 
-	// sample.Stages[1].Steps[0].Success(map[string]string{"status": "ok"})
-	// t.Log(sample.NextStep())
-	// sample.Stages[1].Steps[1].Success(map[string]string{"status": "ok"})
-	// t.Log(sample.Stages[1].IsPassed())
-	// t.Log(sample.NextStep())
-	// t.Log(sample.HasNextStep())
+	steps, ok := sample.NextStep()
+	t.Log("is complete: ", ok, "steps: ", steps)
+
+	sample.Stages[0].Steps[1].Run()
+	t.Log("current flow: ", sample.GetCurrentFlow())
+	steps, ok = sample.NextStep()
+	t.Log("is complete: ", ok, "steps: ", steps)
+
+	sample.Stages[0].Steps[1].Success(map[string]string{"status": "ok"})
+	steps, ok = sample.NextStep()
+	t.Log("is complete: ", ok, "steps: ", steps)
 }
 
 func TestStageNextStep(t *testing.T) {

@@ -80,7 +80,8 @@ func (c *Controller) runPipeline(p *pipeline.Pipeline) error {
 	}
 
 	// 判断pipeline没有要执行的下一步, 则结束整个Pipeline
-	if !p.HasNextStep() {
+	steps, ok := p.NextStep()
+	if ok {
 		p.Complete()
 		if err := c.informer.Recorder().Update(p); err != nil {
 			c.log.Errorf("update pipeline %s end status to store error, %s", p.ShortDescribe(), err)
@@ -88,17 +89,14 @@ func (c *Controller) runPipeline(p *pipeline.Pipeline) error {
 		return nil
 	}
 
-	return c.runPipelineNextStep(p)
+	return c.runPipelineNextStep(steps)
 }
 
-func (c *Controller) runPipelineNextStep(p *pipeline.Pipeline) error {
+func (c *Controller) runPipelineNextStep(steps []*pipeline.Step) error {
 	// 将需要调度的任务, 交给step调度器调度
 	if c.step == nil {
 		return fmt.Errorf("step recorder is nil")
 	}
-
-	steps := p.NextStep()
-	c.log.Debugf("pipeline %s next step is %v", p.ShortDescribe(), steps)
 
 	// TODO: 判断这些step是否已经再运行, 如果已经运行则更新pipeline状态
 
