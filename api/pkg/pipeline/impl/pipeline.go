@@ -29,6 +29,10 @@ func (i *impl) CreatePipeline(ctx context.Context, req *pipeline.CreatePipelineR
 	}
 	p.UpdateOwner(tk)
 
+	if err := i.validatePipeline(ctx, p); err != nil {
+		return nil, err
+	}
+
 	value, err := json.Marshal(p)
 	if err != nil {
 		return nil, err
@@ -42,6 +46,40 @@ func (i *impl) CreatePipeline(ctx context.Context, req *pipeline.CreatePipelineR
 	}
 	i.log.Debugf("create pipeline success, key: %s", objKey)
 	return p, nil
+}
+
+func (i *impl) validatePipeline(ctx context.Context, p *pipeline.Pipeline) error {
+	for index := range p.Stages {
+		stage := p.Stages[index]
+		if err := i.validateStage(ctx, stage); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (i *impl) validateStage(ctx context.Context, s *pipeline.Stage) error {
+	if s.StepCount() == 0 {
+		return fmt.Errorf("stage %s host no steps", s.ShortDesc())
+	}
+
+	for index := range s.Steps {
+		step := s.Steps[index]
+		if err := i.validateStep(ctx, step); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (i *impl) validateStep(ctx context.Context, s *pipeline.Step) error {
+	_, err := i.DescribeAction(ctx, pipeline.NewDescribeActionRequestWithName(s.Action))
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (i *impl) QueryPipeline(ctx context.Context, req *pipeline.QueryPipelineRequest) (

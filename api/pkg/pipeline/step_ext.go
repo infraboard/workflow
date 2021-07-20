@@ -60,6 +60,10 @@ func (s *Stage) StepCount() int {
 	return len(s.Steps)
 }
 
+func (s *Stage) ShortDesc() string {
+	return fmt.Sprintf("%s[%d]", s.Name, s.Id)
+}
+
 func (s *Stage) AddStep(item *Step) {
 	s.Steps = append(s.Steps, item)
 }

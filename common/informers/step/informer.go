@@ -79,6 +79,8 @@ type StepEventHandlerFuncs struct {
 	DeleteFunc func(obj *pipeline.Step)
 }
 
+type UpdateStepCallback func(old, new *pipeline.Step)
+
 // OnAdd calls AddFunc if it's not nil.
 func (r StepEventHandlerFuncs) OnAdd(obj *pipeline.Step) {
 	if r.AddFunc != nil {

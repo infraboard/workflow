@@ -76,13 +76,15 @@ func (c *Controller) runPipeline(p *pipeline.Pipeline) error {
 		p.Run()
 		if err := c.informer.Recorder().Update(p); err != nil {
 			c.log.Errorf("update pipeline %s start status to store error, %s", p.ShortDescribe(), err)
+		} else {
+			c.log.Debugf("update pipeline %s start status to store success", p.ShortDescribe())
 		}
 		return nil
 	}
 
 	// 判断pipeline没有要执行的下一步, 则结束整个Pipeline
 	steps := c.nextStep(p)
-
+	c.log.Debugf("pipeline %s start run next steps: %s", p.ShortDescribe(), steps)
 	return c.runPipelineNextStep(steps)
 }
 
@@ -90,9 +92,10 @@ func (c *Controller) nextStep(p *pipeline.Pipeline) []*pipeline.Step {
 	// 取消 pipeline 下次执行需要的step
 	steps, ok := p.NextStep()
 	if ok {
-		c.log.Debugf("pipeline is complete, update pipeline status to db")
 		if err := c.informer.Recorder().Update(p); err != nil {
 			c.log.Errorf("update pipeline %s end status to store error, %s", p.ShortDescribe(), err)
+		} else {
+			c.log.Debugf("pipeline is complete, update pipeline status to db success")
 		}
 		return nil
 	}
@@ -202,7 +205,7 @@ func (c *Controller) updatePipelineStatus(p *pipeline.Pipeline) {
 }
 
 // step 如果完成后, 将状态记录到Pipeline上, 并删除step
-func (c *Controller) stepUpdate(old, new *pipeline.Step) {
+func (c *Controller) UpdateStepCallback(old, new *pipeline.Step) {
 	c.log.Debugf("receive step update event, start update step status to pipeline ...")
 
 	if !new.IsComplete() {

@@ -190,9 +190,7 @@ func (p *Pipeline) Run() {
 		p.Status = NewDefaultPipelineStatus()
 	}
 	p.Status.Status = PIPELINE_STATUS_EXECUTING
-	if p.Status.StartAt != 0 {
-		p.Status.StartAt = ftime.Now().Timestamp()
-	}
+	p.Status.StartAt = ftime.Now().Timestamp()
 }
 
 func (p *Pipeline) Complete() {

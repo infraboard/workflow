@@ -23,6 +23,7 @@ func NewStepController(
 	schedulerName string,
 	nodeStore cache.Store,
 	si step.Informer,
+	cb step.UpdateStepCallback,
 ) *Controller {
 	wq := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Step")
 	controller := &Controller{
@@ -30,6 +31,7 @@ func NewStepController(
 		informer:       si,
 		workqueue:      wq,
 		workerNums:     4,
+		cb:             cb,
 		log:            zap.L().Named("Step"),
 		runningWorkers: make(map[string]bool, 4),
 	}
@@ -62,6 +64,7 @@ type Controller struct {
 	runningWorkers map[string]bool
 	wLock          sync.Mutex
 	picker         algorithm.StepPicker
+	cb             step.UpdateStepCallback
 	schedulerName  string
 }
 
@@ -270,10 +273,7 @@ func (c *Controller) enqueueForDelete(s *pipeline.Step) {
 // 如果结束就将step的状态同步更新到Pipeline上去, 再删除step
 func (c *Controller) enqueueForUpdate(oldObj, newObj *pipeline.Step) {
 	c.log.Debugf("enqueue update ...")
-
-	if newObj.IsComplete() {
-		c.log.Errorf("step %s status is %s, skip sync to controller", newObj.Key, newObj.Status.Status)
-		return
+	if c.cb != nil {
+		c.cb(oldObj, newObj)
 	}
-
 }

@@ -39,10 +39,6 @@ func NewPipelineController(
 		runningWorkers: make(map[string]bool, 4),
 	}
 
-	si.Watcher().AddStepEventHandler(step.StepEventHandlerFuncs{
-		UpdateFunc: controller.stepUpdate,
-	})
-
 	pi.Watcher().AddPipelineTaskEventHandler(informer.PipelineTaskEventHandlerFuncs{
 		AddFunc:    controller.enqueueForAdd,
 		UpdateFunc: controller.enqueueForUpdate,
@@ -155,7 +151,7 @@ func (c *Controller) sync(ctx context.Context) error {
 		p := ps.Items[i]
 
 		if p.IsComplete() {
-			c.log.Debugf("pipline %s is complete, skip scheduler",
+			c.log.Debugf("pipline %s is complete, skip schedule",
 				p.ShortDescribe())
 			continue
 		}
@@ -302,9 +298,6 @@ func (c *Controller) enqueueForUpdate(old, new *pipeline.Pipeline) {
 		c.log.Debugf("skip run complete pipeline %s, status: %s", new.ShortDescribe(), new.Status.Status)
 		return
 	}
-
-	//
-	new.NextStep()
 
 	key := new.MakeObjectKey()
 	c.workqueue.AddRateLimited(key)
