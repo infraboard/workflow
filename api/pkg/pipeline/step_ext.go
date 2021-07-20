@@ -10,6 +10,10 @@ import (
 	"github.com/infraboard/mcube/types/ftime"
 )
 
+const (
+	AUDIT_NOTIFY_MARK_KEY = "AUDIT_NOTIFY_HAS_SEND"
+)
+
 func NewFlow(number int64, items []*Step) *Flow {
 	return &Flow{
 		number: number,
@@ -232,6 +236,23 @@ func (s *Step) Failed(format string, a ...interface{}) {
 	s.Status.Message = fmt.Sprintf(format, a...)
 }
 
+func (s *Step) HasSendAuditNotify() bool {
+	if s.Status.ContextMap == nil {
+		return false
+	}
+
+	return s.Status.ContextMap[AUDIT_NOTIFY_MARK_KEY] == "true"
+}
+
+func (s *Step) MarkSendAuditNotify() {
+	if s.Status.ContextMap == nil {
+		s.Status.ContextMap = map[string]string{}
+	}
+
+	s.Status.ContextMap[AUDIT_NOTIFY_MARK_KEY] = "true"
+	s.Status.Status = STEP_STATUS_AUDITING
+}
+
 func (s *Step) Success(resp map[string]string) {
 	s.Status.EndAt = ftime.Now().Timestamp()
 	s.Status.Status = STEP_STATUS_SUCCEEDED
@@ -257,10 +278,6 @@ func (s *Step) Validate() error {
 
 func (s *Step) SetScheduleNode(nodeName string) {
 	s.Status.ScheduledNode = nodeName
-}
-
-func (s *Step) IsAudit() bool {
-	return s.Status.AuditAt != 0
 }
 
 func (s *Step) ScheduledNodeName() string {
@@ -336,6 +353,10 @@ func (s *Step) IsPassed() bool {
 
 func (s *Step) BuildKey(namespace, pipelineId string, stage int32) {
 	s.Key = fmt.Sprintf("%s.%s.%d.%d", namespace, pipelineId, stage, s.Id)
+}
+
+func (s *Step) AuditPass() bool {
+	return s.Status.AuditResponse.Equal(AUDIT_RESPONSE_ALLOW)
 }
 
 func (s *Step) GetPipelineStepNumber() int32 {

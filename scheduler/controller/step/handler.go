@@ -45,16 +45,13 @@ func (c *Controller) addStep(s *pipeline.Step) error {
 	}
 
 	// 已经调度的任务不处理
-	nn := s.ScheduledNodeName()
-	if nn != "" {
-		c.log.Infof("step %s has scheuled to node %s", s.Key, nn)
+	if s.IsScheduled() {
+		return fmt.Errorf("step %s has scheuled to node %s", s.Key, s.ScheduledNodeName())
 	}
 
-	// 判断是否需要审批, 审批通过后放行
-	if s.WithAudit && !s.IsAudit() {
-		// TODO: 发送审批事件
-		s.Status.Status = pipeline.STEP_STATUS_AUDITING
-		c.log.Debug("send audit notify")
+	// 未审批或者审批未通过的不与调度
+	if s.WithAudit && !s.AuditPass() {
+		return fmt.Errorf("step with audit but audit status is %s", s.Status.AuditResponse)
 	}
 
 	if err := c.scheduleStep(s); err != nil {

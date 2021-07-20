@@ -143,3 +143,48 @@ func (t *RUNNER_TYPE) UnmarshalJSON(b []byte) error {
 	*t = ins
 	return nil
 }
+
+// ParseAUDIT_RESPONSEFromString Parse AUDIT_RESPONSE from string
+func ParseAUDIT_RESPONSEFromString(str string) (AUDIT_RESPONSE, error) {
+	key := strings.Trim(string(str), `"`)
+	v, ok := AUDIT_RESPONSE_value[strings.ToUpper(key)]
+	if !ok {
+		return 0, fmt.Errorf("unknown AUDIT_RESPONSE: %s", str)
+	}
+
+	return AUDIT_RESPONSE(v), nil
+}
+
+// Equal type compare
+func (t AUDIT_RESPONSE) Equal(target AUDIT_RESPONSE) bool {
+	return t == target
+}
+
+// IsIn todo
+func (t AUDIT_RESPONSE) IsIn(targets ...AUDIT_RESPONSE) bool {
+	for _, target := range targets {
+		if t.Equal(target) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// MarshalJSON todo
+func (t AUDIT_RESPONSE) MarshalJSON() ([]byte, error) {
+	b := bytes.NewBufferString(`"`)
+	b.WriteString(strings.ToUpper(t.String()))
+	b.WriteString(`"`)
+	return b.Bytes(), nil
+}
+
+// UnmarshalJSON todo
+func (t *AUDIT_RESPONSE) UnmarshalJSON(b []byte) error {
+	ins, err := ParseAUDIT_RESPONSEFromString(string(b))
+	if err != nil {
+		return err
+	}
+	*t = ins
+	return nil
+}

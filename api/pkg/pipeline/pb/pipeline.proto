@@ -50,6 +50,16 @@ enum RUNNER_TYPE {
 	LOCAL = 2;
 }
 
+// AUDIT_RESPONSE 审核结果
+enum AUDIT_RESPONSE {
+	// 未处理
+	UOD = 0;
+	// 允许执行
+	ALLOW = 1;
+	// 不允许执行
+	DENY = 2;
+}
+
 service Service {
 	rpc CreatePipeline(CreatePipelineRequest) returns(Pipeline);
 	rpc QueryPipeline(QueryPipelineRequest) returns(PipelineSet);
@@ -300,11 +310,15 @@ message StepStatus {
         ];
 	// 审批时间
 	int64 audit_at = 9[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"audit_at" json:"audit_at,omitempty"'}
-        ];	
-	// 审批时的反馈信息
-	string audit_response = 8[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"audit_at" json:"audit_at"'}
+        ];
+	// 审批结果
+	AUDIT_RESPONSE audit_response = 12[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"audit_response" json:"audit_response"'}
+        ];
+	// 审批时的反馈信息
+	string audit_message = 8[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"audit_message" json:"audit_message"'}
         ];
 	// 通知发送时间
 	int64 notify_at = 10[
@@ -322,6 +336,10 @@ message StepStatus {
 	map<string, string> response = 7[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"response" json:"response"'}
         ];
+	// 执行过程中的一些上下文信息
+	map<string, string> context_map = 14[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"context_map" json:"context_map,omitempty"'}
+        ];	
 }
 
 // StepSet todo

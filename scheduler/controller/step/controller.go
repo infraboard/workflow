@@ -269,8 +269,7 @@ func (c *Controller) enqueueForDelete(s *pipeline.Step) {
 	c.workqueue.AddRateLimited(key)
 }
 
-// 如果step有状态更新, 判断step是否执行结束
-// 如果结束就将step的状态同步更新到Pipeline上去, 再删除step
+// 如果step有状态更新, 回调通知pipeline controller
 func (c *Controller) enqueueForUpdate(oldObj, newObj *pipeline.Step) {
 	c.log.Debugf("enqueue update ...")
 	if c.cb != nil {

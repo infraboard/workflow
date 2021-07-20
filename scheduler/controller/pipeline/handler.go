@@ -154,8 +154,9 @@ func (c *Controller) runPipelineNextStep(steps []*pipeline.Step) error {
 	for i := range steps {
 		ins := steps[i]
 
-		if len(steps) > 1 {
-			return fmt.Errorf("multi step %s in store", ins.Key)
+		// 如果开启审核，需要通过后，才能执行
+		if !c.isAllow(ins) {
+			continue
 		}
 
 		c.log.Debugf("create pipeline step: %s", ins.Key)
@@ -165,6 +166,27 @@ func (c *Controller) runPipelineNextStep(steps []*pipeline.Step) error {
 	}
 
 	return nil
+}
+
+func (c *Controller) isAllow(s *pipeline.Step) bool {
+	if !s.WithAudit {
+		return true
+	}
+
+	// TODO: 如果未处理, 发送通知
+	if !s.HasSendAuditNotify() {
+		// TODO:
+		c.log.Errorf("send notify ...")
+		s.MarkSendAuditNotify()
+		// 更新step
+	}
+
+	if s.AuditPass() {
+		c.log.Debugf("step %s waiting for audit", s.Key)
+		return true
+	}
+
+	return false
 }
 
 // Pipeline 调度

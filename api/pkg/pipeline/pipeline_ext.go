@@ -272,6 +272,8 @@ func (p *Pipeline) NextStep() (steps []*Step, isComplete bool) {
 		return
 	}
 
+	
+
 	steps = f.items
 	return
 }
