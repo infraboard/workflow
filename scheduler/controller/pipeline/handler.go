@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -80,16 +81,64 @@ func (c *Controller) runPipeline(p *pipeline.Pipeline) error {
 	}
 
 	// 判断pipeline没有要执行的下一步, 则结束整个Pipeline
+	steps := c.nextStep(p)
+
+	return c.runPipelineNextStep(steps)
+}
+
+func (c *Controller) nextStep(p *pipeline.Pipeline) []*pipeline.Step {
+	// 取消 pipeline 下次执行需要的step
 	steps, ok := p.NextStep()
 	if ok {
-		p.Complete()
+		c.log.Debugf("pipeline is complete, update pipeline status to db")
 		if err := c.informer.Recorder().Update(p); err != nil {
 			c.log.Errorf("update pipeline %s end status to store error, %s", p.ShortDescribe(), err)
 		}
 		return nil
 	}
 
-	return c.runPipelineNextStep(steps)
+	// 找出需要同步的step
+	needSync := []*pipeline.Step{}
+	for i := range steps {
+		ins := steps[i]
+
+		// 判断step是否已经运行, 如果已经运行则更新Pipeline状态
+		old, err := c.step.Lister().Get(context.Background(), ins.Key)
+		if err != nil {
+			c.log.Errorf("get step %s by key error, %s", ins.Key, err)
+			return nil
+		}
+
+		if old == nil {
+			c.log.Debugf("step %s not found in db", ins.Key)
+			continue
+		}
+
+		// 状态相等 则无需同步
+		if ins.Status.Status.Equal(old.Status.Status) {
+			c.log.Debugf("pipeline step status: %s, etcd step status: %s, has sync",
+				ins.Status.Status, old.Status.Status)
+			continue
+		}
+
+		needSync = append(needSync, old)
+	}
+
+	// 同步step到pipeline上
+	if len(needSync) > 0 {
+		for i := range needSync {
+			c.log.Debugf("sync step %s to pipeline ...", needSync[i].Key)
+			p.UpdateStep(needSync[i])
+		}
+		if err := c.informer.Recorder().Update(p); err != nil {
+			c.log.Errorf("update pipeline status error, %s", err)
+			return nil
+		}
+		c.log.Debugf("sync %d steps ok", len(needSync))
+		return nil
+	}
+
+	return steps
 }
 
 func (c *Controller) runPipelineNextStep(steps []*pipeline.Step) error {
@@ -98,13 +147,16 @@ func (c *Controller) runPipelineNextStep(steps []*pipeline.Step) error {
 		return fmt.Errorf("step recorder is nil")
 	}
 
-	// TODO: 判断这些step是否已经再运行, 如果已经运行则更新pipeline状态
-
 	// 有step则进行执行
 	for i := range steps {
-		step := steps[i]
-		c.log.Debugf("create pipeline step: %s", step.Key)
-		if err := c.step.Recorder().Update(step); err != nil {
+		ins := steps[i]
+
+		if len(steps) > 1 {
+			return fmt.Errorf("multi step %s in store", ins.Key)
+		}
+
+		c.log.Debugf("create pipeline step: %s", ins.Key)
+		if err := c.step.Recorder().Update(ins); err != nil {
 			c.log.Errorf(err.Error())
 		}
 	}
@@ -151,6 +203,8 @@ func (c *Controller) updatePipelineStatus(p *pipeline.Pipeline) {
 
 // step 如果完成后, 将状态记录到Pipeline上, 并删除step
 func (c *Controller) stepUpdate(old, new *pipeline.Step) {
+	c.log.Debugf("receive step update event, start update step status to pipeline ...")
+
 	if !new.IsComplete() {
 		c.log.Debugf("step status is %s, skip update to pipeline", new.Status.Status)
 		return

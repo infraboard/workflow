@@ -39,7 +39,7 @@ func (c *Controller) syncHandler(key string) error {
 }
 
 func (c *Controller) addStep(s *pipeline.Step) error {
-	c.log.Infof("[step] receive add step: %s", s)
+	c.log.Infof("receive add step: %s", s)
 	if err := s.Validate(); err != nil {
 		return fmt.Errorf("invalidate node error, %s", err)
 	}

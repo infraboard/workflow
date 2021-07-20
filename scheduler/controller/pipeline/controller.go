@@ -295,7 +295,7 @@ func (c *Controller) enqueueForDelete(p *pipeline.Pipeline) {
 
 // pipeline有状态变化, 并且状态变化是由step变化为comeplete引用的 则需要进行Next任务调度了
 func (c *Controller) enqueueForUpdate(old, new *pipeline.Pipeline) {
-	c.log.Infof("receive update object: old: %s, new: %s", old.ShortDescribe(), new.ShortDescribe)
+	c.log.Infof("receive update object: old: %s, new: %s", old.ShortDescribe(), new.ShortDescribe())
 
 	// 已经处理完成的无需处理
 	if new.IsComplete() {
@@ -303,7 +303,7 @@ func (c *Controller) enqueueForUpdate(old, new *pipeline.Pipeline) {
 		return
 	}
 
-	// 
+	//
 	new.NextStep()
 
 	key := new.MakeObjectKey()

@@ -21,7 +21,21 @@ type Recorder interface {
 	Update(*pipeline.Step) error
 }
 
+func NewListOptions() *ListOptions {
+	return &ListOptions{}
+}
+
+type ListOptions struct {
+	Key string
+}
+
+func (o *ListOptions) With(key string) *ListOptions {
+	o.Key = key
+	return o
+}
+
 type Lister interface {
+	Get(ctx context.Context, key string) (*pipeline.Step, error)
 	List(ctx context.Context) ([]*pipeline.Step, error)
 }
 

@@ -128,20 +128,19 @@ func (s *service) start() error {
 	if err := s.ni.Watcher().Run(ctx); err != nil {
 		return err
 	}
-	if err := s.nc.AsyncRun(ctx); err != nil {
-		return err
-	}
-
 	// 启动 pipeline controller
 	if err := s.pi.Watcher().Run(ctx); err != nil {
 		return err
 	}
-	if err := s.pc.AsyncRun(ctx); err != nil {
+	// 启动 step controller
+	if err := s.si.Watcher().Run(ctx); err != nil {
 		return err
 	}
 
-	// 启动 step controller
-	if err := s.si.Watcher().Run(ctx); err != nil {
+	if err := s.nc.AsyncRun(ctx); err != nil {
+		return err
+	}
+	if err := s.pc.AsyncRun(ctx); err != nil {
 		return err
 	}
 	if err := s.sc.Run(ctx); err != nil {

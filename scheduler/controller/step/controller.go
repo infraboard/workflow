@@ -272,7 +272,8 @@ func (c *Controller) enqueueForUpdate(oldObj, newObj *pipeline.Step) {
 	c.log.Debugf("enqueue update ...")
 
 	if newObj.IsComplete() {
-		c.log.Errorf("step %s status is %s, skip sync to pipeline", newObj.Status.Status)
+		c.log.Errorf("step %s status is %s, skip sync to controller", newObj.Key, newObj.Status.Status)
 		return
 	}
+
 }
