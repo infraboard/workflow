@@ -2,6 +2,9 @@ package impl
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"time"
 
 	"github.com/infraboard/keyauth/client/session"
 	"github.com/infraboard/mcube/exception"
@@ -76,7 +79,7 @@ func (i *impl) DescribeStep(ctx context.Context, req *pipeline.DescribeStepReque
 
 func (i *impl) DeleteStep(ctx context.Context, req *pipeline.DeleteStepRequest) (
 	*pipeline.Step, error) {
-	descKey := pipeline.StepObjectKey(req.Id)
+	descKey := pipeline.StepObjectKey(req.Key)
 	i.log.Infof("delete etcd pipeline resource key: %s", descKey)
 	resp, err := i.client.Delete(ctx, descKey, clientv3.WithPrevKV())
 	if err != nil {
@@ -84,7 +87,7 @@ func (i *impl) DeleteStep(ctx context.Context, req *pipeline.DeleteStepRequest) 
 	}
 
 	if resp.Deleted == 0 {
-		return nil, exception.NewNotFound("step %s not found", req.Id)
+		return nil, exception.NewNotFound("step %s not found", req.Key)
 	}
 
 	ins := pipeline.NewDefaultStep()
@@ -98,4 +101,62 @@ func (i *impl) DeleteStep(ctx context.Context, req *pipeline.DeleteStepRequest) 
 		ins.ResourceVersion = resp.Header.Revision
 	}
 	return ins, nil
+}
+
+func (i *impl) CancelStep(ctx context.Context, req *pipeline.CancelStepRequest) (
+	*pipeline.Step, error) {
+	in, err := gcontext.GetGrpcInCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	message := ""
+	tk := session.S().GetToken(in.GetAccessToKen())
+	if tk == nil {
+		message = fmt.Sprintf("account %s cancled step at %s", tk.Account, time.Now())
+	}
+
+	s, err := i.DescribeStep(ctx, pipeline.NewDescribeStepRequestWithKey(req.Key))
+	if err != nil {
+		return nil, err
+	}
+
+	s.Cancel(message)
+	if err := i.putStep(ctx, s); err != nil {
+		return nil, fmt.Errorf("update step error, %s", err)
+	}
+
+	return s, nil
+}
+
+func (i *impl) AuditStep(ctx context.Context, req *pipeline.AuditStepRequest) (
+	*pipeline.Step, error) {
+	s, err := i.DescribeStep(ctx, pipeline.NewDescribeStepRequestWithKey(req.Key))
+	if err != nil {
+		return nil, err
+	}
+
+	s.Audit(req.AuditReponse, req.AuditMessage)
+	if err := i.putStep(ctx, s); err != nil {
+		return nil, fmt.Errorf("update step error, %s", err)
+	}
+
+	return s, nil
+}
+
+func (i *impl) putStep(ctx context.Context, ins *pipeline.Step) error {
+	value, err := json.Marshal(ins)
+	if err != nil {
+		return err
+	}
+
+	objKey := ins.MakeObjectKey()
+	objValue := string(value)
+
+	if _, err := i.client.Put(context.Background(), objKey, objValue); err != nil {
+		return fmt.Errorf("put step with key: %s, error, %s", objKey, err.Error())
+	}
+	i.log.Debugf("put step success, key: %s", objKey)
+
+	return nil
 }

@@ -74,6 +74,7 @@ func (c *Controller) isAllow(s *pipeline.Step) bool {
 		// 更新step
 	}
 
+	// 审核通过 允许执行
 	if s.AuditPass() {
 		c.log.Debugf("step %s waiting for audit", s.Key)
 		return true

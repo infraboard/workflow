@@ -62,6 +62,8 @@ func (c *Controller) deleteStep(p *pipeline.Step) error {
 		return nil
 	}
 
+	//
+
 	// 未调度的交给调度
 	return nil
 }

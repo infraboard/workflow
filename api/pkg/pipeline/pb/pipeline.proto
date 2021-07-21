@@ -67,6 +67,8 @@ service Service {
 	rpc QueryStep(QueryStepRequest) returns(StepSet);
 	rpc DescribeStep(DescribeStepRequest) returns(Step);
 	rpc DeleteStep(DeleteStepRequest) returns(Step);
+	rpc CancelStep(CancelStepRequest) returns(Step);
+	rpc AuditStep(AuditStepRequest) returns(Step);
 	rpc DeletePipeline(DeletePipelineRequest) returns(Pipeline);
 	rpc CreateAction(CreateActionRequest) returns(Action);
 	rpc QueryAction(QueryActionRequest) returns(ActionSet);
@@ -612,7 +614,30 @@ message DescribePipelineRequest {
 
 message DeleteStepRequest {
 	// 唯一ID
-	string id = 1[
+	string key = 1[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"key"'}
+		];
+}
+
+
+message CancelStepRequest {
+	// 取消step对应的key
+	string key = 1[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"id"'}
 		];
+}
+
+message AuditStepRequest {
+	// 取消step对应的key
+	string key = 1[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"key"'}
+		];
+	// 审核的结果
+	AUDIT_RESPONSE audit_reponse = 2[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"audit_reponse"'}
+		];
+	// 审批时的反馈信息
+	string audit_message = 3[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"audit_message"'}
+        ];
 }

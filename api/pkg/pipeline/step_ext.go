@@ -236,6 +236,17 @@ func (s *Step) Failed(format string, a ...interface{}) {
 	s.Status.Message = fmt.Sprintf(format, a...)
 }
 
+func (s *Step) Cancel(format string, a ...interface{}) {
+	s.Status.Status = STEP_STATUS_CANCELING
+	s.Status.Message = fmt.Sprintf(format, a...)
+}
+
+func (s *Step) Audit(resp AUDIT_RESPONSE, message string) {
+	s.Status.AuditAt = ftime.Now().Timestamp()
+	s.Status.AuditResponse = resp
+	s.Status.AuditMessage = message
+}
+
 func (s *Step) HasSendAuditNotify() bool {
 	if s.Status.ContextMap == nil {
 		return false

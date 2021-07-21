@@ -58,7 +58,7 @@ var testP = `{
 						"end_at": 0,
 						"status": "PENDDING",
 						"scheduled_node": "",
-						"audit_response": "",
+						"audit_response": "UOD",
 						"notify_at": 0,
 						"notify_error": "",
 						"message": "",
@@ -94,7 +94,7 @@ var testP = `{
 						"end_at": 0,
 						"status": "PENDDING",
 						"scheduled_node": "",
-						"audit_response": "",
+						"audit_response": "UOD",
 						"notify_at": 0,
 						"notify_error": "",
 						"message": "",
@@ -112,9 +112,47 @@ func TestPipelineFlow(t *testing.T) {
 	err := json.Unmarshal([]byte(testP), sample)
 	should.NoError(err)
 
-	t.Log(sample)
 	steps, ok := sample.NextStep()
-	t.Log(sample.GetCurrentFlow())
+	t.Log("is complete: ", ok, "start steps: ", steps)
+}
+
+func TestPipelineCancle(t *testing.T) {
+	should := assert.New(t)
+	sample := pipeline.NewDefaultPipeline()
+	err := json.Unmarshal([]byte(testP), sample)
+	should.NoError(err)
+
+	steps, ok := sample.NextStep()
+	t.Log("is complete: ", ok, "start steps: ", steps)
+
+	// 测试取消
+	sample.Stages[0].Steps[0].Cancel("test")
+	steps, ok = sample.NextStep()
+	t.Log("is complete: ", ok, "start steps: ", steps)
+}
+
+func TestPipelineAudit(t *testing.T) {
+	should := assert.New(t)
+	sample := pipeline.NewDefaultPipeline()
+	err := json.Unmarshal([]byte(testP), sample)
+	should.NoError(err)
+
+	// 打开audit
+	sample.Stages[0].Steps[0].WithAudit = false
+
+	steps, ok := sample.NextStep()
+	t.Log("is complete: ", ok, "start steps: ", steps)
+
+	// 审核通过
+	sample.Stages[0].Steps[0].Audit(pipeline.AUDIT_RESPONSE_ALLOW, "test")
+
+	// 执行中
+	steps, ok = sample.NextStep()
+	t.Log("is complete: ", ok, "start steps: ", steps)
+
+	// 执行完成
+	sample.Stages[0].Steps[0].Failed("执行完成")
+	steps, ok = sample.NextStep()
 	t.Log("is complete: ", ok, "start steps: ", steps)
 }
 
