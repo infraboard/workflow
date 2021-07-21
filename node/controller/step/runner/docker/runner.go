@@ -116,6 +116,10 @@ func (r *Runner) runContainer(ctx context.Context, req *dockerRunRequest) (respM
 	return respMap, nil
 }
 
+// 容器退出时, 需要
+// 1. 判断容器执行成功还是失败
+// 2. 收集容器运行时产生的日志
+// 3. 收集容器执行时的输出结果
 func (r *Runner) waitDown(ctx context.Context, id string, uploader store.Uploader) error {
 	// 退出后销毁docker
 	defer r.removeContainer(id)
@@ -143,7 +147,12 @@ func (r *Runner) waitDown(ctx context.Context, id string, uploader store.Uploade
 	return nil
 }
 
+//
 func (r *Runner) removeContainer(id string) {
+	// info, err := r.cli.ContainerInspect(context.Background(), id)
+	// if err != nil {
+
+	// }
 	err := r.cli.ContainerRemove(context.Background(), id, types.ContainerRemoveOptions{})
 	if err != nil {
 		r.log.Errorf("remove contain %s failed", err)

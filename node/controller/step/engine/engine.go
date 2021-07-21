@@ -30,12 +30,13 @@ func Init(wc *client.Client, recorder step.Recorder) (err error) {
 		return fmt.Errorf("init runner error, workflow client is nil")
 	}
 
+	engine.log = zap.L().Named("Runner.Engine")
 	engine.recorder = recorder
 	engine.wc = wc
 	engine.docker, err = docker.NewRunner()
 	engine.k8s = k8s.NewRunner()
 	engine.local = local.NewRunner()
-	engine.log = zap.L().Named("Runner.Engine")
+
 	if err != nil {
 		return err
 	}
@@ -112,18 +113,21 @@ func (e *Engine) Run(s *pipeline.Step) {
 	// 3.根据action定义的runner_type, 调用具体的runner
 	switch action.RunnerType {
 	case pipeline.RUNNER_TYPE_DOCKER:
-		e.docker.Run(context.Background(), req)
+		go e.docker.Run(context.Background(), req)
 	case pipeline.RUNNER_TYPE_K8s:
-		e.k8s.Run(context.Background(), req)
+		go e.k8s.Run(context.Background(), req)
 	case pipeline.RUNNER_TYPE_LOCAL:
-		e.local.Run(context.Background(), req)
+		go e.local.Run(context.Background(), req)
 	default:
 		s.Failed("unknown runner type: %s", action.RunnerType)
 		return
 	}
 }
 
+// 如果step执行完成, 从running列表中删除
 func (e *Engine) updateStep(s *pipeline.Step) {
+	e.log.Debugf("receive step %s update, status %s", s.Key, s.Status)
+
 	if err := e.recorder.Update(s); err != nil {
 		e.log.Errorf("update step status error, %s", err)
 	}

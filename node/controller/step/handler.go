@@ -2,6 +2,7 @@ package step
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/node/controller/step/engine"
@@ -38,6 +39,29 @@ func (c *Controller) syncHandler(key string) error {
 }
 
 func (c *Controller) addStep(s *pipeline.Step) error {
+	status := s.Status.Status
+	switch status {
+	case pipeline.STEP_STATUS_PENDDING:
+		return c.runStep(s)
+	case pipeline.STEP_STATUS_CANCELING:
+		return c.cancelStep(s)
+	case pipeline.STEP_STATUS_RUNNING:
+		// TODO: 判断引擎中该step状态是否一致
+		// 如果不一致则同步状态, 但是不作再次运行
+	case pipeline.STEP_STATUS_SUCCEEDED,
+		pipeline.STEP_STATUS_FAILED,
+		pipeline.STEP_STATUS_CANCELED,
+		pipeline.STEP_STATUS_SKIP,
+		pipeline.STEP_STATUS_REFUSE:
+		return fmt.Errorf("step %s status is %s has complete", s.Key, status)
+	case pipeline.STEP_STATUS_AUDITING:
+		return fmt.Errorf("step %s is %s, is auditing", s.Key, status)
+	}
+
+	return nil
+}
+
+func (c *Controller) runStep(s *pipeline.Step) error {
 	// 开始执行, 更新状态
 	s.Run()
 	c.updateStepStatus(s)
@@ -45,6 +69,10 @@ func (c *Controller) addStep(s *pipeline.Step) error {
 	// 执行结束, 更新状态
 	engine.RunStep(s)
 	c.updateStepStatus(s)
+	return nil
+}
+
+func (c *Controller) cancelStep(s *pipeline.Step) error {
 	return nil
 }
 

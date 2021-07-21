@@ -167,9 +167,19 @@ func (c *Controller) enqueueForDelete(s *pipeline.Step) {
 	c.workqueue.AddRateLimited(key)
 }
 
-// 如果step有状态更新, 同步更新到Pipeline上去
+// 如果step有状态更新, 存在几种场景:
+// 1. step 执行完成, node执行提交结果产生的状态变化, 这种情况不做处理
+// 2. step 取消, step 审核通过, 交由控制器处理
 func (c *Controller) enqueueForUpdate(oldObj, newObj *pipeline.Step) {
-	c.log.Infof("receive update object: old: %s, new: %s", oldObj.Key, newObj.Key)
+	c.log.Infof("receive update step: old: %s, new: %s", oldObj.Key, newObj.Key)
+
+	// 完成的step不作处理
+	if newObj.IsComplete() {
+		return
+	}
+
+	key := newObj.MakeObjectKey()
+	c.workqueue.AddRateLimited(key)
 }
 
 // runWorker is a long-running function that will continually call the
