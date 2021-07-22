@@ -13,7 +13,7 @@ type Runner interface {
 	// 连接到该执行环境
 	Connect(context.Context, *ConnectRequest) error
 	// 取消Step的执行
-	Cancel(context.Context, *CancelRequest) error
+	Cancel(context.Context, *CancelRequest)
 }
 
 func NewRunRequest(s *pipeline.Step, updater UpdateStepCallback) *RunRequest {
@@ -57,6 +57,12 @@ func (r *RunRequest) LoadRunnerParams(params map[string]string) {
 
 type LogRequest struct {
 	Step *pipeline.Step
+}
+
+func NewCancelRequest(s *pipeline.Step) *CancelRequest {
+	return &CancelRequest{
+		Step: s,
+	}
 }
 
 type CancelRequest struct {

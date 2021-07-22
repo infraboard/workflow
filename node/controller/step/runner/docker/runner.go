@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -12,7 +13,6 @@ import (
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
 
-	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/node/controller/step/runner"
 	"github.com/infraboard/workflow/node/controller/step/store"
 )
@@ -37,20 +37,23 @@ func NewRunner() (*Runner, error) {
 	}
 
 	log.Infof("docker runner connect success, version: %s", cli.ClientVersion())
+	ctm := 3 * time.Second
 
 	return &Runner{
-		log:   log,
-		cli:   cli,
-		store: store.NewStore(),
+		log:           log,
+		cli:           cli,
+		store:         store.NewStore(),
+		cancelTimeout: &ctm,
 	}, nil
 }
 
 // Docker官方SDK使用说明: https://docs.docker.com/engine/api/sdk/examples/
 // Docker官方API使用说明: https://docs.docker.com/engine/api/v1.41/
 type Runner struct {
-	cli   *client.Client
-	log   logger.Logger
-	store store.StoreFactory
+	cli           *client.Client
+	log           logger.Logger
+	store         store.StoreFactory
+	cancelTimeout *time.Duration
 }
 
 // ContainerCreate参数说明:  https://docs.docker.com/engine/api/v1.41/#operation/ContainerCreate
@@ -63,11 +66,6 @@ type Runner struct {
 //   GIT_SSH_URL: 代码仓库地址, 比如: git@gitee.com:infraboard/keyauth.git
 //   IMAGE_PUSH_URL: 代码推送地址
 func (r *Runner) Run(ctx context.Context, in *runner.RunRequest) {
-	if in.Step == nil || in.Step.Key == "" {
-		r.log.Errorf("step is nil or step key is \"\"")
-		return
-	}
-
 	req := newDockerRunRequest(in)
 	if err := req.Validate(); err != nil {
 		in.Step.Failed("validate docker run request error, %s", err)
@@ -112,7 +110,11 @@ func (r *Runner) runContainer(ctx context.Context, req *dockerRunRequest) (respM
 		return respMap, fmt.Errorf("run container error, %s", err)
 	}
 
-	r.waitDown(ctx, resp.ID, up)
+	// 等待容器执行结束
+	if err := r.waitDown(ctx, resp.ID, up); err != nil {
+		return respMap, err
+	}
+
 	return respMap, nil
 }
 
@@ -184,72 +186,23 @@ func (r *Runner) removeContainer(id string) {
 	}
 }
 
+func (r *Runner) Cancel(ctx context.Context, in *runner.CancelRequest) {
+	req := newDockerCancelRequest(in)
+	if err := req.Validate(); err != nil {
+		in.Step.Failed("validate container cancel request error, %s", err)
+		return
+	}
+
+	if err := r.cli.ContainerStop(ctx, req.ContainerID(), r.cancelTimeout); err != nil {
+		in.Step.Failed("cancel container error, %s", err)
+		return
+	}
+}
+
 func (r *Runner) Log(context.Context, *runner.LogRequest) (io.ReadCloser, error) {
 	return nil, nil
 }
 
 func (r *Runner) Connect(context.Context, *runner.ConnectRequest) error {
-	return nil
-}
-
-func (r *Runner) Cancel(context.Context, *runner.CancelRequest) error {
-	return nil
-}
-
-func newDockerRunRequest(r *runner.RunRequest) *dockerRunRequest {
-	if r.Step.Status == nil {
-		r.Step.Status = pipeline.NewDefaultStepStatus()
-	}
-	return &dockerRunRequest{r}
-}
-
-type dockerRunRequest struct {
-	*runner.RunRequest
-}
-
-func (r *dockerRunRequest) Image() string {
-	if r.ImageVersion() == "" {
-		return r.ImageURL()
-	}
-	return fmt.Sprintf("%s:%s", r.ImageURL(), r.ImageVersion())
-}
-
-func (r *dockerRunRequest) ImageURL() string {
-	return r.RunnerParams[IMAGE_URL_KEY]
-}
-
-func (r *dockerRunRequest) ImageVersion() string {
-	return r.RunParams[IMAGE_VERSION_KEY]
-}
-
-func (r *dockerRunRequest) ContainerName() string {
-	return r.Step.Key
-}
-
-func (r *dockerRunRequest) ContainerEnv() []string {
-	envs := []string{}
-	for k, v := range r.mergeParams() {
-		envs = append(envs, fmt.Sprintf("%s=%s", k, v))
-	}
-	return envs
-}
-
-func (r *dockerRunRequest) ContainerCMD() []string {
-	return strings.Split(r.RunnerParams[IMAGE_CMD_KEY], ",")
-}
-
-func (r *dockerRunRequest) mergeParams() map[string]string {
-	m := r.RunParams
-	for k, v := range r.Step.With {
-		m[k] = v
-	}
-	return m
-}
-
-func (r *dockerRunRequest) Validate() error {
-	if r.ImageURL() == "" {
-		return fmt.Errorf("%s missed", IMAGE_URL_KEY)
-	}
-
 	return nil
 }
