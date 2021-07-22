@@ -122,7 +122,7 @@ func (r *Runner) runContainer(ctx context.Context, req *dockerRunRequest) (respM
 // 3. 收集容器执行时的输出结果
 func (r *Runner) waitDown(ctx context.Context, id string, uploader store.Uploader) error {
 	// 退出后销毁docker
-	defer r.removeContainer(id)
+	defer r.containerExit(id)
 
 	// 记录容器的日志
 	out, err := r.cli.ContainerLogs(ctx, id, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
@@ -147,12 +147,37 @@ func (r *Runner) waitDown(ctx context.Context, id string, uploader store.Uploade
 	return nil
 }
 
-//
-func (r *Runner) removeContainer(id string) {
-	// info, err := r.cli.ContainerInspect(context.Background(), id)
-	// if err != nil {
+func (r *Runner) containerExit(id string) error {
+	info, err := r.inspectContainer(id)
+	if err != nil {
+		return fmt.Errorf("inspec container error, %s", err)
+	}
 
-	// }
+	// 获取容器执行退出状态
+	state := info.State
+	if state.ExitCode != 0 {
+		msg := fmt.Sprintf("container run failed, status %s, exit code is %d", state.Status, state.ExitCode)
+		if info.State.Error != "" {
+			msg += fmt.Sprintf(", error: %s", state.Error)
+		}
+		return fmt.Errorf(msg)
+	}
+
+	// 通过挂入的卷 收集容器的返回
+
+	// 删除容器
+	r.removeContainer(id)
+
+	return nil
+}
+
+func (r *Runner) inspectContainer(id string) (*types.ContainerJSON, error) {
+	resp, err := r.cli.ContainerInspect(context.Background(), id)
+	return &resp, err
+}
+
+// 删除容器
+func (r *Runner) removeContainer(id string) {
 	err := r.cli.ContainerRemove(context.Background(), id, types.ContainerRemoveOptions{})
 	if err != nil {
 		r.log.Errorf("remove contain %s failed", err)
