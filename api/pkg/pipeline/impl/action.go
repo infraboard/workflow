@@ -15,7 +15,6 @@ import (
 
 func (i *impl) CreateAction(ctx context.Context, req *pipeline.CreateActionRequest) (
 	*pipeline.Action, error) {
-
 	in, err := gcontext.GetGrpcInCtx(ctx)
 	if err != nil {
 		return nil, err

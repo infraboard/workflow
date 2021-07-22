@@ -49,7 +49,7 @@ func (c *Controller) addStep(s *pipeline.Step) error {
 		return fmt.Errorf("step %s has scheuled to node %s", s.Key, s.ScheduledNodeName())
 	}
 
-	// 如果开启审核，需要通过后，才能执行
+	// 如果开启审核，需要通过后，才能调度执行
 	if !c.isAllow(s) {
 		return fmt.Errorf("step not allow")
 	}

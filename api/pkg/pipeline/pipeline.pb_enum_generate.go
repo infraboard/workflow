@@ -188,3 +188,48 @@ func (t *AUDIT_RESPONSE) UnmarshalJSON(b []byte) error {
 	*t = ins
 	return nil
 }
+
+// ParseSTEP_CREATE_BYFromString Parse STEP_CREATE_BY from string
+func ParseSTEP_CREATE_BYFromString(str string) (STEP_CREATE_BY, error) {
+	key := strings.Trim(string(str), `"`)
+	v, ok := STEP_CREATE_BY_value[strings.ToUpper(key)]
+	if !ok {
+		return 0, fmt.Errorf("unknown STEP_CREATE_BY: %s", str)
+	}
+
+	return STEP_CREATE_BY(v), nil
+}
+
+// Equal type compare
+func (t STEP_CREATE_BY) Equal(target STEP_CREATE_BY) bool {
+	return t == target
+}
+
+// IsIn todo
+func (t STEP_CREATE_BY) IsIn(targets ...STEP_CREATE_BY) bool {
+	for _, target := range targets {
+		if t.Equal(target) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// MarshalJSON todo
+func (t STEP_CREATE_BY) MarshalJSON() ([]byte, error) {
+	b := bytes.NewBufferString(`"`)
+	b.WriteString(strings.ToUpper(t.String()))
+	b.WriteString(`"`)
+	return b.Bytes(), nil
+}
+
+// UnmarshalJSON todo
+func (t *STEP_CREATE_BY) UnmarshalJSON(b []byte) error {
+	ins, err := ParseSTEP_CREATE_BYFromString(string(b))
+	if err != nil {
+		return err
+	}
+	*t = ins
+	return nil
+}

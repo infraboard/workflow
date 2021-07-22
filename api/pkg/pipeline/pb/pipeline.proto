@@ -60,10 +60,22 @@ enum AUDIT_RESPONSE {
 	DENY = 2;
 }
 
+// STEP_TYPE step任务类型
+enum STEP_CREATE_BY {
+	// 由pipeline控制器创建
+	PIPELINE = 0;
+	// 由cronjob控制器创建
+	CRONJOB = 1;
+	// 由用户自己创建, 用于单次任务执行，比如调试
+	USER = 2;
+}
+
+
 service Service {
 	rpc CreatePipeline(CreatePipelineRequest) returns(Pipeline);
 	rpc QueryPipeline(QueryPipelineRequest) returns(PipelineSet);
 	rpc DescribePipeline(DescribePipelineRequest) returns(Pipeline);
+	rpc CreateStep(CreateStepRequest) returns(Step);
 	rpc QueryStep(QueryStepRequest) returns(StepSet);
 	rpc DescribeStep(DescribeStepRequest) returns(Step);
 	rpc DeleteStep(DeleteStepRequest) returns(Step);
@@ -207,9 +219,52 @@ message Stage {
 		];
 }
 
+message CreateStepRequest {
+    // 名称
+    string name = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"name" validate:"required"'}
+        ];
+	// 具体动作
+	string action = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"action" validate:"required"'}
+        ];
+	// 是否需要审批, 审批通过后才能执行
+	bool with_audit =3[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"with_audit"'}
+        ];
+	// 审批参数, 有审批模块做具体实现
+	map<string, string> audit_params = 4[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"audit_params"'}
+        ];
+	// 参数
+	map<string, string> with = 5[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"with"'}
+		];	
+	// step执行完成后, 是否需要通知
+	bool with_notify = 6[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"with_notify"'}
+        ];
+	// 通知参数, 由通知模块做具体实现
+	map<string, string> notify_params = 7[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"notify_params"'}
+        ];
+	// WebHook配置, 用于和其他系统联动, 比如各种机器人
+	WebHook webhook = 8[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"webhook"'}
+        ];
+	// 调度标签
+	map<string, string> node_selector = 9[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"node_selector"'}
+        ];
+}
+
 message Step {
+	// step由那种控制器创建的, 也就是step类型
+	STEP_CREATE_BY step_create_by = 16[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"step_create_by" json:"step_create_by"'}
+        ];
 	// 资源版本
-	int64 resource_version = 14 [
+	int64 resource_version = 14[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"resource_version" json:"resource_version,omitempty"'}
         ];
 	// Key 运行时标识符

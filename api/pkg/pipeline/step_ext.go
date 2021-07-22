@@ -207,6 +207,21 @@ func (s *StepSet) Add(item *Step) {
 	s.Items = append(s.Items, item)
 }
 
+func NewStep(req *CreateStepRequest) *Step {
+	return &Step{
+		Name:         req.Name,
+		Action:       req.Action,
+		WithAudit:    req.WithAudit,
+		AuditParams:  req.AuditParams,
+		With:         req.With,
+		WithNotify:   req.WithNotify,
+		NotifyParams: req.NotifyParams,
+		Webhook:      req.Webhook,
+		NodeSelector: req.NodeSelector,
+		Status:       NewDefaultStepStatus(),
+	}
+}
+
 func NewDefaultStep() *Step {
 	return &Step{
 		Status: NewDefaultStepStatus(),
