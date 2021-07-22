@@ -16,30 +16,30 @@ import (
 
 func (i *impl) CreateStep(ctx context.Context, req *pipeline.CreateStepRequest) (
 	*pipeline.Step, error) {
-	in, err := gcontext.GetGrpcInCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	tk := session.S().GetToken(in.GetAccessToKen())
-	if tk == nil {
-		return nil, exception.NewUnauthorized("token required")
-	}
+	// in, err := gcontext.GetGrpcInCtx(ctx)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// tk := session.S().GetToken(in.GetAccessToKen())
+	// if tk == nil {
+	// 	return nil, exception.NewUnauthorized("token required")
+	// }
 
-	step := pipeline.NewStep(req)
-	a.UpdateOwner(tk)
+	// step := pipeline.NewStep(req)
+	// a.UpdateOwner(tk)
 
-	value, err := json.Marshal(a)
-	if err != nil {
-		return nil, err
-	}
+	// value, err := json.Marshal(a)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	objKey := a.EtcdObjectKey()
-	objValue := string(value)
+	// objKey := a.EtcdObjectKey()
+	// objValue := string(value)
 
-	if _, err := i.client.Put(context.Background(), objKey, objValue); err != nil {
-		return nil, fmt.Errorf("put action with key: %s, error, %s", objKey, err.Error())
-	}
-	i.log.Debugf("create action success, key: %s", objKey)
+	// if _, err := i.client.Put(context.Background(), objKey, objValue); err != nil {
+	// 	return nil, fmt.Errorf("put action with key: %s, error, %s", objKey, err.Error())
+	// }
+	// i.log.Debugf("create action success, key: %s", objKey)
 	return nil, nil
 }
 
