@@ -14,8 +14,7 @@ func NewRunner() *Runner {
 type Runner struct {
 }
 
-func (r *Runner) Run(context.Context, *runner.RunRequest) {
-	return
+func (r *Runner) Run(ctx context.Context, in *runner.RunRequest, out *runner.RunResponse) {
 }
 
 func (r *Runner) Log(context.Context, *runner.LogRequest) (io.ReadCloser, error) {

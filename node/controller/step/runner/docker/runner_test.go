@@ -21,6 +21,7 @@ var (
 		"IMAGE_URL": "busybox",
 		"IMAGE_CMD": "date",
 	}
+	resp = runner.NewRunReponse(testUpdater)
 )
 
 func testUpdater(s *pipeline.Step) {
@@ -28,26 +29,27 @@ func testUpdater(s *pipeline.Step) {
 }
 
 func TestDockerRunNilStep(t *testing.T) {
-	req := runner.NewRunRequest(nil, testUpdater)
-	dr.Run(context.Background(), req)
+	req := runner.NewRunRequest(nil)
+
+	dr.Run(context.Background(), req, resp)
 }
 
 func TestDockerRunNULLStep(t *testing.T) {
-	req := runner.NewRunRequest(&pipeline.Step{}, testUpdater)
-	dr.Run(context.Background(), req)
+	req := runner.NewRunRequest(&pipeline.Step{})
+	dr.Run(context.Background(), req, resp)
 	t.Log(req.Step)
 }
 
 func TestDockerRunSampleStep(t *testing.T) {
-	req := runner.NewRunRequest(smapleStep, testUpdater)
-	dr.Run(context.Background(), req)
+	req := runner.NewRunRequest(smapleStep)
+	dr.Run(context.Background(), req, resp)
 	t.Log(smapleStep)
 }
 
 func TestDockerRunStepWithRunnerParams(t *testing.T) {
-	req := runner.NewRunRequest(smapleStep, testUpdater)
+	req := runner.NewRunRequest(smapleStep)
 	req.LoadRunnerParams(runnerParams)
-	dr.Run(context.Background(), req)
+	dr.Run(context.Background(), req, resp)
 	t.Log(smapleStep)
 }
 

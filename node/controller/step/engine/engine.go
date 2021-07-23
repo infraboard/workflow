@@ -20,7 +20,12 @@ var (
 )
 
 func RunStep(s *pipeline.Step) {
-	engine.Run(s)
+	// 开始执行, 更新状态
+	s.Run()
+	engine.updateStep(s)
+
+	// 执行step
+	go engine.Run(s)
 }
 
 func CancelStep(s *pipeline.Step) {

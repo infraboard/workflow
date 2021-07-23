@@ -30,6 +30,7 @@ func (h *handler) Registry(router router.SubRouter) {
 
 	r.BasePath("steps")
 	r.Handle("GET", "/", h.QueryStep).AddLabel(label.List)
+	r.Handle("POST", "/", h.CreateStep).AddLabel(label.Create)
 	r.Handle("GET", "/:id", h.DescribeStep).AddLabel(label.Get)
 
 	r.BasePath("actions")

@@ -112,7 +112,7 @@ func (p *Pipeline) Validate() error {
 }
 
 func (p *Pipeline) UpdateStep(s *Step) error {
-	ns, id := s.GetNamespace(), s.GetPipelineID()
+	ns, id := s.GetNamespace(), s.GetPipelineId()
 	if ns != p.Namespace || id != p.Id {
 		return fmt.Errorf("this step not match this pipeline, id or namespace is not correct")
 	}
@@ -236,6 +236,8 @@ func (p *Pipeline) GetNextFlow() *Flow {
 		steps := stage.NextStep()
 		for i := range steps {
 			step := steps[i]
+			step.PipelineId = p.Id
+			step.Namespace = p.Namespace
 			steps[i].BuildKey(p.Namespace, p.Id, stage.Id)
 			step.setFlowNumber(p.NextFlowNumber())
 		}
@@ -271,8 +273,6 @@ func (p *Pipeline) NextStep() (steps []*Step, isComplete bool) {
 		isComplete = true
 		return
 	}
-
-	
 
 	steps = f.items
 	return

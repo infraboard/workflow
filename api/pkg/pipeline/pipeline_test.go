@@ -160,15 +160,15 @@ func TestPipelineNextStepOK(t *testing.T) {
 	sample := SamplePipeline()
 	steps, ok := sample.NextStep()
 	t.Log("is complete: ", ok, "start steps: ", steps)
-	sample.Stages[0].Steps[0].Success(map[string]string{"status": "ok"})
+	sample.Stages[0].Steps[0].Success("status ok")
 	t.Log(sample.NextStep())
-	sample.Stages[0].Steps[1].Success(map[string]string{"status": "ok"})
+	sample.Stages[0].Steps[1].Success("status ok")
 	t.Log(sample.Stages[0].IsPassed())
 	t.Log(sample.NextStep())
 
-	sample.Stages[1].Steps[0].Success(map[string]string{"status": "ok"})
+	sample.Stages[1].Steps[0].Success("status ok")
 	t.Log(sample.NextStep())
-	sample.Stages[1].Steps[1].Success(map[string]string{"status": "ok"})
+	sample.Stages[1].Steps[1].Success("status ok")
 	t.Log(sample.Stages[1].IsPassed())
 
 	steps, ok = sample.NextStep()
@@ -179,7 +179,7 @@ func TestPipelineNextStepBreak(t *testing.T) {
 	sample := SamplePipeline()
 	t.Log(sample)
 	t.Log(sample.NextStep())
-	sample.Stages[0].Steps[0].Success(map[string]string{"status": "ok"})
+	sample.Stages[0].Steps[0].Success("status ok")
 	t.Log(sample.NextStep())
 	sample.Stages[0].Steps[1].Failed("step failed")
 	t.Log("step is passed: ", sample.Stages[0].IsPassed())
@@ -191,7 +191,7 @@ func TestPipelineCurrentFlowOK(t *testing.T) {
 	sample := SamplePipeline()
 	t.Log(sample)
 	t.Log(sample.NextStep())
-	sample.Stages[0].Steps[0].Success(map[string]string{"status": "ok"})
+	sample.Stages[0].Steps[0].Success("status ok")
 	t.Log("current flow: ", sample.GetCurrentFlow())
 
 	steps, ok := sample.NextStep()
@@ -202,7 +202,7 @@ func TestPipelineCurrentFlowOK(t *testing.T) {
 	steps, ok = sample.NextStep()
 	t.Log("is complete: ", ok, "steps: ", steps)
 
-	sample.Stages[0].Steps[1].Success(map[string]string{"status": "ok"})
+	sample.Stages[0].Steps[1].Success("status ok")
 	steps, ok = sample.NextStep()
 	t.Log("is complete: ", ok, "steps: ", steps)
 }
@@ -211,9 +211,9 @@ func TestStageNextStep(t *testing.T) {
 	sample := SampleStage("stage01")
 	t.Log(sample)
 	t.Log(sample.NextStep())
-	sample.Steps[0].Success(map[string]string{"status": "ok"})
+	sample.Steps[0].Success("status ok")
 	t.Log(sample.NextStep())
-	sample.Steps[1].Success(map[string]string{"status": "ok"})
+	sample.Steps[1].Success("status ok")
 	t.Log(sample)
 	t.Log(sample.NextStep())
 	t.Log(sample.IsPassed())
@@ -225,6 +225,7 @@ func TestUpdateStep(t *testing.T) {
 	s1 := pipeline.NewDefaultStep()
 	s1.Key = "..1.1"
 	s1.Action = "update01"
+	s1.Failed("xxx")
 	err := sample.UpdateStep(s1)
 
 	if should.NoError(err) {

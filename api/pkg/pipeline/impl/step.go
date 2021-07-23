@@ -9,6 +9,7 @@ import (
 	"github.com/infraboard/keyauth/client/session"
 	"github.com/infraboard/mcube/exception"
 	"github.com/infraboard/mcube/grpc/gcontext"
+	"github.com/rs/xid"
 	clientv3 "go.etcd.io/etcd/client/v3"
 
 	"github.com/infraboard/workflow/api/pkg/pipeline"
@@ -16,38 +17,49 @@ import (
 
 func (i *impl) CreateStep(ctx context.Context, req *pipeline.CreateStepRequest) (
 	*pipeline.Step, error) {
-	// in, err := gcontext.GetGrpcInCtx(ctx)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// tk := session.S().GetToken(in.GetAccessToKen())
-	// if tk == nil {
-	// 	return nil, exception.NewUnauthorized("token required")
-	// }
+	if err := req.Validate(); err != nil {
+		return nil, exception.NewBadRequest("validate create step request error, %s", err)
+	}
+	in, err := gcontext.GetGrpcInCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	tk := session.S().GetToken(in.GetAccessToKen())
+	if tk == nil {
+		return nil, exception.NewUnauthorized("token required")
+	}
 
-	// step := pipeline.NewStep(req)
-	// a.UpdateOwner(tk)
+	step := pipeline.NewStep(pipeline.STEP_CREATE_BY_USER, req)
+	step.Key = xid.New().String()
+	step.UpdateOwner(tk)
 
-	// value, err := json.Marshal(a)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	if err := i.validateStep(ctx, step); err != nil {
+		return nil, exception.NewBadRequest("validate step error, %s", err)
+	}
 
-	// objKey := a.EtcdObjectKey()
-	// objValue := string(value)
+	value, err := json.Marshal(step)
+	if err != nil {
+		return nil, err
+	}
 
-	// if _, err := i.client.Put(context.Background(), objKey, objValue); err != nil {
-	// 	return nil, fmt.Errorf("put action with key: %s, error, %s", objKey, err.Error())
-	// }
-	// i.log.Debugf("create action success, key: %s", objKey)
-	return nil, nil
+	objKey := step.MakeObjectKey()
+	objValue := string(value)
+
+	if _, err := i.client.Put(context.Background(), objKey, objValue); err != nil {
+		return nil, fmt.Errorf("put step with key: %s, error, %s", objKey, err.Error())
+	}
+	i.log.Debugf("create step success, key: %s", objKey)
+	return step, nil
 }
 
 func (i *impl) QueryStep(ctx context.Context, req *pipeline.QueryStepRequest) (
 	*pipeline.StepSet, error) {
 	listKey := pipeline.EtcdStepPrefix()
 	i.log.Infof("list etcd step resource key: %s", listKey)
-	resp, err := i.client.Get(ctx, listKey, clientv3.WithPrefix())
+	resp, err := i.client.Get(ctx,
+		listKey,
+		clientv3.WithPrefix(),
+		clientv3.WithSort(clientv3.SortByModRevision, clientv3.SortDescend))
 	if err != nil {
 		return nil, err
 	}

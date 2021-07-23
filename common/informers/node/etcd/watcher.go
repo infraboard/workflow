@@ -3,6 +3,7 @@ package etcd
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/infraboard/mcube/logger"
 	"go.etcd.io/etcd/api/v3/mvccpb"
@@ -90,6 +91,10 @@ func (i *shared) notifyNode(event *clientv3.Event, eventVersion int64) error {
 	new, err := node.LoadNodeFromBytes(event.Kv.Value)
 	if err != nil {
 		return err
+	}
+
+	if new == nil {
+		return fmt.Errorf("load node from bytes but get node object is nil")
 	}
 
 	old, hasOld, err := i.indexer.GetByKey(new.MakeObjectKey())

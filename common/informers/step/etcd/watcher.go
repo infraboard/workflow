@@ -95,14 +95,14 @@ func (i *shared) notifyStep(event *clientv3.Event, eventVersion int64) error {
 		// 区分Update
 		if hasOld {
 			// 更新缓存
-			i.log.Debugf("update step: %s", new.Key)
+			i.log.Debugf("update step store key: %s, status %s", new.Key, new.Status)
 			if err := i.indexer.Update(new); err != nil {
 				i.log.Errorf("update indexer cache error, %s", err)
 			}
 			i.handler.OnUpdate(old.(*pipeline.Step), new)
 		} else {
 			// 添加缓存
-			i.log.Debugf("add step: %s", new.Key)
+			i.log.Debugf("add step store key: %s, status %s", new.Key, new.Status)
 			if err := i.indexer.Add(new); err != nil {
 				i.log.Errorf("add indexer cache error, %s", err)
 			}

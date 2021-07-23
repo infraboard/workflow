@@ -98,7 +98,7 @@ func (c *Controller) scheduleStep(step *pipeline.Step) error {
 	c.log.Debugf("choice [%s] %s for step %s", node.Type, node.InstanceName, step.Key)
 	step.SetScheduleNode(node.InstanceName)
 	// 清除一下其他数据
-	if err := c.informer.Recorder().Update(step); err != nil {
+	if err := c.informer.Recorder().Update(step.Clone()); err != nil {
 		c.log.Errorf("update scheduled step error, %s", err)
 	}
 	return nil

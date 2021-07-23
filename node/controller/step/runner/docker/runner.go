@@ -65,24 +65,14 @@ type Runner struct {
 //   IMAGE_VERSION: 镜像版本 比如: v1
 //   GIT_SSH_URL: 代码仓库地址, 比如: git@gitee.com:infraboard/keyauth.git
 //   IMAGE_PUSH_URL: 代码推送地址
-func (r *Runner) Run(ctx context.Context, in *runner.RunRequest) {
+func (r *Runner) Run(ctx context.Context, in *runner.RunRequest, out *runner.RunResponse) {
+	r.log.Debugf("docker start run step: %s", in.Step.Key)
+
 	req := newDockerRunRequest(in)
 	if err := req.Validate(); err != nil {
-		in.Step.Failed("validate docker run request error, %s", err)
+		out.Failed("validate docker run request error, %s", err)
 		return
 	}
-
-	resp, err := r.runContainer(ctx, req)
-	if err != nil {
-		req.Step.Failed("run container error, %s", err)
-		return
-	}
-
-	req.Step.Success(resp)
-}
-
-func (r *Runner) runContainer(ctx context.Context, req *dockerRunRequest) (respMap map[string]string, err error) {
-	respMap = map[string]string{}
 
 	// 创建容器
 	resp, err := r.cli.ContainerCreate(ctx, &container.Config{
@@ -91,65 +81,66 @@ func (r *Runner) runContainer(ctx context.Context, req *dockerRunRequest) (respM
 		Cmd:   req.ContainerCMD(),
 	}, nil, nil, nil, req.ContainerName())
 	if err != nil {
-		return respMap, fmt.Errorf("create container error, %s", err)
+		out.Failed("create container error, %s", err)
+		return
 	}
+	// 退出时销毁容器
+	defer r.removeContainer(resp.ID)
 
 	// 更新状态
 	up := r.store.NewFileUploader(req.Step.Key)
-	respMap["log_driver"] = up.DriverName()
-	respMap["log_path"] = up.ObjectID()
-	respMap[CONTAINER_ID_KEY] = resp.ID
-	respMap[CONTAINER_WARN_KEY] = strings.Join(resp.Warnings, ",")
-	req.UpdateStepStatus()
+	out.UpdateReponseMap("log_driver", up.DriverName())
+	out.UpdateReponseMap("log_path", up.ObjectID())
+	out.UpdateReponseMap(CONTAINER_ID_KEY, resp.ID)
+	out.UpdateReponseMap(CONTAINER_WARN_KEY, strings.Join(resp.Warnings, ","))
 
 	// 启动容器
 	err = r.cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
 	if err != nil {
 		// 启动失败则删除容器
 		r.removeContainer(resp.ID)
-		return respMap, fmt.Errorf("run container error, %s", err)
+		out.Failed("run container error, %s", err)
+		return
 	}
 
-	// 等待容器执行结束
-	if err := r.waitDown(ctx, resp.ID, up); err != nil {
-		return respMap, err
+	// 记录容器的日志
+	logStream, err := r.cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
+	if err != nil {
+		out.Failed("get container log error, %s", err)
+		return
 	}
 
-	return respMap, nil
+	// 上传容器日志
+	if err := up.Upload(ctx, logStream); err != nil {
+		out.Failed(err.Error())
+		return
+	}
+
+	// 等待容器退出
+	statusCh, errCh := r.cli.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
+	select {
+	case err := <-errCh:
+		if err != nil {
+			out.Failed(err.Error())
+			return
+		}
+	case <-statusCh:
+	}
+
+	// 容器退出
+	if err := r.containerExit(resp.ID); err != nil {
+		out.Failed(err.Error())
+		return
+	}
 }
 
 // 容器退出时, 需要
 // 1. 判断容器执行成功还是失败
 // 2. 收集容器运行时产生的日志
 // 3. 收集容器执行时的输出结果
-func (r *Runner) waitDown(ctx context.Context, id string, uploader store.Uploader) error {
-	// 退出后销毁docker
-	defer r.containerExit(id)
-
-	// 记录容器的日志
-	out, err := r.cli.ContainerLogs(ctx, id, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
-	if err != nil {
-		return fmt.Errorf("get container log error, %s", err)
-	}
-
-	if err := uploader.Upload(ctx, out); err != nil {
-		return err
-	}
-
-	// 等待容器退出
-	statusCh, errCh := r.cli.ContainerWait(ctx, id, container.WaitConditionNotRunning)
-	select {
-	case err := <-errCh:
-		if err != nil {
-			panic(err)
-		}
-	case <-statusCh:
-	}
-
-	return nil
-}
-
 func (r *Runner) containerExit(id string) error {
+	r.log.Debugf("container %d strart exit ...", id)
+
 	info, err := r.inspectContainer(id)
 	if err != nil {
 		return fmt.Errorf("inspec container error, %s", err)
@@ -166,10 +157,6 @@ func (r *Runner) containerExit(id string) error {
 	}
 
 	// 通过挂入的卷 收集容器的返回
-
-	// 删除容器
-	r.removeContainer(id)
-
 	return nil
 }
 

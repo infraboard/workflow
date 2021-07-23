@@ -90,8 +90,8 @@ func (c *Controller) runPipeline(p *pipeline.Pipeline) error {
 
 func (c *Controller) nextStep(p *pipeline.Pipeline) []*pipeline.Step {
 	// 取消 pipeline 下次执行需要的step
-	steps, ok := p.NextStep()
-	if ok {
+	steps, isComplete := p.NextStep()
+	if isComplete {
 		if err := c.informer.Recorder().Update(p); err != nil {
 			c.log.Errorf("update pipeline %s end status to store error, %s", p.ShortDescribe(), err)
 		} else {
@@ -155,33 +155,12 @@ func (c *Controller) runPipelineNextStep(steps []*pipeline.Step) error {
 		ins := steps[i]
 
 		c.log.Debugf("create pipeline step: %s", ins.Key)
-		if err := c.step.Recorder().Update(ins); err != nil {
+		if err := c.step.Recorder().Update(ins.Clone()); err != nil {
 			c.log.Errorf(err.Error())
 		}
 	}
 
 	return nil
-}
-
-func (c *Controller) isAllow(s *pipeline.Step) bool {
-	if !s.WithAudit {
-		return true
-	}
-
-	// TODO: 如果未处理, 发送通知
-	if !s.HasSendAuditNotify() {
-		// TODO:
-		c.log.Errorf("send notify ...")
-		s.MarkSendAuditNotify()
-		// 更新step
-	}
-
-	if s.AuditPass() {
-		c.log.Debugf("step %s waiting for audit", s.Key)
-		return true
-	}
-
-	return false
 }
 
 // Pipeline 调度
@@ -225,12 +204,17 @@ func (c *Controller) updatePipelineStatus(p *pipeline.Pipeline) {
 func (c *Controller) UpdateStepCallback(old, new *pipeline.Step) {
 	c.log.Debugf("receive step update event, start update step status to pipeline ...")
 
+	if !new.CreateType.Equal(pipeline.STEP_CREATE_BY_PIPELINE) {
+		c.log.Debugf("step type is %s, skip update status to pipeline", new.CreateType)
+		return
+	}
+
 	if !new.IsComplete() {
 		c.log.Debugf("step status is %s, skip update to pipeline", new.Status.Status)
 		return
 	}
 
-	key := pipeline.PipeLineObjectKey(new.GetNamespace(), new.GetPipelineID())
+	key := pipeline.PipeLineObjectKey(new.GetNamespace(), new.GetPipelineId())
 	obj, ok, err := c.informer.GetStore().GetByKey(key)
 	if err != nil {
 		c.log.Errorf("get pipeline from store error, %s", err)

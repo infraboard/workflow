@@ -6,8 +6,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/infraboard/keyauth/pkg/token"
 	"github.com/infraboard/mcube/http/request"
 	"github.com/infraboard/mcube/types/ftime"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -207,8 +209,10 @@ func (s *StepSet) Add(item *Step) {
 	s.Items = append(s.Items, item)
 }
 
-func NewStep(req *CreateStepRequest) *Step {
+func NewStep(t STEP_CREATE_BY, req *CreateStepRequest) *Step {
 	return &Step{
+		CreateType:   t,
+		CreateAt:     ftime.Now().Timestamp(),
 		Name:         req.Name,
 		Action:       req.Action,
 		WithAudit:    req.WithAudit,
@@ -224,8 +228,22 @@ func NewStep(req *CreateStepRequest) *Step {
 
 func NewDefaultStep() *Step {
 	return &Step{
-		Status: NewDefaultStepStatus(),
+		CreateAt: ftime.Now().Timestamp(),
+		Status:   NewDefaultStepStatus(),
 	}
+}
+
+func (s *Step) Clone() *Step {
+	return proto.Clone(s).(*Step)
+}
+
+func (s *Step) IsCreateByPipeline() bool {
+	return s.CreateType.Equal(STEP_CREATE_BY_PIPELINE)
+}
+
+// TODO: 更新step相关用户信息
+func (s *Step) UpdateOwner(tk *token.Token) {
+	s.Namespace = tk.Namespace
 }
 
 func (s *Step) Run() {
@@ -279,10 +297,10 @@ func (s *Step) MarkSendAuditNotify() {
 	s.Status.Status = STEP_STATUS_AUDITING
 }
 
-func (s *Step) Success(resp map[string]string) {
+func (s *Step) Success(format string, a ...interface{}) {
 	s.Status.EndAt = ftime.Now().Timestamp()
 	s.Status.Status = STEP_STATUS_SUCCEEDED
-	s.UpdateResponse(resp)
+	s.Status.Message = fmt.Sprintf(format, a...)
 }
 
 func (s *Step) UpdateResponse(resp map[string]string) {
@@ -303,6 +321,7 @@ func (s *Step) Validate() error {
 }
 
 func (s *Step) SetScheduleNode(nodeName string) {
+	s.Status.Status = STEP_STATUS_PENDDING
 	s.Status.ScheduledNode = nodeName
 }
 
@@ -395,14 +414,6 @@ func (s *Step) GetPipelineStageNumber() int32 {
 	return int32(n)
 }
 
-func (s *Step) GetPipelineID() string {
-	return s.getKeyIndex(1)
-}
-
-func (s *Step) GetNamespace() string {
-	return s.getKeyIndex(0)
-}
-
 func (s *Step) getKeyIndex(index int) string {
 	kl := strings.Split(s.Key, ".")
 	if index+1 > len(kl) {
@@ -414,6 +425,14 @@ func (s *Step) getKeyIndex(index int) string {
 	}
 
 	return kl[index]
+}
+
+func NewCreateStepRequest() *CreateStepRequest {
+	return &CreateStepRequest{}
+}
+
+func (r *CreateStepRequest) Validate() error {
+	return validate.Struct(r)
 }
 
 func NewDefaultStepStatus() *StepStatus {

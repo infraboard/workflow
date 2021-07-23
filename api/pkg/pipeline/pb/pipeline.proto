@@ -10,7 +10,7 @@ import "github.com/infraboard/mcube/pb/resource/base.proto";
 
 // STEP_STATUS Step任务状态
 enum STEP_STATUS {
-    // 任务等待被调度
+    // 任务等待被执行
     PENDDING = 0;
 	// 正在执行
 	RUNNING = 1;
@@ -60,7 +60,7 @@ enum AUDIT_RESPONSE {
 	DENY = 2;
 }
 
-// STEP_TYPE step任务类型
+// STEP_CREATE_BY step任务类型
 enum STEP_CREATE_BY {
 	// 由pipeline控制器创建
 	PIPELINE = 0;
@@ -259,17 +259,33 @@ message CreateStepRequest {
 }
 
 message Step {
+	// Key 运行时标识符
+	string key = 9 [
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"key" json:"key,omitempty"'}
+        ];
 	// step由那种控制器创建的, 也就是step类型
-	STEP_CREATE_BY step_create_by = 16[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"step_create_by" json:"step_create_by"'}
+	STEP_CREATE_BY create_type = 16[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"create_type" json:"create_type"'}
+        ];
+	// 所属空间
+	string namespace = 17[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"namespace" json:"namespace"'}
+        ];
+	// 所属空间
+	string pipeline_id = 18[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"pipeline_id" json:"pipeline_id,omitempty"'}
+        ];
+	// 创建时间
+	int64 create_at = 19[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"create_at" json:"create_at"'}
+        ];
+	// 状态更新时间
+	int64 update_at = 20[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"update_at" json:"update_at"'}
         ];
 	// 资源版本
 	int64 resource_version = 14[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"resource_version" json:"resource_version,omitempty"'}
-        ];
-	// Key 运行时标识符
-	string key = 9 [
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"key" json:"key,omitempty"'}
         ];
 	// 步骤ID
 	int32 id = 1[
