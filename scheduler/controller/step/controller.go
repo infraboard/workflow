@@ -13,6 +13,7 @@ import (
 
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/common/cache"
+	"github.com/infraboard/workflow/common/hooks"
 	"github.com/infraboard/workflow/common/informers/step"
 	"github.com/infraboard/workflow/scheduler/algorithm"
 	"github.com/infraboard/workflow/scheduler/algorithm/roundrobin"
@@ -32,6 +33,7 @@ func NewStepController(
 		workqueue:      wq,
 		workerNums:     4,
 		cb:             cb,
+		webhook:        hooks.NewDefaultStepWebHookPusher(),
 		log:            zap.L().Named("Step"),
 		runningWorkers: make(map[string]bool, 4),
 	}
@@ -65,7 +67,12 @@ type Controller struct {
 	wLock          sync.Mutex
 	picker         algorithm.StepPicker
 	cb             step.UpdateStepCallback
+	webhook        hooks.StepWebHookPusher
 	schedulerName  string
+}
+
+func (c *Controller) SetWebHookPusher(p hooks.StepWebHookPusher) {
+	c.webhook = p
 }
 
 // SetPicker 设置Node挑选器
@@ -275,4 +282,10 @@ func (c *Controller) enqueueForUpdate(oldObj, newObj *pipeline.Step) {
 	if c.cb != nil {
 		c.cb(oldObj, newObj)
 	}
+
+	// 判断事件状态, 调用webhook
+	if err := c.webhook.Send(context.Background(), newObj.MatchedHooks(), newObj); err != nil {
+		c.log.Errorf("send web hook error, %s", err)
+	}
+
 }

@@ -220,7 +220,7 @@ func NewStep(t STEP_CREATE_BY, req *CreateStepRequest) *Step {
 		With:         req.With,
 		WithNotify:   req.WithNotify,
 		NotifyParams: req.NotifyParams,
-		Webhook:      req.Webhook,
+		Webhooks:     req.Webhooks,
 		NodeSelector: req.NodeSelector,
 		Status:       NewDefaultStepStatus(),
 	}
@@ -436,6 +436,17 @@ func (s *Step) getKeyIndex(index int) string {
 	return kl[index]
 }
 
+func (s *Step) MatchedHooks() []*WebHook {
+	target := []*WebHook{}
+	for i := range s.Webhooks {
+		hook := s.Webhooks[i]
+		if hook.IsMatch(s.Status.Status) {
+			target = append(target, hook)
+		}
+	}
+	return target
+}
+
 func NewCreateStepRequest() *CreateStepRequest {
 	return &CreateStepRequest{}
 }
@@ -462,4 +473,35 @@ func NewDescribeStepRequestWithKey(key string) *DescribeStepRequest {
 	return &DescribeStepRequest{
 		Key: key,
 	}
+}
+
+func (h *WebHook) StartSend() {
+	if h.Status == nil {
+		h.Status = &WebHookStatus{}
+	}
+	h.Status.StartAt = ftime.Now().Timestamp()
+}
+
+func (h *WebHook) SendFailed(format string, a ...interface{}) {
+	if h.Status.StartAt != 0 {
+		h.Status.Cost = ftime.Now().Timestamp() - h.Status.StartAt
+	}
+	h.Status.Message = fmt.Sprintf(format, a...)
+}
+
+func (h *WebHook) Success() {
+	if h.Status.StartAt != 0 {
+		h.Status.Cost = ftime.Now().Timestamp() - h.Status.StartAt
+	}
+	h.Status.Success = true
+}
+
+func (h *WebHook) IsMatch(t STEP_STATUS) bool {
+	for i := range h.Events {
+		if h.Events[i].Equal(t) {
+			return true
+		}
+	}
+
+	return false
 }

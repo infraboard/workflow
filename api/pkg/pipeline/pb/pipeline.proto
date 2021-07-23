@@ -20,7 +20,7 @@ enum STEP_STATUS {
 	FAILED = 4;
     // 取消中
     CANCELING = 5;
-    // 任务取消
+    // 取消完成
     CANCELED = 6;
 	// 忽略执行
 	SKIP = 7;
@@ -249,8 +249,8 @@ message CreateStepRequest {
         (google.protobuf.field_tag) = {struct_tag: 'json:"notify_params"'}
         ];
 	// WebHook配置, 用于和其他系统联动, 比如各种机器人
-	WebHook webhook = 8[
-        (google.protobuf.field_tag) = {struct_tag: 'json:"webhook"'}
+	repeated WebHook webhooks = 8[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"webhooks"'}
         ];
 	// 调度标签
 	map<string, string> node_selector = 9[
@@ -328,8 +328,8 @@ message Step {
         (google.protobuf.field_tag) = {struct_tag: 'bson:"notify_params" json:"notify_params"'}
         ];
 	// WebHook配置, 用于和其他系统联动, 比如各种机器人
-	WebHook webhook = 15[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"webhook" json:"webhook"'}
+	repeated WebHook webhooks = 15[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"webhooks" json:"webhooks"'}
         ];
 	// 调度标签
 	map<string, string> node_selector = 8[
@@ -344,19 +344,43 @@ message Step {
 message WebHook {
 	// POST URL
 	string url = 1[
-		(google.protobuf.field_tag) = {struct_tag: 'bson:"url" json:"url"'}
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"url" json:"url" validate:"required,url"'}
 		];
 	// 需要自定义添加的头, 用于身份认证
 	map<string, string> header = 2[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"header" json:"header"'}
         ];
 	// 那些状态下触发
-	repeated STEP_STATUS status = 3[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"status" json:"status"'}
+	repeated STEP_STATUS events = 3[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"events" json:"events"'}
         ];
 	// 简单的描述信息
 	string description = 4[
 		(google.protobuf.field_tag) = {struct_tag: 'bson:"description" json:"description"'}
+		];
+	// 推送结果
+	WebHookStatus status = 5[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"status" json:"status"'}
+		];
+	
+}
+
+message WebHookStatus {
+	// 开始时间
+	int64 start_at = 1[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"start_at" json:"start_at"'}
+		];
+	// 耗时多久，单位毫秒
+	int64 cost = 2[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"cost" json:"cost"'}
+		];
+	// 是否推送成功
+	bool success = 3[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"success" json:"success"'}
+		];
+	// 异常时的错误信息
+	string message = 4[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"message" json:"message"'}
 		];
 }
 

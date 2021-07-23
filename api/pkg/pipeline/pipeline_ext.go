@@ -238,6 +238,7 @@ func (p *Pipeline) GetNextFlow() *Flow {
 			step := steps[i]
 			step.PipelineId = p.Id
 			step.Namespace = p.Namespace
+			step.CreateAt = ftime.Now().Timestamp()
 			steps[i].BuildKey(p.Namespace, p.Id, stage.Id)
 			step.setFlowNumber(p.NextFlowNumber())
 		}
