@@ -93,6 +93,7 @@ func (r *Runner) Run(ctx context.Context, in *runner.RunRequest, out *runner.Run
 	out.UpdateReponseMap("log_path", up.ObjectID())
 	out.UpdateReponseMap(CONTAINER_ID_KEY, resp.ID)
 	out.UpdateReponseMap(CONTAINER_WARN_KEY, strings.Join(resp.Warnings, ","))
+	out.UpdateResponse(in.Step)
 
 	// 启动容器
 	err = r.cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})

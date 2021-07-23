@@ -312,6 +312,15 @@ func (s *Step) UpdateResponse(resp map[string]string) {
 	}
 }
 
+func (s *Step) UpdateCtx(resp map[string]string) {
+	if s.Status.ContextMap == nil {
+		s.Status.ContextMap = map[string]string{}
+	}
+	for k, v := range resp {
+		s.Status.ContextMap[k] = v
+	}
+}
+
 func (s *Step) MakeObjectKey() string {
 	return StepObjectKey(s.Key)
 }

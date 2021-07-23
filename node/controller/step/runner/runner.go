@@ -75,6 +75,8 @@ func (r *RunResponse) UpdateCtxMap(k, v string) {
 }
 
 func (r *RunResponse) UpdateResponse(s *pipeline.Step) {
+	s.UpdateResponse(r.resp)
+	s.UpdateCtx(r.ctx)
 	r.updater(s)
 }
 
