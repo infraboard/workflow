@@ -230,6 +230,7 @@ func NewDefaultStep() *Step {
 	return &Step{
 		CreateAt: ftime.Now().Timestamp(),
 		Status:   NewDefaultStepStatus(),
+		Webhooks: []*WebHook{},
 	}
 }
 

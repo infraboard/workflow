@@ -4,10 +4,20 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/infraboard/mcube/logger"
+	"github.com/infraboard/mcube/logger/zap"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 )
 
-type WebHook struct{}
+func NewWebHook() *WebHook {
+	return &WebHook{
+		log: zap.L().Named("WebHook"),
+	}
+}
+
+type WebHook struct {
+	log logger.Logger
+}
 
 func (h *WebHook) Send(ctx context.Context, hooks []*pipeline.WebHook, step *pipeline.Step) error {
 	if step == nil {
@@ -18,6 +28,7 @@ func (h *WebHook) Send(ctx context.Context, hooks []*pipeline.WebHook, step *pip
 		return err
 	}
 
+	h.log.Debugf("start send step[%s] webhook, total %d", step.Key, len(hooks))
 	for i := range hooks {
 		req := newRequest(hooks[i], step)
 		req.Push()

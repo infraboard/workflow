@@ -279,13 +279,12 @@ func (c *Controller) enqueueForDelete(s *pipeline.Step) {
 // 如果step有状态更新, 回调通知pipeline controller
 func (c *Controller) enqueueForUpdate(oldObj, newObj *pipeline.Step) {
 	c.log.Debugf("enqueue update ...")
-	if c.cb != nil {
-		c.cb(oldObj, newObj)
-	}
-
 	// 判断事件状态, 调用webhook
 	if err := c.webhook.Send(context.Background(), newObj.MatchedHooks(), newObj); err != nil {
 		c.log.Errorf("send web hook error, %s", err)
 	}
 
+	if c.cb != nil {
+		c.cb(oldObj, newObj)
+	}
 }

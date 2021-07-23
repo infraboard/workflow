@@ -19,5 +19,5 @@ type StepWebHookPusher interface {
 }
 
 func NewDefaultStepWebHookPusher() StepWebHookPusher {
-	return &webhook.WebHook{}
+	return webhook.NewWebHook()
 }
