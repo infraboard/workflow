@@ -178,6 +178,10 @@ func (i *impl) AuditStep(ctx context.Context, req *pipeline.AuditStepRequest) (
 		return nil, err
 	}
 
+	if !s.WithAudit {
+		return nil, exception.NewBadRequest("this step needn't audit")
+	}
+
 	s.Audit(req.AuditReponse, req.AuditMessage)
 	if err := i.putStep(ctx, s); err != nil {
 		return nil, fmt.Errorf("update step error, %s", err)

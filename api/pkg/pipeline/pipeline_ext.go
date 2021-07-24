@@ -335,3 +335,21 @@ func NewQueryPipelineOptions() *QueryPipelineOptions {
 type QueryPipelineOptions struct {
 	Node string
 }
+
+func NewDeleteStepRequestWithKey(key string) *DeleteStepRequest {
+	return &DeleteStepRequest{
+		Key: key,
+	}
+}
+
+func NewAuditStepRequestWithKey(key string) *AuditStepRequest {
+	return &AuditStepRequest{
+		Key: key,
+	}
+}
+
+func NewCancelStepRequestWithKey(key string) *CancelStepRequest {
+	return &CancelStepRequest{
+		Key: key,
+	}
+}

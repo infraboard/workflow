@@ -14,21 +14,21 @@ const (
 )
 
 var (
-	client = &http.Client{}
+	client = &http.Client{
+		Timeout: 3 * time.Second,
+	}
 )
 
 func newRequest(hook *pipeline.WebHook, step *pipeline.Step) *request {
 	return &request{
-		hook:    hook,
-		step:    step,
-		timeout: 3 * time.Second,
+		hook: hook,
+		step: step,
 	}
 }
 
 type request struct {
-	hook    *pipeline.WebHook
-	step    *pipeline.Step
-	timeout time.Duration // 请求超时时间
+	hook *pipeline.WebHook
+	step *pipeline.Step
 }
 
 func (r *request) Push() {

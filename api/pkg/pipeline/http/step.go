@@ -89,3 +89,75 @@ func (h *handler) DescribeStep(w http.ResponseWriter, r *http.Request) {
 	}
 	response.Success(w, dommains)
 }
+
+func (h *handler) DeleteStep(w http.ResponseWriter, r *http.Request) {
+	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
+	if err != nil {
+		response.Failed(w, err)
+		return
+	}
+
+	hc := context.GetContext(r)
+	req := pipeline.NewDeleteStepRequestWithKey(hc.PS.ByName("id"))
+
+	var header, trailer metadata.MD
+	dommains, err := h.service.DeleteStep(
+		ctx.Context(),
+		req,
+		grpc.Header(&header),
+		grpc.Trailer(&trailer),
+	)
+	if err != nil {
+		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		return
+	}
+	response.Success(w, dommains)
+}
+
+func (h *handler) AuditStep(w http.ResponseWriter, r *http.Request) {
+	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
+	if err != nil {
+		response.Failed(w, err)
+		return
+	}
+
+	hc := context.GetContext(r)
+	req := pipeline.NewAuditStepRequestWithKey(hc.PS.ByName("id"))
+
+	var header, trailer metadata.MD
+	dommains, err := h.service.AuditStep(
+		ctx.Context(),
+		req,
+		grpc.Header(&header),
+		grpc.Trailer(&trailer),
+	)
+	if err != nil {
+		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		return
+	}
+	response.Success(w, dommains)
+}
+
+func (h *handler) CancelStep(w http.ResponseWriter, r *http.Request) {
+	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
+	if err != nil {
+		response.Failed(w, err)
+		return
+	}
+
+	hc := context.GetContext(r)
+	req := pipeline.NewCancelStepRequestWithKey(hc.PS.ByName("id"))
+
+	var header, trailer metadata.MD
+	dommains, err := h.service.CancelStep(
+		ctx.Context(),
+		req,
+		grpc.Header(&header),
+		grpc.Trailer(&trailer),
+	)
+	if err != nil {
+		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		return
+	}
+	response.Success(w, dommains)
+}

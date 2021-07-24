@@ -32,6 +32,9 @@ func (h *handler) Registry(router router.SubRouter) {
 	r.Handle("GET", "/", h.QueryStep).AddLabel(label.List)
 	r.Handle("POST", "/", h.CreateStep).AddLabel(label.Create)
 	r.Handle("GET", "/:id", h.DescribeStep).AddLabel(label.Get)
+	r.Handle("DELETE", "/:id", h.DeleteStep).AddLabel(label.Delete)
+	r.Handle("POST", "/:id/audit", h.AuditStep).AddLabel(label.Update)
+	r.Handle("POST", "/:id/cancel", h.CancelStep).AddLabel(label.Update)
 
 	r.BasePath("actions")
 	r.Handle("POST", "/", h.CreateAction).AddLabel(label.Create)
