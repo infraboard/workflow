@@ -279,6 +279,9 @@ func (s *Step) Audit(resp AUDIT_RESPONSE, message string) {
 	s.Status.AuditAt = ftime.Now().Timestamp()
 	s.Status.AuditResponse = resp
 	s.Status.AuditMessage = message
+	if s.Status.AuditResponse.Equal(AUDIT_RESPONSE_ALLOW) {
+		s.Status.Status = STEP_STATUS_PENDDING
+	}
 }
 
 func (s *Step) HasSendAuditNotify() bool {

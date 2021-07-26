@@ -148,7 +148,7 @@ func (c *Controller) sync(ctx context.Context) error {
 			c.log.Debugf("step %s is scheduler to %s, skip schedule", s.Key, s.ScheduledNodeName())
 			continue
 		}
-
+		c.informer.GetStore().Add(s)
 		c.enqueueForAdd(s)
 		listCount++
 	}
@@ -278,12 +278,20 @@ func (c *Controller) enqueueForDelete(s *pipeline.Step) {
 // 如果step有状态更新, 回调通知pipeline controller
 func (c *Controller) enqueueForUpdate(oldObj, newObj *pipeline.Step) {
 	c.log.Debugf("enqueue update ...")
+
 	// 判断事件状态, 调用webhook
 	if err := c.webhook.Send(context.Background(), newObj.MatchedHooks(), newObj); err != nil {
 		c.log.Errorf("send web hook error, %s", err)
 	}
 
-	if c.cb != nil {
-		c.cb(oldObj, newObj)
+	switch newObj.CreateType {
+	case pipeline.STEP_CREATE_BY_PIPELINE:
+		// 如果是pipeline创建的，将事件传递给pipeline
+		if c.cb != nil {
+			c.cb(oldObj, newObj)
+		}
+	default:
+		key := newObj.MakeObjectKey()
+		c.workqueue.AddRateLimited(key)
 	}
 }

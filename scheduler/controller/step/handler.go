@@ -1,7 +1,6 @@
 package step
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/infraboard/workflow/api/pkg/pipeline"
@@ -18,7 +17,7 @@ func (c *Controller) syncHandler(key string) error {
 
 	st, isOK := obj.(*pipeline.Step)
 	if !isOK {
-		return errors.New("invalidate *pipeline.Step obj")
+		return fmt.Errorf("object %T invalidate, is not *pipeline.Step obj, ", obj)
 	}
 
 	// 如果不存在, 这期望行为为删除 (DEL)
@@ -66,12 +65,17 @@ func (c *Controller) isAllow(s *pipeline.Step) bool {
 		return true
 	}
 
+	// 判断审批状态是否同步
+
 	// TODO: 如果未处理, 发送通知
 	if !s.HasSendAuditNotify() {
 		// TODO:
 		c.log.Errorf("send notify ...")
 		s.MarkSendAuditNotify()
 		// 更新step
+		if err := c.informer.Recorder().Update(s.Clone()); err != nil {
+			c.log.Errorf("update scheduled step to auditing error, %s", err)
+		}
 	}
 
 	// 审核通过 允许执行

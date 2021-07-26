@@ -350,6 +350,10 @@ func NewDeleteStepRequestWithKey(key string) *DeleteStepRequest {
 	}
 }
 
+func NewAuditStepRequest() *AuditStepRequest {
+	return &AuditStepRequest{}
+}
+
 func NewAuditStepRequestWithKey(key string) *AuditStepRequest {
 	return &AuditStepRequest{
 		Key: key,

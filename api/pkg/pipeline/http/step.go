@@ -122,7 +122,12 @@ func (h *handler) AuditStep(w http.ResponseWriter, r *http.Request) {
 	}
 
 	hc := context.GetContext(r)
-	req := pipeline.NewAuditStepRequestWithKey(hc.PS.ByName("id"))
+	req := pipeline.NewAuditStepRequest()
+	if err := request.GetDataFromRequest(r, req); err != nil {
+		response.Failed(w, err)
+		return
+	}
+	req.Key = hc.PS.ByName("id")
 
 	var header, trailer metadata.MD
 	dommains, err := h.service.AuditStep(
