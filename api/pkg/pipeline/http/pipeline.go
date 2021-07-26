@@ -89,6 +89,7 @@ func (h *handler) DescribePipeline(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, dommains)
 }
 
+// pipeline删除时,除了删除pipeline对象本身而外，还需要删除该pipeline下的所有step
 func (h *handler) DeletePipeline(w http.ResponseWriter, r *http.Request) {
 	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
 	if err != nil {

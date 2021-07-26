@@ -710,7 +710,7 @@ message DescribePipelineRequest {
 message DeleteStepRequest {
 	// 唯一ID
 	string key = 1[
-		(google.protobuf.field_tag) = {struct_tag: 'json:"key"'}
+		(google.protobuf.field_tag) = {struct_tag: 'json:"key" validate:"required"'}
 		];
 }
 

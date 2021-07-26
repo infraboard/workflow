@@ -368,7 +368,6 @@ func (s *Step) IsRunning() bool {
 	return s.Status.Status.IsIn(
 		STEP_STATUS_RUNNING,
 		STEP_STATUS_CANCELING,
-		STEP_STATUS_AUDITING,
 	)
 }
 
@@ -505,4 +504,8 @@ func (h *WebHook) IsMatch(t STEP_STATUS) bool {
 	}
 
 	return false
+}
+
+func (req *DeleteStepRequest) Validate() error {
+	return validate.Struct(req)
 }

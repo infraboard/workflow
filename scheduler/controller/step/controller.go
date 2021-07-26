@@ -258,7 +258,6 @@ func (c *Controller) enqueueForAdd(s *pipeline.Step) {
 		return
 	}
 
-	c.informer.GetStore().Add(s)
 	key := s.MakeObjectKey()
 	c.workqueue.AddRateLimited(key)
 }

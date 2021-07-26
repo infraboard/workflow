@@ -121,6 +121,9 @@ func (i *impl) DescribeStep(ctx context.Context, req *pipeline.DescribeStepReque
 
 func (i *impl) DeleteStep(ctx context.Context, req *pipeline.DeleteStepRequest) (
 	*pipeline.Step, error) {
+	if err := req.Validate(); err != nil {
+		return nil, exception.NewBadRequest("validate delete request error, %s", err)
+	}
 	descKey := pipeline.StepObjectKey(req.Key)
 	i.log.Infof("delete etcd pipeline resource key: %s", descKey)
 	resp, err := i.client.Delete(ctx, descKey, clientv3.WithPrevKV())
@@ -204,5 +207,22 @@ func (i *impl) putStep(ctx context.Context, ins *pipeline.Step) error {
 	}
 	i.log.Debugf("put step success, key: %s", objKey)
 
+	return nil
+}
+
+func (i *impl) deletePipelineStep(ctx context.Context, ins *pipeline.Pipeline) error {
+	prefix := ins.StepPrefix()
+	if len(prefix) < 12 {
+		return fmt.Errorf("prefix length must large than 12")
+	}
+
+	deletePrefixKey := pipeline.StepObjectKey(prefix)
+	i.log.Infof("delete etcd step resource key prefix: %s", deletePrefixKey)
+	resp, err := i.client.Delete(ctx, deletePrefixKey, clientv3.WithPrefix())
+	if err != nil {
+		return err
+	}
+
+	i.log.Infof("delete pipeline %s total %d steps", ins.ShortDescribe(), resp.Deleted)
 	return nil
 }

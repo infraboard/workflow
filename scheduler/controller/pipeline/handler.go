@@ -92,6 +92,7 @@ func (c *Controller) nextStep(p *pipeline.Pipeline) []*pipeline.Step {
 	// 取消 pipeline 下次执行需要的step
 	steps, isComplete := p.NextStep()
 	if isComplete {
+		p.Complete()
 		if err := c.informer.Recorder().Update(p); err != nil {
 			c.log.Errorf("update pipeline %s end status to store error, %s", p.ShortDescribe(), err)
 		} else {

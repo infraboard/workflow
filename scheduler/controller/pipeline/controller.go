@@ -271,7 +271,6 @@ func (c *Controller) enqueueForAdd(p *pipeline.Pipeline) {
 		return
 	}
 
-	c.informer.GetStore().Add(p)
 	key := p.MakeObjectKey()
 	c.workqueue.AddRateLimited(key)
 }
@@ -285,6 +284,7 @@ func (c *Controller) enqueueForDelete(p *pipeline.Pipeline) {
 		c.log.Errorf("validate pipeline error, %s", err)
 		return
 	}
+
 	key := p.MakeObjectKey()
 	c.workqueue.AddRateLimited(key)
 }

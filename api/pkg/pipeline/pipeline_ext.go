@@ -11,6 +11,11 @@ import (
 	"github.com/rs/xid"
 )
 
+const (
+	// 一个pipeline最多可以有少个step
+	PIPELINE_MAX_STEPS = 100
+)
+
 // use a single instance of Validate, it caches struct info
 var (
 	validate = validator.New()
@@ -270,7 +275,6 @@ func (p *Pipeline) NextStep() (steps []*Step, isComplete bool) {
 
 	f := p.GetNextFlow()
 	if f == nil {
-		p.Complete()
 		isComplete = true
 		return
 	}
@@ -279,27 +283,31 @@ func (p *Pipeline) NextStep() (steps []*Step, isComplete bool) {
 	return
 }
 
-func (t *Pipeline) ShortDescribe() string {
-	return fmt.Sprintf("%s[%s]", t.Name, t.Id)
+func (p *Pipeline) ShortDescribe() string {
+	return fmt.Sprintf("%s[%s]", p.Name, p.Id)
 }
 
-func (t *Pipeline) ScheduledNodeName() string {
-	return t.Status.SchedulerNode
+func (p *Pipeline) ScheduledNodeName() string {
+	return p.Status.SchedulerNode
 }
 
-func (t *Pipeline) SetScheduleNode(nodeName string) {
-	t.Status.SchedulerNode = nodeName
+func (p *Pipeline) SetScheduleNode(nodeName string) {
+	p.Status.SchedulerNode = nodeName
 }
 
 func (p *Pipeline) EtcdObjectKey() string {
 	return fmt.Sprintf("%s/%s/%s", EtcdPipelinePrefix(), p.Namespace, p.Id)
 }
 
-func (s *Pipeline) MatchScheduler(schedulerName string) bool {
-	if s.Status == nil {
+func (p *Pipeline) MatchScheduler(schedulerName string) bool {
+	if p.Status == nil {
 		return false
 	}
-	return s.Status.SchedulerNode == schedulerName
+	return p.Status.SchedulerNode == schedulerName
+}
+
+func (p *Pipeline) StepPrefix() string {
+	return fmt.Sprintf("%s.%s", p.Namespace, p.Id)
 }
 
 // NewPipelineSet todo

@@ -67,14 +67,20 @@ func (c *Controller) cancelStep(s *pipeline.Step) error {
 	return nil
 }
 
-func (c *Controller) deleteStep(p *pipeline.Step) error {
-	c.log.Infof("receive add object: %s", p)
-	if err := p.Validate(); err != nil {
+// 当step删除时, 如果任务还在运行, 直接kill掉该任务
+func (c *Controller) deleteStep(s *pipeline.Step) error {
+	c.log.Infof("receive delete object: %s", s)
+	if err := s.Validate(); err != nil {
 		c.log.Errorf("invalidate node error, %s", err)
 		return nil
 	}
 
-	//
+	// 已经完成的step不作处理
+	if s.IsComplete() {
+		c.log.Debugf("step [%s] is complete, skip cancel", s.Key)
+	}
+
+	engine.CancelStep(s)
 
 	// 未调度的交给调度
 	return nil

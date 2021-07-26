@@ -159,26 +159,23 @@ func (i *impl) DeletePipeline(ctx context.Context, req *pipeline.DeletePipelineR
 	if tk == nil {
 		return nil, exception.NewUnauthorized("token required")
 	}
-	descKey := pipeline.PipeLineObjectKey(tk.Namespace, req.Id)
-	i.log.Infof("delete etcd pipeline resource key: %s", descKey)
-	resp, err := i.client.Delete(ctx, descKey, clientv3.WithPrevKV())
+
+	ins, err := i.DescribePipeline(ctx, pipeline.NewDescribePipelineRequestWithID(req.Id))
 	if err != nil {
 		return nil, err
 	}
 
-	if resp.Deleted == 0 {
-		return nil, exception.NewNotFound("pipeline %s not found", req.Id)
+	// 先删除pipeline对应的step
+	if err := i.deletePipelineStep(ctx, ins); err != nil {
+		i.log.Errorf("delete pipeline [%s] steps error, %s", err)
 	}
 
-	ins := pipeline.NewDefaultPipeline()
-	for index := range resp.PrevKvs {
-		// 解析对象
-		ins, err = pipeline.LoadPipelineFromBytes(resp.PrevKvs[index].Value)
-		if err != nil {
-			i.log.Error(err)
-			continue
-		}
-		ins.ResourceVersion = resp.Header.Revision
+	descKey := ins.MakeObjectKey()
+	i.log.Infof("delete etcd pipeline resource key: %s", descKey)
+	_, err = i.client.Delete(ctx, descKey, clientv3.WithPrevKV())
+	if err != nil {
+		return nil, err
 	}
+
 	return ins, nil
 }

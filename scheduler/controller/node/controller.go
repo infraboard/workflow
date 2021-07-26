@@ -83,6 +83,7 @@ func (c *Controller) run(ctx context.Context, async bool) error {
 
 	// 更新node存储
 	for i := range nodes {
+		c.informer.GetStore().Add(nodes[i])
 		c.enqueueForAdd(nodes[i])
 	}
 	c.log.Infof("sync all(%d) nodes success", len(nodes))
@@ -219,7 +220,6 @@ func (c *Controller) enqueueForAdd(n *node.Node) {
 		return
 	}
 
-	c.informer.GetStore().Add(n)
 	key := n.MakeObjectKey()
 	c.workqueue.AddRateLimited(key)
 }
@@ -233,6 +233,7 @@ func (c *Controller) enqueueForDelete(n *node.Node) {
 		c.log.Errorf("validate pipeline error, %s", err)
 		return
 	}
+
 	key := n.MakeObjectKey()
 	c.workqueue.AddRateLimited(key)
 }
@@ -240,4 +241,8 @@ func (c *Controller) enqueueForDelete(n *node.Node) {
 // 如果Pipeline有状态更新,
 func (c *Controller) enqueueForUpdate(oldObj, newObj *node.Node) {
 	c.log.Infof("receive update object: old: %s, new: %s", oldObj.ShortDescribe(), newObj.ShortDescribe)
+	if err := newObj.Validate(); err != nil {
+		c.log.Errorf("validate pipeline error, %s", err)
+		return
+	}
 }
