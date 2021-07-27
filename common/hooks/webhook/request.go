@@ -3,7 +3,6 @@ package webhook
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -59,8 +58,6 @@ func (r *request) Push() {
 		return
 	}
 
-	fmt.Println(string(body))
-
 	req, err := http.NewRequest("POST", r.hook.Url, bytes.NewReader(body))
 	if err != nil {
 		r.hook.SendFailed("new post request error, %s", err)
@@ -89,13 +86,14 @@ func (r *request) Push() {
 	respString := string(bytesB)
 
 	if (resp.StatusCode / 100) != 2 {
-		r.hook.SendFailed("status code[%d] is not 200", resp.StatusCode)
+		r.hook.SendFailed("status code[%d] is not 200, response %s", resp.StatusCode, respString)
 		return
 	}
 
+	// 通过返回匹配字符串来判断通知是否成功
 	if r.matchRes != "" {
 		if !strings.Contains(respString, r.matchRes) {
-			r.hook.SendFailed("reponse not match string %s, reponse: %s",
+			r.hook.SendFailed("reponse not match string %s, response: %s",
 				r.matchRes, respString)
 			return
 		}
