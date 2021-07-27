@@ -4,13 +4,19 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/common/hooks/webhook/feishu"
 )
 
 const (
 	MAX_WEBHOOKS_PER_SEND = 12
+)
+
+const (
+	feishuBot = "feishu"
 )
 
 var (
@@ -34,8 +40,16 @@ type request struct {
 func (r *request) Push() {
 	r.hook.StartSend()
 
-	// 准备请求
-	body, err := json.Marshal(r.step)
+	// 准备请求,适配主流机器人
+	var messageObj interface{}
+	switch r.BotType() {
+	case feishuBot:
+		messageObj = feishu.NewStepCardMessage(r.step)
+	default:
+		messageObj = r.step
+	}
+
+	body, err := json.Marshal(messageObj)
 	if err != nil {
 		r.hook.SendFailed("marshal step to json error, %s", err)
 		return
@@ -65,4 +79,11 @@ func (r *request) Push() {
 	}
 
 	r.hook.Success()
+}
+
+func (r *request) BotType() string {
+	if strings.HasPrefix(r.hook.Url, feishu.URL_PREFIX) {
+		return feishuBot
+	}
+	return ""
 }

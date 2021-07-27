@@ -75,6 +75,7 @@ service Service {
 	rpc CreatePipeline(CreatePipelineRequest) returns(Pipeline);
 	rpc QueryPipeline(QueryPipelineRequest) returns(PipelineSet);
 	rpc DescribePipeline(DescribePipelineRequest) returns(Pipeline);
+	rpc WatchPipeline(WatchPipelineRequest) returns(stream Pipeline);
 	rpc CreateStep(CreateStepRequest) returns(Step);
 	rpc QueryStep(QueryStepRequest) returns(StepSet);
 	rpc DescribeStep(DescribeStepRequest) returns(Step);
@@ -735,4 +736,11 @@ message AuditStepRequest {
 	string audit_message = 3[
         (google.protobuf.field_tag) = {struct_tag: 'json:"audit_message"'}
         ];
+}
+
+message WatchPipelineRequest {
+	// 需要watch的id
+	repeated string id = 1[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"id"'}
+		];
 }

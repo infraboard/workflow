@@ -450,6 +450,10 @@ func (s *Step) MatchedHooks() []*WebHook {
 	return target
 }
 
+func (s *Step) ShowTitle() string {
+	return fmt.Sprintf("任务[%s]当前状态: %s", s.Name, s.Status.Status)
+}
+
 func NewCreateStepRequest() *CreateStepRequest {
 	return &CreateStepRequest{}
 }

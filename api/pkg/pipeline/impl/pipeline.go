@@ -179,3 +179,11 @@ func (i *impl) DeletePipeline(ctx context.Context, req *pipeline.DeletePipelineR
 
 	return ins, nil
 }
+
+func (i *impl) WatchPipeline(*pipeline.WatchPipelineRequest, pipeline.Service_WatchPipelineServer) error {
+		// 监听事件
+		stepWatchKey := pipeline.EtcdStepPrefix()
+		i.watchChan = i.client.Watch(ctx, stepWatchKey, clientv3.WithPrefix())
+		i.log.Infof("watch etcd step resource key: %s", stepWatchKey)
+	return nil
+}
