@@ -53,6 +53,10 @@ func messageConfig() *CardConfig {
 }
 
 func messageCardColor(s *pipeline.Step) string {
+	if s.Status == nil {
+		s.Status = pipeline.NewDefaultStepStatus()
+	}
+
 	switch s.Status.Status {
 	case pipeline.STEP_STATUS_PENDDING,
 		pipeline.STEP_STATUS_SKIP:

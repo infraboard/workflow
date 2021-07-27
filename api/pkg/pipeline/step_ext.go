@@ -451,7 +451,15 @@ func (s *Step) MatchedHooks() []*WebHook {
 }
 
 func (s *Step) ShowTitle() string {
-	return fmt.Sprintf("任务[%s]当前状态: %s", s.Name, s.Status.Status)
+	return fmt.Sprintf("任务[%s]当前状态: %s", s.Name, s.StatusDescribe())
+}
+
+func (s *Step) StatusDescribe() string {
+	if s.Status == nil {
+		return STEP_STATUS_PENDDING.String()
+	}
+
+	return s.Status.Status.String()
 }
 
 func NewCreateStepRequest() *CreateStepRequest {
@@ -496,11 +504,12 @@ func (h *WebHook) SendFailed(format string, a ...interface{}) {
 	h.Status.Message = fmt.Sprintf(format, a...)
 }
 
-func (h *WebHook) Success() {
+func (h *WebHook) Success(message string) {
 	if h.Status.StartAt != 0 {
 		h.Status.Cost = ftime.Now().Timestamp() - h.Status.StartAt
 	}
 	h.Status.Success = true
+	h.Status.Message = message
 }
 
 func (h *WebHook) IsMatch(t STEP_STATUS) bool {

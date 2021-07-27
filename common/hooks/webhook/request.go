@@ -3,6 +3,8 @@ package webhook
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -33,8 +35,9 @@ func newRequest(hook *pipeline.WebHook, step *pipeline.Step) *request {
 }
 
 type request struct {
-	hook *pipeline.WebHook
-	step *pipeline.Step
+	hook     *pipeline.WebHook
+	step     *pipeline.Step
+	matchRes string
 }
 
 func (r *request) Push() {
@@ -45,6 +48,7 @@ func (r *request) Push() {
 	switch r.BotType() {
 	case feishuBot:
 		messageObj = feishu.NewStepCardMessage(r.step)
+		r.matchRes = `"StatusCode":0,`
 	default:
 		messageObj = r.step
 	}
@@ -55,12 +59,15 @@ func (r *request) Push() {
 		return
 	}
 
+	fmt.Println(string(body))
+
 	req, err := http.NewRequest("POST", r.hook.Url, bytes.NewReader(body))
 	if err != nil {
 		r.hook.SendFailed("new post request error, %s", err)
 		return
 	}
 
+	req.Header.Set("Content-Type", "application/json")
 	for k, v := range r.hook.Header {
 		req.Header.Add(k, v)
 	}
@@ -73,12 +80,28 @@ func (r *request) Push() {
 	}
 	defer resp.Body.Close()
 
+	// 读取body
+	bytesB, err := io.ReadAll(resp.Body)
+	if err != nil {
+		r.hook.SendFailed("read response error, %s", err)
+		return
+	}
+	respString := string(bytesB)
+
 	if (resp.StatusCode / 100) != 2 {
 		r.hook.SendFailed("status code[%d] is not 200", resp.StatusCode)
 		return
 	}
 
-	r.hook.Success()
+	if r.matchRes != "" {
+		if !strings.Contains(respString, r.matchRes) {
+			r.hook.SendFailed("reponse not match string %s, reponse: %s",
+				r.matchRes, respString)
+			return
+		}
+	}
+
+	r.hook.Success(respString)
 }
 
 func (r *request) BotType() string {

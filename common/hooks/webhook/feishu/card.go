@@ -32,9 +32,9 @@ func NewMarkdownContent(content string) *Element {
 
 // car element说明: https://open.feishu.cn/document/ukTMukTMukTM/uEjNwUjLxYDM14SM2ATN
 type Element struct {
-	Tag    string     `json:"tag"`
-	Text   Text       `json:"text"`
-	Fields FieldGroup `json:"fields"`
+	Tag    string   `json:"tag"`
+	Text   Text     `json:"text"`
+	Fields []*Field `json:"fields"`
 }
 
 // 说明文档: https://open.feishu.cn/document/ukTMukTMukTM/uUzNwUjL1cDM14SN3ATN
@@ -45,7 +45,7 @@ type Text struct {
 }
 
 // 说明文档 https://open.feishu.cn/document/ukTMukTMukTM/uYzNwUjL2cDM14iN3ATN
-type FieldGroup struct {
+type Field struct {
 	IsShort bool `json:"is_short"`
 	Text    Text `json:"text"`
 }
