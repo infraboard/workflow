@@ -140,7 +140,7 @@ func (r *Runner) Run(ctx context.Context, in *runner.RunRequest, out *runner.Run
 // 2. 收集容器运行时产生的日志
 // 3. 收集容器执行时的输出结果
 func (r *Runner) containerExit(id string) error {
-	r.log.Debugf("container %d strart exit ...", id)
+	r.log.Debugf("container %s strart exit ...", id)
 
 	info, err := r.inspectContainer(id)
 	if err != nil {
