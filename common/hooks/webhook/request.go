@@ -11,6 +11,7 @@ import (
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/common/hooks/webhook/dingding"
 	"github.com/infraboard/workflow/common/hooks/webhook/feishu"
+	"github.com/infraboard/workflow/common/hooks/webhook/wechat"
 )
 
 const (
@@ -20,6 +21,7 @@ const (
 const (
 	feishuBot   = "feishu"
 	dingdingBot = "dingding"
+	wechatBot   = "wechat"
 )
 
 var (
@@ -52,6 +54,9 @@ func (r *request) Push() {
 		r.matchRes = `"StatusCode":0,`
 	case dingdingBot:
 		messageObj = dingding.NewStepCardMessage(r.step)
+		r.matchRes = `"errcode":0,`
+	case wechatBot:
+		messageObj = wechat.NewStepMarkdownMessage(r.step)
 		r.matchRes = `"errcode":0,`
 	default:
 		messageObj = r.step
@@ -113,6 +118,9 @@ func (r *request) BotType() string {
 	}
 	if strings.HasPrefix(r.hook.Url, dingding.URL_PREFIX) {
 		return dingdingBot
+	}
+	if strings.HasPrefix(r.hook.Url, wechat.URL_PREFIX) {
+		return wechatBot
 	}
 
 	return ""

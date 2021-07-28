@@ -13,6 +13,7 @@ import (
 var (
 	feishuBotURL = "https://open.feishu.cn/open-apis/bot/v2/hook/xxx"
 	dingBotURL   = "https://oapi.dingtalk.com/robot/send?access_token=xxxx"
+	wechatBotURL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=693axxx6-7aoc-4bc4-97a0-0ec2sifa5aaa"
 )
 
 func TestFeishuWebHook(t *testing.T) {
@@ -42,6 +43,20 @@ func TestDingDingWebHook(t *testing.T) {
 	)
 	should.NoError(err)
 
+	t.Log(hooks[0])
+}
+
+func TestWechatWebHook(t *testing.T) {
+	should := assert.New(t)
+
+	hooks := testPipelineWebHook(wechatBotURL)
+	sender := webhook.NewWebHook()
+	err := sender.Send(
+		context.Background(),
+		hooks,
+		testPipelineStep(),
+	)
+	should.NoError(err)
 	t.Log(hooks[0])
 }
 
