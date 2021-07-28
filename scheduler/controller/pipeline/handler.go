@@ -204,16 +204,18 @@ func (c *Controller) updatePipelineStatus(p *pipeline.Pipeline) {
 // step 如果完成后, 将状态记录到Pipeline上, 并删除step
 func (c *Controller) UpdateStepCallback(old, new *pipeline.Step) {
 	c.log.Debugf("receive step update event, start update step status to pipeline ...")
+	c.log.Debugf("old[%s]: %s, new[%s]: %s", old.Key, old.Status, new.Key, new.Status)
 
 	if !new.CreateType.Equal(pipeline.STEP_CREATE_BY_PIPELINE) {
 		c.log.Debugf("step type is %s, skip update status to pipeline", new.CreateType)
 		return
 	}
 
-	if !new.IsComplete() {
-		c.log.Debugf("step status is %s, skip update to pipeline", new.Status.Status)
-		return
-	}
+	// TODO: 避免重复更新, 这里由于修改了old的状态，导致最新和old状态一样，后面采用copy传达
+	// if !new.IsComplete() {
+	// 	c.log.Debugf("step status is %s, skip update to pipeline", new.Status.Status)
+	// 	return
+	// }
 
 	key := pipeline.PipeLineObjectKey(new.GetNamespace(), new.GetPipelineId())
 	obj, ok, err := c.informer.GetStore().GetByKey(key)
