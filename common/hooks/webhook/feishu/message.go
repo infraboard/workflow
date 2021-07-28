@@ -12,13 +12,6 @@ const (
 
 type MessageType string
 
-// https://www.feishu.cn/hc/zh-CN/articles/360024984973
-// 默认使用飞书的card数据模式
-type Message struct {
-	MsgType MessageType `json:"msg_type"`
-	Card    Card        `json:"card"`
-}
-
 func NewStepCardMessage(s *pipeline.Step) *Message {
 	return &Message{
 		MsgType: CardMessage,
@@ -28,6 +21,13 @@ func NewStepCardMessage(s *pipeline.Step) *Message {
 			Elements: messageContent(s),
 		},
 	}
+}
+
+// https://www.feishu.cn/hc/zh-CN/articles/360024984973
+// 默认使用飞书的card数据模式
+type Message struct {
+	MsgType MessageType `json:"msg_type"`
+	Card    Card        `json:"card"`
 }
 
 func messageContent(s *pipeline.Step) []*Element {

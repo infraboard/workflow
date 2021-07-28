@@ -11,13 +11,14 @@ import (
 )
 
 var (
-	botURL = "https://open.feishu.cn/open-apis/bot/v2/hook/xxx"
+	feishuBotURL = "https://open.feishu.cn/open-apis/bot/v2/hook/xxx"
+	dingBotURL   = "https://oapi.dingtalk.com/robot/send?access_token=xxxx"
 )
 
 func TestFeishuWebHook(t *testing.T) {
 	should := assert.New(t)
 
-	hooks := testPipelineWebHook()
+	hooks := testPipelineWebHook(feishuBotURL)
 	sender := webhook.NewWebHook()
 	err := sender.Send(
 		context.Background(),
@@ -29,9 +30,24 @@ func TestFeishuWebHook(t *testing.T) {
 	t.Log(hooks[0])
 }
 
-func testPipelineWebHook() []*pipeline.WebHook {
+func TestDingDingWebHook(t *testing.T) {
+	should := assert.New(t)
+
+	hooks := testPipelineWebHook(dingBotURL)
+	sender := webhook.NewWebHook()
+	err := sender.Send(
+		context.Background(),
+		hooks,
+		testPipelineStep(),
+	)
+	should.NoError(err)
+
+	t.Log(hooks[0])
+}
+
+func testPipelineWebHook(url string) []*pipeline.WebHook {
 	h1 := &pipeline.WebHook{
-		Url:         botURL,
+		Url:         url,
 		Events:      []pipeline.STEP_STATUS{pipeline.STEP_STATUS_SUCCEEDED},
 		Description: "测试",
 	}
