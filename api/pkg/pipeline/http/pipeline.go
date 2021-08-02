@@ -1,8 +1,11 @@
 package http
 
 import (
+	"fmt"
+	"io"
 	"net/http"
 
+	"github.com/infraboard/keyauth/pkg/token"
 	"github.com/infraboard/mcube/grpc/gcontext"
 	"github.com/infraboard/mcube/http/context"
 	"github.com/infraboard/mcube/http/request"
@@ -112,4 +115,44 @@ func (h *handler) DeletePipeline(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response.Success(w, dommains)
+}
+
+func (h *handler) WatchPipelineCheck(w http.ResponseWriter, r *http.Request) {
+	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
+	if err != nil {
+		response.Failed(w, err)
+		return
+	}
+
+	hc := context.GetContext(r)
+	tk, ok := hc.AuthInfo.(*token.Token)
+	if !ok {
+		response.Failed(w, fmt.Errorf("auth info is not an *token.Token"))
+		return
+	}
+
+	req := pipeline.NewWatchPipelineRequestByID("", hc.PS.ByName("id"))
+	req.Namespace = tk.Namespace
+	req.DryRun = true
+
+	var header, trailer metadata.MD
+	stream, err := h.service.WatchPipeline(
+		ctx.Context(),
+		req,
+		grpc.Header(&header),
+		grpc.Trailer(&trailer),
+	)
+
+	if err != nil {
+		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		return
+	}
+
+	_, err = stream.Recv()
+	if err != nil && err != io.EOF {
+		response.Failed(w, err)
+		return
+	}
+
+	response.Success(w, "check ok")
 }

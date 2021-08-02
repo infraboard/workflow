@@ -233,3 +233,48 @@ func (t *STEP_CREATE_BY) UnmarshalJSON(b []byte) error {
 	*t = ins
 	return nil
 }
+
+// ParsePIPELINE_WATCH_MODFromString Parse PIPELINE_WATCH_MOD from string
+func ParsePIPELINE_WATCH_MODFromString(str string) (PIPELINE_WATCH_MOD, error) {
+	key := strings.Trim(string(str), `"`)
+	v, ok := PIPELINE_WATCH_MOD_value[strings.ToUpper(key)]
+	if !ok {
+		return 0, fmt.Errorf("unknown PIPELINE_WATCH_MOD: %s", str)
+	}
+
+	return PIPELINE_WATCH_MOD(v), nil
+}
+
+// Equal type compare
+func (t PIPELINE_WATCH_MOD) Equal(target PIPELINE_WATCH_MOD) bool {
+	return t == target
+}
+
+// IsIn todo
+func (t PIPELINE_WATCH_MOD) IsIn(targets ...PIPELINE_WATCH_MOD) bool {
+	for _, target := range targets {
+		if t.Equal(target) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// MarshalJSON todo
+func (t PIPELINE_WATCH_MOD) MarshalJSON() ([]byte, error) {
+	b := bytes.NewBufferString(`"`)
+	b.WriteString(strings.ToUpper(t.String()))
+	b.WriteString(`"`)
+	return b.Bytes(), nil
+}
+
+// UnmarshalJSON todo
+func (t *PIPELINE_WATCH_MOD) UnmarshalJSON(b []byte) error {
+	ins, err := ParsePIPELINE_WATCH_MODFromString(string(b))
+	if err != nil {
+		return err
+	}
+	*t = ins
+	return nil
+}

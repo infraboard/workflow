@@ -365,3 +365,35 @@ func NewCancelStepRequestWithKey(key string) *CancelStepRequest {
 		Key: key,
 	}
 }
+
+func NewWatchPipelineRequestByID(namespace, id string) *WatchPipelineRequest {
+	return &WatchPipelineRequest{
+		Namespace: namespace,
+		Id:        id,
+		Mod:       PIPELINE_WATCH_MOD_BY_ID,
+	}
+}
+
+func NewWatchPipelineRequestByNamespace(namespace string) *WatchPipelineRequest {
+	return &WatchPipelineRequest{
+		Namespace: namespace,
+		Mod:       PIPELINE_WATCH_MOD_BY_NAMESPACE,
+	}
+}
+
+func (req *WatchPipelineRequest) Validate() error {
+	switch req.Mod {
+	case PIPELINE_WATCH_MOD_BY_ID:
+		if req.Id != "" && req.Namespace == "" {
+			return fmt.Errorf("when watch pipeline namespace id required")
+		}
+	case PIPELINE_WATCH_MOD_BY_NAMESPACE:
+		if req.Namespace == "" {
+			return fmt.Errorf("namespace required")
+		}
+	default:
+		return fmt.Errorf("unknown watch mod %s", req.Mod)
+	}
+
+	return nil
+}

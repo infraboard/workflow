@@ -70,6 +70,13 @@ enum STEP_CREATE_BY {
 	USER = 2;
 }
 
+enum PIPELINE_WATCH_MOD {
+	// watch sigle pipeline 
+	BY_ID = 0;
+	// watch namespace pipeline
+	BY_NAMESPACE = 1;
+}
+
 
 service Service {
 	rpc CreatePipeline(CreatePipelineRequest) returns(Pipeline);
@@ -739,8 +746,19 @@ message AuditStepRequest {
 }
 
 message WatchPipelineRequest {
-	// 需要watch的id
-	repeated string id = 1[
+	PIPELINE_WATCH_MOD mod = 1 [
+		(google.protobuf.field_tag) = {struct_tag: 'json:"mod"'}
+		];
+	// 需要watch的pipeline id
+	string id = 2[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"id"'}
+		];
+	// watch整个namespace piplein 状态变化, 用于做namespace实时状态大屏
+	string namespace = 3[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"namespace"'}
+		];
+	// 并不执行真正的watch, 尝试运行, 主要用于链接前的检查工作
+	bool dry_run = 4[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"dry_run"'}
 		];
 }

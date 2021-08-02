@@ -8,8 +8,10 @@ import (
 	"github.com/infraboard/keyauth/client/session"
 	"github.com/infraboard/mcube/exception"
 	"github.com/infraboard/mcube/grpc/gcontext"
-	"github.com/infraboard/workflow/api/pkg/pipeline"
 	clientv3 "go.etcd.io/etcd/client/v3"
+	"google.golang.org/grpc/metadata"
+
+	"github.com/infraboard/workflow/api/pkg/pipeline"
 )
 
 func (i *impl) CreatePipeline(ctx context.Context, req *pipeline.CreatePipelineRequest) (
@@ -180,10 +182,77 @@ func (i *impl) DeletePipeline(ctx context.Context, req *pipeline.DeletePipelineR
 	return ins, nil
 }
 
-func (i *impl) WatchPipeline(*pipeline.WatchPipelineRequest, pipeline.Service_WatchPipelineServer) error {
-	// 监听事件
-	stepWatchKey := pipeline.EtcdStepPrefix()
-	// i.watchChan = i.client.Watch(ctx, stepWatchKey, clientv3.WithPrefix())
-	i.log.Infof("watch etcd step resource key: %s", stepWatchKey)
+func (i *impl) WatchPipeline(req *pipeline.WatchPipelineRequest, stream pipeline.Service_WatchPipelineServer) error {
+	if err := req.Validate(); err != nil {
+		return exception.NewBadRequest("validate watch pipeline request error, %s", err)
+	}
+
+	opts := []clientv3.OpOption{}
+	watchKey := pipeline.PipeLineObjectKey(req.Namespace, req.Id)
+	switch req.Mod {
+	case pipeline.PIPELINE_WATCH_MOD_BY_ID:
+		opts = append(opts, clientv3.WithPrefix())
+		// 检查pipeline是否存在
+		if err := i.checkKeyIsExist(watchKey); err != nil {
+			return exception.NewBadRequest("pipeline not found, %s", err)
+		}
+	case pipeline.PIPELINE_WATCH_MOD_BY_NAMESPACE:
+		// 检查namespace是否存在
+	default:
+		return exception.NewBadRequest("unkwon watch mod %s", req.Mod)
+	}
+
+	if req.DryRun {
+		return nil
+	}
+
+	i.log.Infof("watch etcd step resource key: %s start ...", watchKey)
+	watchChan := i.client.Watch(context.Background(), watchKey, opts...)
+	i.dumpPipelineEvents(watchChan, stream)
+	i.log.Infof("watch etcd step resource key: %s end ...", watchKey)
+	return nil
+}
+
+func (i *impl) dumpPipelineEvents(ch clientv3.WatchChan, stream pipeline.Service_WatchPipelineServer) {
+	// 处理所有事件
+	for ppResp := range ch {
+		for index := range ppResp.Events {
+			event := ppResp.Events[index]
+			i.log.Debugf("receive pipeline event, %s", event.Kv.Key)
+			// 解析对象
+			ins, err := pipeline.LoadPipelineFromBytes(event.Kv.Value)
+			if err != nil {
+				i.sendFailed(stream, exception.NewInternalServerError("load pipeline from bytes error, %s", err))
+				return
+			}
+			ins.ResourceVersion = ppResp.Header.Revision
+
+			// 发送消息
+			if err := stream.Send(ins); err != nil {
+				i.log.Errorf("send pipeline %s events error, %s", ins.ShortDescribe(), err)
+				return
+			}
+		}
+	}
+}
+
+func (i *impl) sendFailed(stream pipeline.Service_WatchPipelineServer, err exception.APIException) {
+	trailer := metadata.Pairs(
+		gcontext.ResponseCodeHeader, fmt.Sprintf("%d", err.ErrorCode()),
+		gcontext.ResponseReasonHeader, err.Reason(),
+		gcontext.ResponseDescHeader, err.Error(),
+	)
+	stream.SetTrailer(trailer)
+}
+
+func (i *impl) checkKeyIsExist(key string) error {
+	resp, err := i.client.Get(context.Background(), key)
+	if err != nil {
+		return err
+	}
+
+	if resp.Count == 0 {
+		return exception.NewNotFound("key %s not found", key)
+	}
 	return nil
 }
