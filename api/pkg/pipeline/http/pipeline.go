@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
+	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/infraboard/keyauth/pkg/token"
 	"github.com/infraboard/mcube/grpc/gcontext"
 	"github.com/infraboard/mcube/http/context"
@@ -156,3 +159,83 @@ func (h *handler) WatchPipelineCheck(w http.ResponseWriter, r *http.Request) {
 
 	response.Success(w, "check ok")
 }
+
+var (
+	// 升级为ws协议
+	upgrader = websocket.Upgrader{
+		HandshakeTimeout: 60 * time.Second,
+		ReadBufferSize:   8192,
+		WriteBufferSize:  8192,
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+	}
+)
+
+func (h *handler) WatchPipeline(w http.ResponseWriter, r *http.Request) {
+	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
+	if err != nil {
+		response.Failed(w, err)
+		return
+	}
+
+	hc := context.GetContext(r)
+	tk, ok := hc.AuthInfo.(*token.Token)
+	if !ok {
+		response.Failed(w, fmt.Errorf("auth info is not an *token.Token"))
+		return
+	}
+
+	req := pipeline.NewWatchPipelineRequestByID("", hc.PS.ByName("id"))
+	req.Namespace = tk.Namespace
+	req.DryRun = true
+
+	var header, trailer metadata.MD
+	stream, err := h.service.WatchPipeline(
+		ctx.Context(),
+		req,
+		grpc.Header(&header),
+		grpc.Trailer(&trailer),
+	)
+
+	if err != nil {
+		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		return
+	}
+
+	var responseHeader http.Header
+	// If Sec-WebSocket-Protocol starts with "Bearer", respond in kind.
+	// TODO(tmc): consider customizability/extension point here.
+	if strings.HasPrefix(r.Header.Get("Sec-WebSocket-Protocol"), "Bearer") {
+		responseHeader = http.Header{
+			"Sec-WebSocket-Protocol": []string{"Bearer"},
+		}
+	}
+
+	// https --> websocket
+	conn, err := upgrader.Upgrade(w, r, responseHeader)
+	if err != nil {
+		h.log.Errorf("error upgrading websocket:", err)
+		return
+	}
+	defer conn.Close()
+
+	dumpper := NewPipelineStreamDumpper(stream)
+	h.proxy.Proxy(r.Context(), conn, dumpper)
+}
+
+func NewPipelineStreamDumpper(stream pipeline.Service_WatchPipelineClient) *PipelineStreamDumpper {
+	return &PipelineStreamDumpper{
+		stream: stream,
+	}
+}
+
+type PipelineStreamDumpper struct {
+	stream pipeline.Service_WatchPipelineClient
+}
+
+func (d *PipelineStreamDumpper) Read(p []byte) (n int, err error)
+
+func (d *PipelineStreamDumpper) Write(p []byte) (n int, err error)
+
+func (d *PipelineStreamDumpper) Close() error

@@ -5,6 +5,8 @@ import (
 
 	"github.com/infraboard/mcube/http/label"
 	"github.com/infraboard/mcube/http/router"
+	"github.com/infraboard/mcube/logger"
+	"github.com/infraboard/mcube/logger/zap"
 
 	"github.com/infraboard/workflow/api/client"
 	"github.com/infraboard/workflow/api/pkg"
@@ -12,11 +14,13 @@ import (
 )
 
 var (
-	api = &handler{}
+	api = &handler{log: zap.L().Named("Pipeline")}
 )
 
 type handler struct {
 	service pipeline.ServiceClient
+	log     logger.Logger
+	proxy   *Proxy
 }
 
 // Registry 注册HTTP服务路由
@@ -28,6 +32,8 @@ func (h *handler) Registry(router router.SubRouter) {
 	r.Handle("GET", "/:id", h.DescribePipeline).AddLabel(label.Get)
 	r.Handle("DELETE", "/:id", h.DeletePipeline).AddLabel(label.Delete)
 	r.Handle("GET", "/:id/watch_check", h.WatchPipelineCheck).AddLabel(label.Get)
+	r.BasePath("websocket")
+	r.Handle("GET", "pipelines/:id/watch", h.WatchPipeline).AddLabel(label.Get)
 
 	r.BasePath("steps")
 	r.Handle("GET", "/", h.QueryStep).AddLabel(label.List)
@@ -54,6 +60,7 @@ func (h *handler) Config() error {
 	}
 
 	h.service = client.Pipeline()
+	h.proxy = NewProxy()
 	return nil
 }
 
