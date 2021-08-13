@@ -72,6 +72,19 @@ func (i *impl) QueryAction(ctx context.Context, req *pipeline.QueryActionRequest
 
 func (i *impl) DescribeAction(ctx context.Context, req *pipeline.DescribeActionRequest) (
 	*pipeline.Action, error) {
+	if req.Namespace == "" {
+		in, err := gcontext.GetGrpcInCtx(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		tk := session.S().GetToken(in.GetAccessToKen())
+		if tk == nil {
+			return nil, exception.NewUnauthorized("token required")
+		}
+		req.Namespace = tk.Namespace
+	}
+
 	if err := req.Validate(); err != nil {
 		return nil, exception.NewBadRequest("validate DescribeActionRequest error, %s", err)
 	}
