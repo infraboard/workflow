@@ -72,15 +72,6 @@ func (e *Engine) run(req *runner.RunRequest, resp *runner.RunResponse) {
 		return
 	}
 
-	// 加载Runner运行需要的参数
-	req.LoadRunnerParams(action.DefaultRunnerParam())
-
-	// 校验runner参数合法性
-	if err := action.ValidateRunnerParam(req.RunnerParams); err != nil {
-		resp.Failed(err.Error())
-		return
-	}
-
 	e.log.Debugf("choice %s runner to run step", action.RunnerType)
 	// 3.根据action定义的runner_type, 调用具体的runner
 	switch action.RunnerType {

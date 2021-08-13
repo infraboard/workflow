@@ -1,6 +1,7 @@
 package http
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -234,8 +235,25 @@ type PipelineStreamDumpper struct {
 	stream pipeline.Service_WatchPipelineClient
 }
 
-func (d *PipelineStreamDumpper) Read(p []byte) (n int, err error)
+func (d *PipelineStreamDumpper) Read(buf []byte) (n int, err error) {
+	pp, err := d.stream.Recv()
+	if err != nil {
+		return 0, err
+	}
 
-func (d *PipelineStreamDumpper) Write(p []byte) (n int, err error)
+	data, err := json.Marshal(pp)
+	if err != nil {
+		return 0, err
+	}
 
-func (d *PipelineStreamDumpper) Close() error
+	buf = append(buf, data...)
+	return len(buf), nil
+}
+
+func (d *PipelineStreamDumpper) Write(buf []byte) (n int, err error) {
+	return 0, nil
+}
+
+func (d *PipelineStreamDumpper) Close() error {
+	return d.stream.CloseSend()
+}

@@ -37,6 +37,11 @@ func (p *Proxy) Proxy(ctx context.Context, conn *websocket.Conn, stream io.ReadW
 
 // read loop -- take messages from websocket and write to http request
 func (p *Proxy) handleWrite(ctx context.Context, conn *websocket.Conn, writer io.Writer) {
+	p.log.Debugf("start dumpping write: websocket connection --> write stream ...")
+	defer func() {
+		p.log.Debugf("dumpping write down")
+	}()
+
 	if p.pingInterval > 0 && p.pingWait > 0 && p.pongWait > 0 {
 		conn.SetReadDeadline(time.Now().Add(p.pongWait))
 		conn.SetPongHandler(func(string) error { conn.SetReadDeadline(time.Now().Add(p.pongWait)); return nil })
@@ -72,8 +77,12 @@ func (p *Proxy) handleWrite(ctx context.Context, conn *websocket.Conn, writer io
 }
 
 func (p *Proxy) handleRead(ctx context.Context, conn *websocket.Conn, reader io.Reader) {
-	scanner := bufio.NewScanner(reader)
+	p.log.Debugf("start dumpping read : write stream --> websocket connection ...")
+	defer func() {
+		p.log.Debugf("dumpping read down")
+	}()
 
+	scanner := bufio.NewScanner(reader)
 	var scannerBuf []byte
 	if p.maxRespBodyBufferBytes > 0 {
 		scannerBuf = make([]byte, 0, 64*1024)

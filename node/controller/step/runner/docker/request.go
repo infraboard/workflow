@@ -31,7 +31,7 @@ func (r *dockerRunRequest) ImageURL() string {
 }
 
 func (r *dockerRunRequest) ImageVersion() string {
-	return r.RunParams[IMAGE_VERSION_KEY]
+	return r.RunnerParams[IMAGE_VERSION_KEY]
 }
 
 func (r *dockerRunRequest) ContainerName() string {

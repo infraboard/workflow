@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	api = &handler{log: zap.L().Named("Pipeline")}
+	API = &handler{log: zap.L().Named("Pipeline")}
 )
 
 type handler struct {
@@ -65,5 +65,5 @@ func (h *handler) Config() error {
 }
 
 func init() {
-	pkg.RegistryHTTPV1("pipeline", api)
+	pkg.RegistryHTTPV1("pipeline", API)
 }

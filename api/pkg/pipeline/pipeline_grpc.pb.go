@@ -32,6 +32,7 @@ type ServiceClient interface {
 	CreateAction(ctx context.Context, in *CreateActionRequest, opts ...grpc.CallOption) (*Action, error)
 	QueryAction(ctx context.Context, in *QueryActionRequest, opts ...grpc.CallOption) (*ActionSet, error)
 	DescribeAction(ctx context.Context, in *DescribeActionRequest, opts ...grpc.CallOption) (*Action, error)
+	UpdateAction(ctx context.Context, in *UpdateActionRequest, opts ...grpc.CallOption) (*Action, error)
 	DeleteAction(ctx context.Context, in *DeleteActionRequest, opts ...grpc.CallOption) (*Action, error)
 }
 
@@ -192,6 +193,15 @@ func (c *serviceClient) DescribeAction(ctx context.Context, in *DescribeActionRe
 	return out, nil
 }
 
+func (c *serviceClient) UpdateAction(ctx context.Context, in *UpdateActionRequest, opts ...grpc.CallOption) (*Action, error) {
+	out := new(Action)
+	err := c.cc.Invoke(ctx, "/workflow.pipeline.Service/UpdateAction", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *serviceClient) DeleteAction(ctx context.Context, in *DeleteActionRequest, opts ...grpc.CallOption) (*Action, error) {
 	out := new(Action)
 	err := c.cc.Invoke(ctx, "/workflow.pipeline.Service/DeleteAction", in, out, opts...)
@@ -219,6 +229,7 @@ type ServiceServer interface {
 	CreateAction(context.Context, *CreateActionRequest) (*Action, error)
 	QueryAction(context.Context, *QueryActionRequest) (*ActionSet, error)
 	DescribeAction(context.Context, *DescribeActionRequest) (*Action, error)
+	UpdateAction(context.Context, *UpdateActionRequest) (*Action, error)
 	DeleteAction(context.Context, *DeleteActionRequest) (*Action, error)
 	mustEmbedUnimplementedServiceServer()
 }
@@ -268,6 +279,9 @@ func (UnimplementedServiceServer) QueryAction(context.Context, *QueryActionReque
 }
 func (UnimplementedServiceServer) DescribeAction(context.Context, *DescribeActionRequest) (*Action, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DescribeAction not implemented")
+}
+func (UnimplementedServiceServer) UpdateAction(context.Context, *UpdateActionRequest) (*Action, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateAction not implemented")
 }
 func (UnimplementedServiceServer) DeleteAction(context.Context, *DeleteActionRequest) (*Action, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteAction not implemented")
@@ -540,6 +554,24 @@ func _Service_DescribeAction_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Service_UpdateAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateActionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).UpdateAction(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/workflow.pipeline.Service/UpdateAction",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).UpdateAction(ctx, req.(*UpdateActionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Service_DeleteAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteActionRequest)
 	if err := dec(in); err != nil {
@@ -616,6 +648,10 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DescribeAction",
 			Handler:    _Service_DescribeAction_Handler,
+		},
+		{
+			MethodName: "UpdateAction",
+			Handler:    _Service_UpdateAction_Handler,
 		},
 		{
 			MethodName: "DeleteAction",
