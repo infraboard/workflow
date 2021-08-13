@@ -13,6 +13,7 @@ import (
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
 
+	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/node/controller/step/runner"
 	"github.com/infraboard/workflow/node/controller/step/store"
 )
@@ -22,6 +23,20 @@ const (
 	IMAGE_CMD_KEY     = "IMAGE_CMD"
 	IMAGE_VERSION_KEY = "IMAGE_VERSION"
 )
+
+var (
+	IMAGE_URL_KEY_DESC     = &pipeline.RunParamValueDesc{Required: true, Describe: "容器镜像的URL地址"}
+	IMAGE_CMD_KEY_DESC     = &pipeline.RunParamValueDesc{Required: true, Describe: "容器里面执行的命令"}
+	IMAGE_VERSION_KEY_DESC = &pipeline.RunParamValueDesc{Required: false, Describe: "容器镜像的版本"}
+)
+
+func ParamsDesc() map[string]*pipeline.RunParamValueDesc {
+	return map[string]*pipeline.RunParamValueDesc{
+		IMAGE_URL_KEY:     IMAGE_URL_KEY_DESC,
+		IMAGE_CMD_KEY:     IMAGE_CMD_KEY_DESC,
+		IMAGE_VERSION_KEY: IMAGE_VERSION_KEY_DESC,
+	}
+}
 
 const (
 	CONTAINER_ID_KEY   = "container_id"

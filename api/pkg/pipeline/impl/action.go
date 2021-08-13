@@ -50,7 +50,7 @@ func (i *impl) CreateAction(ctx context.Context, req *pipeline.CreateActionReque
 func (i *impl) QueryAction(ctx context.Context, req *pipeline.QueryActionRequest) (
 	*pipeline.ActionSet, error) {
 
-	listKey := pipeline.EtcdActionPrefix()
+	listKey := req.EtcdObjectKey()
 	i.log.Debugf("list etcd action resource key: %s", listKey)
 	resp, err := i.client.Get(ctx, listKey, clientv3.WithPrefix())
 	if err != nil {
@@ -72,30 +72,21 @@ func (i *impl) QueryAction(ctx context.Context, req *pipeline.QueryActionRequest
 
 func (i *impl) DescribeAction(ctx context.Context, req *pipeline.DescribeActionRequest) (
 	*pipeline.Action, error) {
-	in, err := gcontext.GetGrpcInCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// 默认使用用户的namespace
-	if req.Namespace == "" {
-		tk := session.S().GetToken(in.GetAccessToKen())
-		if tk == nil {
-			return nil, exception.NewUnauthorized("token required")
-		}
-		req.Namespace = tk.Namespace
+	if err := req.Validate(); err != nil {
+		return nil, exception.NewBadRequest("validate DescribeActionRequest error, %s", err)
 	}
 
 	var ins *pipeline.Action
 	// 先搜索Namespace内
-	ins, err = i.describeAction(ctx, req.Namespace, req)
+	ins, err := i.describeAction(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 
 	// 再搜索全局
 	if ins == nil {
-		ins, err = i.describeAction(ctx, resource.VisiableMode_GLOBAL.String(), req)
+		req.Namespace = resource.VisiableMode_GLOBAL.String()
+		ins, err = i.describeAction(ctx, req)
 		if err != nil {
 			return nil, err
 		}
@@ -108,9 +99,9 @@ func (i *impl) DescribeAction(ctx context.Context, req *pipeline.DescribeActionR
 	return ins, nil
 }
 
-func (i *impl) describeAction(ctx context.Context, namespace string, req *pipeline.DescribeActionRequest) (
+func (i *impl) describeAction(ctx context.Context, req *pipeline.DescribeActionRequest) (
 	*pipeline.Action, error) {
-	descKey := pipeline.ActionObjectKey(namespace, req.Name)
+	descKey := pipeline.ActionObjectKey(req.Namespace, req.Name, req.Version)
 	i.log.Infof("describe etcd action resource key: %s", descKey)
 	resp, err := i.client.Get(ctx, descKey)
 	if err != nil {
@@ -147,7 +138,8 @@ func (i *impl) DeleteAction(ctx context.Context, req *pipeline.DeleteActionReque
 	if tk == nil {
 		return nil, exception.NewUnauthorized("token required")
 	}
-	descKey := pipeline.ActionObjectKey(req.Namespace(tk), req.Name)
+
+	descKey := pipeline.ActionObjectKey(req.Namespace(tk), req.Name, req.Version)
 	i.log.Infof("delete etcd action resource key: %s", descKey)
 	resp, err := i.client.Delete(ctx, descKey, clientv3.WithPrevKV())
 	if err != nil {

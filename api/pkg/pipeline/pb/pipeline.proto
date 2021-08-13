@@ -560,6 +560,10 @@ message Action {
     string name = 8[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"name" json:"name" validate:"required"'}
         ];
+	// Action对应的版本, 推荐默认v1
+	string version = 18[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"version" validate:"required"'}
+		];
 	// 资源版本
 	int64 resource_version = 16 [
         (google.protobuf.field_tag) = {struct_tag: 'bson:"resource_version" json:"resource_version,omitempty"'}
@@ -597,7 +601,7 @@ message Action {
         (google.protobuf.field_tag) = {struct_tag: 'bson:"runner_type" json:"runner_type"'}
         ];
 	// runner运行时参数
-	RunnerParam runner_params = 17[
+	map<string, RunnerParam> runner_params = 17[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"runner_params" json:"runner_params"'}
         ];
 	// step运行时的参数说明
@@ -615,16 +619,12 @@ message Action {
 }
 
 message RunnerParam {
-	// 参数名称
-	string name = 1[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"name" json:"name"'}
-        ];
 	// 参数的值
-	string value = 2[
+	string value = 1[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"value" json:"value"'}
         ];
 	// 值描述
-	string describe = 3[
+	string describe = 2[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"describe" json:"describe"'}
         ];
 }
@@ -672,7 +672,7 @@ message CreateActionRequest {
 		(google.protobuf.field_tag) = {struct_tag: 'json:"visiable_mode"'}
 		];
 	// 运行时 Runner传人参数, 创建完成后不能修改, 要修改请新建版本
-	RunnerParam runner_params = 2[
+	map<string, RunnerParam> runner_params = 2[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"runner_params" json:"runner_params"'}
         ];
 	// 运行时 用户传人的参数说明
@@ -706,20 +706,28 @@ message UpdateActionRequest {
 }
 
 message DescribeActionRequest {
-	// 唯一name
+	// 名称
 	string name = 1[
-		(google.protobuf.field_tag) = {struct_tag: 'json:"name"'}
+		(google.protobuf.field_tag) = {struct_tag: 'json:"name" validate:"required"'}
 		];
-	// 唯一name
+	// 对应的版本
+	string version = 3[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"version" validate:"required"'}
+		];
+	// 唯一空间
 	string namespace = 2[
-		(google.protobuf.field_tag) = {struct_tag: 'json:"namespace"'}
+		(google.protobuf.field_tag) = {struct_tag: 'json:"namespace" validate:"required"'}
 		];
 }
 
 message DeleteActionRequest {
-	// 唯一name
+	// 指定名称
 	string name = 1[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"name"'}
+		];
+	// 指定版本
+	string version = 3[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"version"'}
 		];
 	// 可见模式
 	mcube.resource.VisiableMode visiable_mode = 2[
@@ -730,7 +738,9 @@ message DeleteActionRequest {
 // QueryPipelineRequest 查询Book请求
 message QueryActionRequest {
     page.PageRequest page = 1;
+	string namespace = 4;
     string name = 2;
+	string version = 3;
 }
 
 message DeletePipelineRequest {

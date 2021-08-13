@@ -41,7 +41,7 @@ func (e *Engine) run(req *runner.RunRequest, resp *runner.RunResponse) {
 	e.log.Debugf("start run step: %s status %s", s.Key, s.Status)
 
 	// 1.查询step对应的action定义
-	descA := pipeline.NewDescribeActionRequestWithName(s.Action)
+	descA := pipeline.NewDescribeActionRequest(s.GetNamespace(), s.ActionName(), s.ActionVersion())
 	descA.Namespace = s.GetNamespace()
 	ctx := gcontext.NewGrpcOutCtx()
 	action, err := e.wc.Pipeline().DescribeAction(ctx.Context(), descA)
@@ -71,6 +71,10 @@ func (e *Engine) run(req *runner.RunRequest, resp *runner.RunResponse) {
 		resp.Failed(err.Error())
 		return
 	}
+
+	// 加载Runner运行需要的参数
+	action.DefaultRunParam()
+	req.LoadRunnerParams(action.DefaultRunnerParam())
 
 	e.log.Debugf("choice %s runner to run step", action.RunnerType)
 	// 3.根据action定义的runner_type, 调用具体的runner

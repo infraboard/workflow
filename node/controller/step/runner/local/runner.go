@@ -4,8 +4,13 @@ import (
 	"context"
 	"io"
 
+	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/node/controller/step/runner"
 )
+
+func ParamsDesc() map[string]*pipeline.RunParamValueDesc {
+	return map[string]*pipeline.RunParamValueDesc{}
+}
 
 func NewRunner() *Runner {
 	return &Runner{}

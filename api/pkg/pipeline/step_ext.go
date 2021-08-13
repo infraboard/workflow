@@ -238,6 +238,24 @@ func (s *Step) Clone() *Step {
 	return proto.Clone(s).(*Step)
 }
 
+func (s *Step) ActionName() string {
+	parsedArr := s.parseAction()
+	return parsedArr[0]
+}
+
+func (s *Step) ActionVersion() string {
+	parsedArr := s.parseAction()
+	if len(parsedArr) > 1 {
+		return parsedArr[1]
+	}
+
+	return ""
+}
+
+func (s *Step) parseAction() []string {
+	return strings.Split(s.Action, "@")
+}
+
 func (s *Step) IsCreateByPipeline() bool {
 	return s.CreateType.Equal(STEP_CREATE_BY_PIPELINE)
 }

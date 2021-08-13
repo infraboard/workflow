@@ -55,6 +55,7 @@ func NewAction(req *CreateActionRequest) (*Action, error) {
 		CreateAt:     ftime.Now().Timestamp(),
 		UpdateAt:     ftime.Now().Timestamp(),
 		Name:         req.Name,
+		Version:      req.Version,
 		VisiableMode: req.VisiableMode,
 		RunnerType:   req.RunnerType,
 		RunnerParams: req.RunnerParams,
@@ -77,6 +78,16 @@ func (a *Action) DefaultRunParam() map[string]string {
 	for k, v := range a.RunParams {
 		if v != nil && v.Default != "" {
 			param[k] = v.Default
+		}
+	}
+	return param
+}
+
+func (a *Action) DefaultRunnerParam() map[string]string {
+	param := map[string]string{}
+	for k, v := range a.RunnerParams {
+		if v != nil && v.Value != "" {
+			param[k] = v.Value
 		}
 	}
 	return param
@@ -109,7 +120,7 @@ func (a *Action) EtcdObjectKey() string {
 	if a.VisiableMode.Equal(resource.VisiableMode_NAMESPACE) {
 		ns = a.Namespace
 	}
-	return fmt.Sprintf("%s/%s/%s", EtcdActionPrefix(), ns, a.Name)
+	return fmt.Sprintf("%s/%s/%s@%s", EtcdActionPrefix(), ns, a.Name, a.Version)
 }
 
 // NewActionSet todo
@@ -124,16 +135,19 @@ func (s *ActionSet) Add(item *Action) {
 }
 
 // NewQueryActionRequest 查询book列表
-func NewDescribeActionRequestWithName(name string) *DescribeActionRequest {
+func NewDescribeActionRequest(namespace, name, version string) *DescribeActionRequest {
 	return &DescribeActionRequest{
-		Name: name,
+		Namespace: namespace,
+		Name:      name,
+		Version:   version,
 	}
 }
 
-// NewDeleteActionRequestWithID 查询book列表
-func NewDeleteActionRequestWithName(name string) *DeleteActionRequest {
+// NewDeleteActionRequest 查询book列表
+func NewDeleteActionRequest(version, name string) *DeleteActionRequest {
 	return &DeleteActionRequest{
-		Name: name,
+		Name:    name,
+		Version: version,
 	}
 }
 
@@ -144,4 +158,36 @@ func (req *DeleteActionRequest) Namespace(tk *token.Token) string {
 	}
 
 	return ns
+}
+
+func (req *QueryActionRequest) EtcdObjectKey() string {
+	key := EtcdActionPrefix()
+	if req.Namespace == "" {
+		return key
+	}
+
+	// namespace不为空
+	key = fmt.Sprintf("%s/%s", key, req.Namespace)
+	if req.Name == "" {
+		return key
+	}
+
+	// name 不为空
+	key = fmt.Sprintf("%s/%s", key, req.Name)
+
+	return key
+}
+
+func (req *DescribeActionRequest) Validate() error {
+	return validate.Struct(req)
+}
+
+func ParseActionKey(key string) (name, version string) {
+	parseKey := strings.Split(key, "@")
+	name = parseKey[0]
+	if len(parseKey) > 1 {
+		version = parseKey[1]
+	}
+
+	return
 }

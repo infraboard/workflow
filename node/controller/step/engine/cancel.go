@@ -20,8 +20,7 @@ func (e *Engine) CancelStep(s *pipeline.Step) {
 	req := runner.NewCancelRequest(s)
 
 	// 1.查询step对应的action定义
-	descA := pipeline.NewDescribeActionRequestWithName(s.Action)
-	descA.Namespace = s.GetNamespace()
+	descA := pipeline.NewDescribeActionRequest(s.GetNamespace(), s.ActionName(), s.ActionVersion())
 	ctx := gcontext.NewGrpcOutCtx()
 	action, err := e.wc.Pipeline().DescribeAction(ctx.Context(), descA)
 	if err != nil {
