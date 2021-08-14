@@ -605,7 +605,7 @@ message Action {
         (google.protobuf.field_tag) = {struct_tag: 'bson:"runner_params" json:"runner_params"'}
         ];
 	// step运行时的参数说明
-	map<string, RunParamValueDesc> run_params = 14[
+	repeated RunParamDesc run_params = 14[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"run_params" json:"run_params"'}
         ];
 	// 标签
@@ -629,18 +629,27 @@ message RunnerParam {
         ];
 }
 
-message RunParamValueDesc {
+
+message RunParamDesc {
 	// 可选/必传
 	bool required = 1[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"required" json:"required"'}
         ];
+	// 建的名称
+	string key_name = 4[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"key_name" json:"key_name" validate:"required"'}
+        ];
+	// 建的描述
+	string key_desc = 5[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"key_desc" json:"key_desc"'}
+        ];
 	// 默认值, action运行时如果未传人，会填充默认值
-	string default = 2[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"default" json:"default"'}
+	string default_value = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"default_value" json:"default_value"'}
         ];
 	// 值描述
-	string describe = 3[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"describe" json:"describe"'}
+	string value_desc = 3[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"value_desc" json:"value_desc"'}
         ];
 }
 
@@ -676,7 +685,7 @@ message CreateActionRequest {
         (google.protobuf.field_tag) = {struct_tag: 'bson:"runner_params" json:"runner_params"'}
         ];
 	// 运行时 用户传人的参数说明
-	map<string, RunParamValueDesc> run_params = 3[
+	repeated RunParamDesc run_params = 3[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"run_params" json:"run_params"'}
         ];
 	// 标签
@@ -692,7 +701,7 @@ message CreateActionRequest {
 // UpdateActionRequest, 不能修改ActionRunner运行参数, 如果需要修改，请新建一个版本
 message UpdateActionRequest {
 	// 运行时的参数说明
-	map<string, RunParamValueDesc> run_params = 3[
+	repeated RunParamDesc run_params = 3[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"run_params" json:"run_params"'}
         ];
 	// 标签

@@ -8,8 +8,8 @@ import (
 	"github.com/infraboard/workflow/node/controller/step/runner"
 )
 
-func ParamsDesc() map[string]*pipeline.RunParamValueDesc {
-	return map[string]*pipeline.RunParamValueDesc{}
+func ParamsDesc() []*pipeline.RunParamDesc {
+	return []*pipeline.RunParamDesc{}
 }
 
 func NewRunner() *Runner {

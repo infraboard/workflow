@@ -25,16 +25,16 @@ const (
 )
 
 var (
-	IMAGE_URL_KEY_DESC     = &pipeline.RunParamValueDesc{Required: true, Describe: "容器镜像的URL地址"}
-	IMAGE_CMD_KEY_DESC     = &pipeline.RunParamValueDesc{Required: true, Describe: "容器里面执行的命令"}
-	IMAGE_VERSION_KEY_DESC = &pipeline.RunParamValueDesc{Required: false, Describe: "容器镜像的版本"}
+	IMAGE_URL_KEY_DESC     = &pipeline.RunParamDesc{KeyName: IMAGE_URL_KEY, KeyDesc: "镜像地址", Required: true}
+	IMAGE_CMD_KEY_DESC     = &pipeline.RunParamDesc{KeyName: IMAGE_CMD_KEY, KeyDesc: "执行命令", Required: true}
+	IMAGE_VERSION_KEY_DESC = &pipeline.RunParamDesc{KeyName: IMAGE_VERSION_KEY, KeyDesc: "镜像版本", Required: true}
 )
 
-func ParamsDesc() map[string]*pipeline.RunParamValueDesc {
-	return map[string]*pipeline.RunParamValueDesc{
-		IMAGE_URL_KEY:     IMAGE_URL_KEY_DESC,
-		IMAGE_CMD_KEY:     IMAGE_CMD_KEY_DESC,
-		IMAGE_VERSION_KEY: IMAGE_VERSION_KEY_DESC,
+func ParamsDesc() []*pipeline.RunParamDesc {
+	return []*pipeline.RunParamDesc{
+		IMAGE_URL_KEY_DESC,
+		IMAGE_CMD_KEY_DESC,
+		IMAGE_VERSION_KEY_DESC,
 	}
 }
 

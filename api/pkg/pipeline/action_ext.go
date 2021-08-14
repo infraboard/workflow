@@ -74,16 +74,17 @@ func (a *Action) UpdateOwner(tk *token.Token) {
 }
 
 func (a *Action) DefaultRunParam() map[string]string {
-	param := map[string]string{}
-	for k, v := range a.RunParams {
-		if v != nil && v.Default != "" {
-			param[k] = v.Default
+	ret := map[string]string{}
+	for i := range a.RunParams {
+		param := a.RunParams[i]
+		if param.DefaultValue != "" {
+			ret[param.KeyName] = param.DefaultValue
 		}
 	}
-	return param
+	return ret
 }
 
-func (a *Action) DefaultRunnerParam() map[string]string {
+func (a *Action) RunnerParam() map[string]string {
 	param := map[string]string{}
 	for k, v := range a.RunnerParams {
 		if v != nil && v.Value != "" {
@@ -96,10 +97,11 @@ func (a *Action) DefaultRunnerParam() map[string]string {
 // ValidateParam 按照action的定义, 检查必传参数是否传人
 func (a *Action) ValidateRunParam(params map[string]string) error {
 	msg := []string{}
-	for k, v := range a.RunParams {
-		if v != nil && v.Required {
-			if pv, ok := params[k]; !ok || pv == "" {
-				msg = append(msg, "required param %s", k)
+	for i := range a.RunParams {
+		param := a.RunParams[i]
+		if param.Required {
+			if pv, ok := params[param.KeyName]; !ok || pv == "" {
+				msg = append(msg, "required param %s", pv)
 			}
 		}
 	}

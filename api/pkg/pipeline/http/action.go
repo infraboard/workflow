@@ -203,7 +203,7 @@ type RunnerParamDescSet struct {
 	Items []*RunnerParamDesc `json:"items"`
 }
 
-func (s *RunnerParamDescSet) Add(t pipeline.RUNNER_TYPE, desc map[string]*pipeline.RunParamValueDesc) {
+func (s *RunnerParamDescSet) Add(t pipeline.RUNNER_TYPE, desc []*pipeline.RunParamDesc) {
 	s.Items = append(s.Items, &RunnerParamDesc{
 		Type:      t,
 		ParamDesc: desc,
@@ -211,6 +211,6 @@ func (s *RunnerParamDescSet) Add(t pipeline.RUNNER_TYPE, desc map[string]*pipeli
 }
 
 type RunnerParamDesc struct {
-	Type      pipeline.RUNNER_TYPE                   `json:"type"`
-	ParamDesc map[string]*pipeline.RunParamValueDesc `json:"param_desc"`
+	Type      pipeline.RUNNER_TYPE     `json:"type"`
+	ParamDesc []*pipeline.RunParamDesc `json:"param_desc"`
 }

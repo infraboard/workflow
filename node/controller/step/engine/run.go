@@ -50,7 +50,10 @@ func (e *Engine) run(req *runner.RunRequest, resp *runner.RunResponse) {
 		return
 	}
 
-	// 2.查询Pipeline, 获取全局参数
+	// 2.加载Action默认参数
+	req.LoadRunParams(action.DefaultRunParam())
+
+	// 3.查询Pipeline, 加载全局参数
 	if s.IsCreateByPipeline() {
 		descP := pipeline.NewDescribePipelineRequestWithID(s.GetPipelineId())
 		descP.Namespace = s.GetNamespace()
@@ -63,8 +66,8 @@ func (e *Engine) run(req *runner.RunRequest, resp *runner.RunResponse) {
 		req.LoadMount(pl.Mount)
 	}
 
-	// 加载运行时参数
-	req.LoadRunParams(action.DefaultRunParam())
+	// 4. 加载step传递的参数
+	req.LoadRunParams(s.With)
 
 	// 校验run参数合法性
 	if err := action.ValidateRunParam(req.RunParams); err != nil {
@@ -73,8 +76,7 @@ func (e *Engine) run(req *runner.RunRequest, resp *runner.RunResponse) {
 	}
 
 	// 加载Runner运行需要的参数
-	action.DefaultRunParam()
-	req.LoadRunnerParams(action.DefaultRunnerParam())
+	req.LoadRunnerParams(action.RunnerParam())
 
 	e.log.Debugf("choice %s runner to run step", action.RunnerType)
 	// 3.根据action定义的runner_type, 调用具体的runner
