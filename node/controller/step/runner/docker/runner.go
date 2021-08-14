@@ -13,7 +13,7 @@ import (
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
 
-	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/api/pkg/action"
 	"github.com/infraboard/workflow/node/controller/step/runner"
 	"github.com/infraboard/workflow/node/controller/step/store"
 )
@@ -25,13 +25,13 @@ const (
 )
 
 var (
-	IMAGE_URL_KEY_DESC     = &pipeline.RunParamDesc{KeyName: IMAGE_URL_KEY, KeyDesc: "镜像地址", Required: true}
-	IMAGE_CMD_KEY_DESC     = &pipeline.RunParamDesc{KeyName: IMAGE_CMD_KEY, KeyDesc: "执行命令", Required: true}
-	IMAGE_VERSION_KEY_DESC = &pipeline.RunParamDesc{KeyName: IMAGE_VERSION_KEY, KeyDesc: "镜像版本", Required: true}
+	IMAGE_URL_KEY_DESC     = &action.RunParamDesc{KeyName: IMAGE_URL_KEY, KeyDesc: "镜像地址", Required: true}
+	IMAGE_CMD_KEY_DESC     = &action.RunParamDesc{KeyName: IMAGE_CMD_KEY, KeyDesc: "执行命令", Required: true}
+	IMAGE_VERSION_KEY_DESC = &action.RunParamDesc{KeyName: IMAGE_VERSION_KEY, KeyDesc: "镜像版本", Required: true}
 )
 
-func ParamsDesc() []*pipeline.RunParamDesc {
-	return []*pipeline.RunParamDesc{
+func ParamsDesc() []*action.RunParamDesc {
+	return []*action.RunParamDesc{
 		IMAGE_URL_KEY_DESC,
 		IMAGE_CMD_KEY_DESC,
 		IMAGE_VERSION_KEY_DESC,

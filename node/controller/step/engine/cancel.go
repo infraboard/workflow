@@ -5,6 +5,7 @@ import (
 
 	"github.com/infraboard/mcube/grpc/gcontext"
 
+	"github.com/infraboard/workflow/api/pkg/action"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/node/controller/step/runner"
 )
@@ -20,24 +21,24 @@ func (e *Engine) CancelStep(s *pipeline.Step) {
 	req := runner.NewCancelRequest(s)
 
 	// 1.查询step对应的action定义
-	descA := pipeline.NewDescribeActionRequest(s.GetNamespace(), s.ActionName(), s.ActionVersion())
+	descA := action.NewDescribeActionRequest(s.GetNamespace(), s.ActionName(), s.ActionVersion())
 	ctx := gcontext.NewGrpcOutCtx()
-	action, err := e.wc.Pipeline().DescribeAction(ctx.Context(), descA)
+	actionIns, err := e.wc.Action().DescribeAction(ctx.Context(), descA)
 	if err != nil {
 		s.Failed("describe step action error, %s", err)
 		return
 	}
 
 	// 3.根据action定义的runner_type, 调用具体的runner
-	switch action.RunnerType {
-	case pipeline.RUNNER_TYPE_DOCKER:
+	switch actionIns.RunnerType {
+	case action.RUNNER_TYPE_DOCKER:
 		go e.docker.Cancel(context.Background(), req)
-	case pipeline.RUNNER_TYPE_K8s:
+	case action.RUNNER_TYPE_K8s:
 		go e.k8s.Cancel(context.Background(), req)
-	case pipeline.RUNNER_TYPE_LOCAL:
+	case action.RUNNER_TYPE_LOCAL:
 		go e.local.Cancel(context.Background(), req)
 	default:
-		s.Failed("unknown runner type: %s", action.RunnerType)
+		s.Failed("unknown runner type: %s", actionIns.RunnerType)
 		return
 	}
 }

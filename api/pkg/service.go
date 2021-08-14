@@ -6,6 +6,7 @@ import (
 	"github.com/infraboard/mcube/pb/http"
 	"google.golang.org/grpc"
 
+	"github.com/infraboard/workflow/api/pkg/action"
 	"github.com/infraboard/workflow/api/pkg/application"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 )
@@ -14,6 +15,7 @@ var (
 	// Example 服务
 	Application application.ServiceServer
 	Pipeline    pipeline.ServiceServer
+	Action      action.ServiceServer
 )
 
 var (
@@ -27,6 +29,7 @@ var (
 func InitV1GRPCAPI(server *grpc.Server) {
 	application.RegisterServiceServer(server, Application)
 	pipeline.RegisterServiceServer(server, Pipeline)
+	action.RegisterServiceServer(server, Action)
 }
 
 // HTTPEntry todo
@@ -75,6 +78,12 @@ func RegistryService(name string, svr Service) {
 			registryError(name)
 		}
 		Pipeline = value
+		addService(name, svr)
+	case action.ServiceServer:
+		if Pipeline != nil {
+			registryError(name)
+		}
+		Action = value
 		addService(name, svr)
 	default:
 		panic(fmt.Sprintf("unknown service type %s", name))

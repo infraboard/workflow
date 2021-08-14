@@ -42,17 +42,6 @@ func (h *handler) Registry(router router.SubRouter) {
 	r.Handle("DELETE", "/:id", h.DeleteStep).AddLabel(label.Delete)
 	r.Handle("POST", "/:id/audit", h.AuditStep).AddLabel(label.Update)
 	r.Handle("POST", "/:id/cancel", h.CancelStep).AddLabel(label.Update)
-
-	r.BasePath("actions")
-	r.Handle("POST", "/", h.CreateAction).AddLabel(label.Create)
-	r.Handle("GET", "/", h.QueryAction).AddLabel(label.List)
-	r.Handle("GET", "/:key", h.DescribeAction).AddLabel(label.Get)
-	r.Handle("DELETE", "/:key", h.DeleteNamespaceAction).AddLabel(label.Delete)
-	r.BasePath("global_actions")
-	r.Handle("POST", "/", h.CreateGlobalAction).AddLabel(label.Create)
-	r.Handle("DELETE", "/:name", h.DeleteGlobalAction).AddLabel(label.Delete)
-	r.BasePath("runners")
-	r.Handle("GET", "/", h.QueryRunner).AddLabel(label.List)
 }
 
 func (h *handler) Config() error {

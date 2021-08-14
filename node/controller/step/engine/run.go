@@ -5,6 +5,7 @@ import (
 
 	"github.com/infraboard/mcube/grpc/gcontext"
 
+	"github.com/infraboard/workflow/api/pkg/action"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/node/controller/step/runner"
 )
@@ -41,17 +42,17 @@ func (e *Engine) run(req *runner.RunRequest, resp *runner.RunResponse) {
 	e.log.Debugf("start run step: %s status %s", s.Key, s.Status)
 
 	// 1.查询step对应的action定义
-	descA := pipeline.NewDescribeActionRequest(s.GetNamespace(), s.ActionName(), s.ActionVersion())
+	descA := action.NewDescribeActionRequest(s.GetNamespace(), s.ActionName(), s.ActionVersion())
 	descA.Namespace = s.GetNamespace()
 	ctx := gcontext.NewGrpcOutCtx()
-	action, err := e.wc.Pipeline().DescribeAction(ctx.Context(), descA)
+	actionIns, err := e.wc.Action().DescribeAction(ctx.Context(), descA)
 	if err != nil {
 		resp.Failed("describe step action error, %s", err)
 		return
 	}
 
 	// 2.加载Action默认参数
-	req.LoadRunParams(action.DefaultRunParam())
+	req.LoadRunParams(actionIns.DefaultRunParam())
 
 	// 3.查询Pipeline, 加载全局参数
 	if s.IsCreateByPipeline() {
@@ -70,25 +71,25 @@ func (e *Engine) run(req *runner.RunRequest, resp *runner.RunResponse) {
 	req.LoadRunParams(s.With)
 
 	// 校验run参数合法性
-	if err := action.ValidateRunParam(req.RunParams); err != nil {
+	if err := actionIns.ValidateRunParam(req.RunParams); err != nil {
 		resp.Failed(err.Error())
 		return
 	}
 
 	// 加载Runner运行需要的参数
-	req.LoadRunnerParams(action.RunnerParam())
+	req.LoadRunnerParams(actionIns.RunnerParam())
 
-	e.log.Debugf("choice %s runner to run step", action.RunnerType)
+	e.log.Debugf("choice %s runner to run step", actionIns.RunnerType)
 	// 3.根据action定义的runner_type, 调用具体的runner
-	switch action.RunnerType {
-	case pipeline.RUNNER_TYPE_DOCKER:
+	switch actionIns.RunnerType {
+	case action.RUNNER_TYPE_DOCKER:
 		e.docker.Run(context.Background(), req, resp)
-	case pipeline.RUNNER_TYPE_K8s:
+	case action.RUNNER_TYPE_K8s:
 		e.k8s.Run(context.Background(), req, resp)
-	case pipeline.RUNNER_TYPE_LOCAL:
+	case action.RUNNER_TYPE_LOCAL:
 		e.local.Run(context.Background(), req, resp)
 	default:
-		resp.Failed("unknown runner type: %s", action.RunnerType)
+		resp.Failed("unknown runner type: %s", actionIns.RunnerType)
 		return
 	}
 

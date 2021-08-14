@@ -6,6 +6,7 @@ import (
 	"github.com/infraboard/mcube/logger/zap"
 	"google.golang.org/grpc"
 
+	"github.com/infraboard/workflow/api/pkg/action"
 	"github.com/infraboard/workflow/api/pkg/application"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 )
@@ -54,4 +55,9 @@ func (c *Client) Application() application.ServiceClient {
 // Example todo
 func (c *Client) Pipeline() pipeline.ServiceClient {
 	return pipeline.NewServiceClient(c.conn)
+}
+
+// Example todo
+func (c *Client) Action() action.ServiceClient {
+	return action.NewServiceClient(c.conn)
 }

@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/api/pkg/action"
 	"github.com/infraboard/workflow/node/controller/step/runner/docker"
 	"github.com/infraboard/workflow/node/controller/step/runner/k8s"
 	"github.com/infraboard/workflow/node/controller/step/runner/local"
@@ -27,7 +27,7 @@ func (h *handler) CreateAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req := pipeline.NewCreateActionRequest()
+	req := action.NewCreateActionRequest()
 	if err := request.GetDataFromRequest(r, req); err != nil {
 		response.Failed(w, err)
 		return
@@ -56,7 +56,7 @@ func (h *handler) QueryAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	page := request.NewPageRequestFromHTTP(r)
-	req := pipeline.NewQueryActionRequest(page)
+	req := action.NewQueryActionRequest(page)
 
 	var header, trailer metadata.MD
 	actions, err := h.service.QueryAction(
@@ -86,9 +86,8 @@ func (h *handler) DescribeAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(hc.PS.ByName("key"))
-	name, version := pipeline.ParseActionKey(hc.PS.ByName("key"))
-	req := pipeline.NewDescribeActionRequest(tk.Namespace, name, version)
+	name, version := action.ParseActionKey(hc.PS.ByName("key"))
+	req := action.NewDescribeActionRequest(tk.Namespace, name, version)
 
 	var header, trailer metadata.MD
 	ins, err := h.service.DescribeAction(
@@ -112,8 +111,8 @@ func (h *handler) DeleteNamespaceAction(w http.ResponseWriter, r *http.Request) 
 	}
 
 	hc := context.GetContext(r)
-	name, version := pipeline.ParseActionKey(hc.PS.ByName("key"))
-	req := pipeline.NewDeleteActionRequest(name, version)
+	name, version := action.ParseActionKey(hc.PS.ByName("key"))
+	req := action.NewDeleteActionRequest(name, version)
 	req.VisiableMode = resource.VisiableMode_NAMESPACE
 
 	var header, trailer metadata.MD
@@ -138,8 +137,8 @@ func (h *handler) DeleteGlobalAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	hc := context.GetContext(r)
-	name, version := pipeline.ParseActionKey(hc.PS.ByName("key"))
-	req := pipeline.NewDeleteActionRequest(name, version)
+	name, version := action.ParseActionKey(hc.PS.ByName("key"))
+	req := action.NewDeleteActionRequest(name, version)
 	req.VisiableMode = resource.VisiableMode_GLOBAL
 
 	var header, trailer metadata.MD
@@ -164,7 +163,7 @@ func (h *handler) CreateGlobalAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req := pipeline.NewCreateActionRequest()
+	req := action.NewCreateActionRequest()
 	if err := request.GetDataFromRequest(r, req); err != nil {
 		response.Failed(w, err)
 		return
@@ -187,9 +186,9 @@ func (h *handler) CreateGlobalAction(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) QueryRunner(w http.ResponseWriter, r *http.Request) {
 	ins := NewRunnerParamDescSet()
-	ins.Add(pipeline.RUNNER_TYPE_DOCKER, docker.ParamsDesc())
-	ins.Add(pipeline.RUNNER_TYPE_K8s, k8s.ParamsDesc())
-	ins.Add(pipeline.RUNNER_TYPE_LOCAL, local.ParamsDesc())
+	ins.Add(action.RUNNER_TYPE_DOCKER, docker.ParamsDesc())
+	ins.Add(action.RUNNER_TYPE_K8s, k8s.ParamsDesc())
+	ins.Add(action.RUNNER_TYPE_LOCAL, local.ParamsDesc())
 	response.Success(w, ins)
 }
 
@@ -203,7 +202,7 @@ type RunnerParamDescSet struct {
 	Items []*RunnerParamDesc `json:"items"`
 }
 
-func (s *RunnerParamDescSet) Add(t pipeline.RUNNER_TYPE, desc []*pipeline.RunParamDesc) {
+func (s *RunnerParamDescSet) Add(t action.RUNNER_TYPE, desc []*action.RunParamDesc) {
 	s.Items = append(s.Items, &RunnerParamDesc{
 		Type:      t,
 		ParamDesc: desc,
@@ -211,6 +210,6 @@ func (s *RunnerParamDescSet) Add(t pipeline.RUNNER_TYPE, desc []*pipeline.RunPar
 }
 
 type RunnerParamDesc struct {
-	Type      pipeline.RUNNER_TYPE     `json:"type"`
-	ParamDesc []*pipeline.RunParamDesc `json:"param_desc"`
+	Type      action.RUNNER_TYPE     `json:"type"`
+	ParamDesc []*action.RunParamDesc `json:"param_desc"`
 }

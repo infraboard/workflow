@@ -1,12 +1,15 @@
 package impl
 
 import (
+	"fmt"
+
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
 	"github.com/infraboard/mcube/pb/http"
 	clientv3 "go.etcd.io/etcd/client/v3"
 
 	"github.com/infraboard/workflow/api/pkg"
+	"github.com/infraboard/workflow/api/pkg/action"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/conf"
 )
@@ -28,11 +31,17 @@ type impl struct {
 
 	client *clientv3.Client
 	log    logger.Logger
+	action action.ServiceServer
 }
 
 func (s *impl) Config() error {
 	s.client = conf.C().Etcd.GetClient()
 	s.log = zap.L().Named("Pipeline")
+
+	if pkg.Action == nil {
+		return fmt.Errorf("dependence action service is nil")
+	}
+	s.action = pkg.Action
 	return nil
 }
 

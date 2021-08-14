@@ -1,14 +1,21 @@
-package pipeline
+package action
 
 import (
 	"encoding/json"
 	"fmt"
 	"strings"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/infraboard/keyauth/pkg/token"
 	"github.com/infraboard/mcube/http/request"
 	"github.com/infraboard/mcube/pb/resource"
 	"github.com/infraboard/mcube/types/ftime"
+	"github.com/rs/xid"
+)
+
+// use a single instance of Validate, it caches struct info
+var (
+	validate = validator.New()
 )
 
 func NewCreateActionRequest() *CreateActionRequest {
@@ -52,6 +59,7 @@ func NewAction(req *CreateActionRequest) (*Action, error) {
 	}
 
 	p := &Action{
+		Id:           xid.New().String(),
 		CreateAt:     ftime.Now().Timestamp(),
 		UpdateAt:     ftime.Now().Timestamp(),
 		Name:         req.Name,
@@ -117,14 +125,6 @@ func (a *Action) Validate() error {
 	return validate.Struct(a)
 }
 
-func (a *Action) EtcdObjectKey() string {
-	ns := a.VisiableMode.String()
-	if a.VisiableMode.Equal(resource.VisiableMode_NAMESPACE) {
-		ns = a.Namespace
-	}
-	return fmt.Sprintf("%s/%s/%s@%s", EtcdActionPrefix(), ns, a.Name, a.Version)
-}
-
 // NewActionSet todo
 func NewActionSet() *ActionSet {
 	return &ActionSet{
@@ -160,24 +160,6 @@ func (req *DeleteActionRequest) Namespace(tk *token.Token) string {
 	}
 
 	return ns
-}
-
-func (req *QueryActionRequest) EtcdObjectKey() string {
-	key := EtcdActionPrefix()
-	if req.Namespace == "" {
-		return key
-	}
-
-	// namespace不为空
-	key = fmt.Sprintf("%s/%s", key, req.Namespace)
-	if req.Name == "" {
-		return key
-	}
-
-	// name 不为空
-	key = fmt.Sprintf("%s/%s", key, req.Name)
-
-	return key
 }
 
 func (req *DescribeActionRequest) Validate() error {

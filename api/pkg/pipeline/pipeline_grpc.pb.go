@@ -29,11 +29,6 @@ type ServiceClient interface {
 	CancelStep(ctx context.Context, in *CancelStepRequest, opts ...grpc.CallOption) (*Step, error)
 	AuditStep(ctx context.Context, in *AuditStepRequest, opts ...grpc.CallOption) (*Step, error)
 	DeletePipeline(ctx context.Context, in *DeletePipelineRequest, opts ...grpc.CallOption) (*Pipeline, error)
-	CreateAction(ctx context.Context, in *CreateActionRequest, opts ...grpc.CallOption) (*Action, error)
-	QueryAction(ctx context.Context, in *QueryActionRequest, opts ...grpc.CallOption) (*ActionSet, error)
-	DescribeAction(ctx context.Context, in *DescribeActionRequest, opts ...grpc.CallOption) (*Action, error)
-	UpdateAction(ctx context.Context, in *UpdateActionRequest, opts ...grpc.CallOption) (*Action, error)
-	DeleteAction(ctx context.Context, in *DeleteActionRequest, opts ...grpc.CallOption) (*Action, error)
 }
 
 type serviceClient struct {
@@ -166,51 +161,6 @@ func (c *serviceClient) DeletePipeline(ctx context.Context, in *DeletePipelineRe
 	return out, nil
 }
 
-func (c *serviceClient) CreateAction(ctx context.Context, in *CreateActionRequest, opts ...grpc.CallOption) (*Action, error) {
-	out := new(Action)
-	err := c.cc.Invoke(ctx, "/workflow.pipeline.Service/CreateAction", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *serviceClient) QueryAction(ctx context.Context, in *QueryActionRequest, opts ...grpc.CallOption) (*ActionSet, error) {
-	out := new(ActionSet)
-	err := c.cc.Invoke(ctx, "/workflow.pipeline.Service/QueryAction", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *serviceClient) DescribeAction(ctx context.Context, in *DescribeActionRequest, opts ...grpc.CallOption) (*Action, error) {
-	out := new(Action)
-	err := c.cc.Invoke(ctx, "/workflow.pipeline.Service/DescribeAction", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *serviceClient) UpdateAction(ctx context.Context, in *UpdateActionRequest, opts ...grpc.CallOption) (*Action, error) {
-	out := new(Action)
-	err := c.cc.Invoke(ctx, "/workflow.pipeline.Service/UpdateAction", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *serviceClient) DeleteAction(ctx context.Context, in *DeleteActionRequest, opts ...grpc.CallOption) (*Action, error) {
-	out := new(Action)
-	err := c.cc.Invoke(ctx, "/workflow.pipeline.Service/DeleteAction", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // ServiceServer is the server API for Service service.
 // All implementations must embed UnimplementedServiceServer
 // for forward compatibility
@@ -226,11 +176,6 @@ type ServiceServer interface {
 	CancelStep(context.Context, *CancelStepRequest) (*Step, error)
 	AuditStep(context.Context, *AuditStepRequest) (*Step, error)
 	DeletePipeline(context.Context, *DeletePipelineRequest) (*Pipeline, error)
-	CreateAction(context.Context, *CreateActionRequest) (*Action, error)
-	QueryAction(context.Context, *QueryActionRequest) (*ActionSet, error)
-	DescribeAction(context.Context, *DescribeActionRequest) (*Action, error)
-	UpdateAction(context.Context, *UpdateActionRequest) (*Action, error)
-	DeleteAction(context.Context, *DeleteActionRequest) (*Action, error)
 	mustEmbedUnimplementedServiceServer()
 }
 
@@ -270,21 +215,6 @@ func (UnimplementedServiceServer) AuditStep(context.Context, *AuditStepRequest) 
 }
 func (UnimplementedServiceServer) DeletePipeline(context.Context, *DeletePipelineRequest) (*Pipeline, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeletePipeline not implemented")
-}
-func (UnimplementedServiceServer) CreateAction(context.Context, *CreateActionRequest) (*Action, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateAction not implemented")
-}
-func (UnimplementedServiceServer) QueryAction(context.Context, *QueryActionRequest) (*ActionSet, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method QueryAction not implemented")
-}
-func (UnimplementedServiceServer) DescribeAction(context.Context, *DescribeActionRequest) (*Action, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DescribeAction not implemented")
-}
-func (UnimplementedServiceServer) UpdateAction(context.Context, *UpdateActionRequest) (*Action, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateAction not implemented")
-}
-func (UnimplementedServiceServer) DeleteAction(context.Context, *DeleteActionRequest) (*Action, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteAction not implemented")
 }
 func (UnimplementedServiceServer) mustEmbedUnimplementedServiceServer() {}
 
@@ -500,96 +430,6 @@ func _Service_DeletePipeline_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Service_CreateAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateActionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ServiceServer).CreateAction(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/workflow.pipeline.Service/CreateAction",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceServer).CreateAction(ctx, req.(*CreateActionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Service_QueryAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryActionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ServiceServer).QueryAction(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/workflow.pipeline.Service/QueryAction",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceServer).QueryAction(ctx, req.(*QueryActionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Service_DescribeAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DescribeActionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ServiceServer).DescribeAction(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/workflow.pipeline.Service/DescribeAction",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceServer).DescribeAction(ctx, req.(*DescribeActionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Service_UpdateAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateActionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ServiceServer).UpdateAction(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/workflow.pipeline.Service/UpdateAction",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceServer).UpdateAction(ctx, req.(*UpdateActionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Service_DeleteAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteActionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ServiceServer).DeleteAction(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/workflow.pipeline.Service/DeleteAction",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceServer).DeleteAction(ctx, req.(*DeleteActionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Service_ServiceDesc is the grpc.ServiceDesc for Service service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -636,26 +476,6 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeletePipeline",
 			Handler:    _Service_DeletePipeline_Handler,
-		},
-		{
-			MethodName: "CreateAction",
-			Handler:    _Service_CreateAction_Handler,
-		},
-		{
-			MethodName: "QueryAction",
-			Handler:    _Service_QueryAction_Handler,
-		},
-		{
-			MethodName: "DescribeAction",
-			Handler:    _Service_DescribeAction_Handler,
-		},
-		{
-			MethodName: "UpdateAction",
-			Handler:    _Service_UpdateAction_Handler,
-		},
-		{
-			MethodName: "DeleteAction",
-			Handler:    _Service_DeleteAction_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

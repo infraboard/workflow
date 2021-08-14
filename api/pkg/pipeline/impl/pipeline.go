@@ -11,6 +11,7 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc/metadata"
 
+	"github.com/infraboard/workflow/api/pkg/action"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 )
 
@@ -77,7 +78,7 @@ func (i *impl) validateStage(ctx context.Context, s *pipeline.Stage) error {
 }
 
 func (i *impl) validateStep(ctx context.Context, s *pipeline.Step) error {
-	_, err := i.DescribeAction(ctx, pipeline.NewDescribeActionRequest(s.GetNamespace(), s.ActionName(), s.ActionVersion()))
+	_, err := i.action.DescribeAction(ctx, action.NewDescribeActionRequest(s.GetNamespace(), s.ActionName(), s.ActionVersion()))
 	if err != nil {
 		return err
 	}

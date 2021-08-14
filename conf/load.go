@@ -23,6 +23,12 @@ func initGloabalInstance(cfg *Config) error {
 		return err
 	}
 	etcdClient = c
+
+	mgo, err := cfg.Mongo.getClient()
+	if err != nil {
+		return err
+	}
+	mgoClient = mgo
 	return nil
 }
 
