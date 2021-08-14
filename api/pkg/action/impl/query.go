@@ -52,7 +52,31 @@ func (req *describeRequest) FindFilter() bson.M {
 
 	filter["name"] = req.Name
 	filter["version"] = req.Version
-	filter["namespace"] = bson.M{"$in": []string{req.Namespace, resource.VisiableMode_GLOBAL.String()}}
+	filter["$or"] = bson.A{
+		bson.M{"namespace": req.Namespace},
+		bson.M{"visiable_mode": resource.VisiableMode_GLOBAL.String()},
+	}
+
+	return filter
+}
+
+func newDeleteActionRequest(req *action.DeleteActionRequest) (*deleteRequest, error) {
+	if err := req.Validate(); err != nil {
+		return nil, err
+	}
+	return &deleteRequest{req}, nil
+}
+
+type deleteRequest struct {
+	*action.DeleteActionRequest
+}
+
+func (req *deleteRequest) DeleteFilter() bson.M {
+	filter := bson.M{}
+
+	filter["name"] = req.Name
+	filter["version"] = req.Version
+	filter["namespace"] = req.Namespace
 
 	return filter
 }

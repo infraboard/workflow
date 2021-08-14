@@ -8,7 +8,6 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/infraboard/keyauth/pkg/token"
 	"github.com/infraboard/mcube/http/request"
-	"github.com/infraboard/mcube/pb/resource"
 	"github.com/infraboard/mcube/types/ftime"
 	"github.com/rs/xid"
 )
@@ -146,20 +145,11 @@ func NewDescribeActionRequest(namespace, name, version string) *DescribeActionRe
 }
 
 // NewDeleteActionRequest 查询book列表
-func NewDeleteActionRequest(version, name string) *DeleteActionRequest {
+func NewDeleteActionRequest(name, version string) *DeleteActionRequest {
 	return &DeleteActionRequest{
 		Name:    name,
 		Version: version,
 	}
-}
-
-func (req *DeleteActionRequest) Namespace(tk *token.Token) string {
-	ns := req.VisiableMode.String()
-	if req.VisiableMode.Equal(resource.VisiableMode_NAMESPACE) {
-		ns = tk.Namespace
-	}
-
-	return ns
 }
 
 func (req *DescribeActionRequest) Validate() error {
@@ -174,4 +164,8 @@ func ParseActionKey(key string) (name, version string) {
 	}
 
 	return
+}
+
+func (req *DeleteActionRequest) Validate() error {
+	return validate.Struct(req)
 }

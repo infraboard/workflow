@@ -109,35 +109,19 @@ func (i *impl) UpdateAction(context.Context, *action.UpdateActionRequest) (*acti
 
 func (i *impl) DeleteAction(ctx context.Context, req *action.DeleteActionRequest) (
 	*action.Action, error) {
-	in, err := gcontext.GetGrpcInCtx(ctx)
+	ins, err := i.DescribeAction(ctx, action.NewDescribeActionRequest(req.Namespace, req.Name, req.Version))
 	if err != nil {
 		return nil, err
 	}
-	tk := session.S().GetToken(in.GetAccessToKen())
-	if tk == nil {
-		return nil, exception.NewUnauthorized("token required")
+
+	delReq, err := newDeleteActionRequest(req)
+	if err != nil {
+		return nil, exception.NewBadRequest(err.Error())
 	}
 
-	// descKey := pipeline.ActionObjectKey(req.Namespace(tk), req.Name, req.Version)
-	// i.log.Infof("delete etcd action resource key: %s", descKey)
-	// resp, err := i.client.Delete(ctx, descKey, clientv3.WithPrevKV())
-	// if err != nil {
-	// 	return nil, err
-	// }
+	if _, err := i.col.DeleteOne(context.TODO(), delReq.DeleteFilter()); err != nil {
+		return nil, err
+	}
 
-	// if resp.Deleted == 0 {
-	// 	return nil, exception.NewNotFound("action %s not found", req.Name)
-	// }
-
-	// ins := pipeline.NewDefaultAction()
-	// for index := range resp.PrevKvs {
-	// 	// 解析对象
-	// 	ins, err = pipeline.LoadActionFromBytes(resp.PrevKvs[index].Value)
-	// 	if err != nil {
-	// 		i.log.Error(err)
-	// 		continue
-	// 	}
-	// 	ins.ResourceVersion = resp.Header.Revision
-	// }
-	return nil, nil
+	return ins, nil
 }

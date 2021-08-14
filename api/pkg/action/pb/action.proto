@@ -175,16 +175,24 @@ message CreateActionRequest {
 
 // UpdateActionRequest, 不能修改ActionRunner运行参数, 如果需要修改，请新建一个版本
 message UpdateActionRequest {
+    // 名称
+    string id = 19[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"id" validate:"required"'}
+        ];
+	// 可见模式
+	mcube.resource.VisiableMode visiable_mode = 1[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"visiable_mode"'}
+		];
 	// 运行时的参数说明
-	repeated RunParamDesc run_params = 3[
+	repeated RunParamDesc run_params = 2[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"run_params" json:"run_params"'}
         ];
 	// 标签
-	map<string, string> tags = 4[
+	map<string, string> tags = 3[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"tags"'}
 		];
 	// 描述
-	string description = 5[
+	string description = 4[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"description"'}
 		];
 }
@@ -207,15 +215,15 @@ message DescribeActionRequest {
 message DeleteActionRequest {
 	// 指定名称
 	string name = 1[
-		(google.protobuf.field_tag) = {struct_tag: 'json:"name"'}
+		(google.protobuf.field_tag) = {struct_tag: 'json:"name" validate:"required"'}
 		];
 	// 指定版本
 	string version = 3[
-		(google.protobuf.field_tag) = {struct_tag: 'json:"version"'}
+		(google.protobuf.field_tag) = {struct_tag: 'json:"version" validate:"required"'}
 		];
-	// 可见模式
-	mcube.resource.VisiableMode visiable_mode = 2[
-		(google.protobuf.field_tag) = {struct_tag: 'json:"visiable_mode"'}
+	// 唯一空间
+	string namespace = 2[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"namespace" validate:"required"'}
 		];
 }
 

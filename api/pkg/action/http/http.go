@@ -29,10 +29,9 @@ func (h *handler) Registry(router router.SubRouter) {
 	r.Handle("POST", "/", h.CreateAction).AddLabel(label.Create)
 	r.Handle("GET", "/", h.QueryAction).AddLabel(label.List)
 	r.Handle("GET", "/:key", h.DescribeAction).AddLabel(label.Get)
-	r.Handle("DELETE", "/:key", h.DeleteNamespaceAction).AddLabel(label.Delete)
-	r.BasePath("global_actions")
-	r.Handle("POST", "/", h.CreateGlobalAction).AddLabel(label.Create)
-	r.Handle("DELETE", "/:name", h.DeleteGlobalAction).AddLabel(label.Delete)
+	r.Handle("PATCH", "/:key/public", h.PublicAction).AddLabel()
+	r.Handle("DELETE", "/:key", h.DeleteAction).AddLabel(label.Delete)
+
 	r.BasePath("runners")
 	r.Handle("GET", "/", h.QueryRunner).AddLabel(label.List)
 }

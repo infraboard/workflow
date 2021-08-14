@@ -48,6 +48,10 @@ func (h *handler) CreateAction(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, ins)
 }
 
+func (h *handler) PublicAction(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func (h *handler) QueryAction(w http.ResponseWriter, r *http.Request) {
 	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
 	if err != nil {
@@ -103,7 +107,7 @@ func (h *handler) DescribeAction(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, ins)
 }
 
-func (h *handler) DeleteNamespaceAction(w http.ResponseWriter, r *http.Request) {
+func (h *handler) DeleteAction(w http.ResponseWriter, r *http.Request) {
 	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
 	if err != nil {
 		response.Failed(w, err)
@@ -113,7 +117,13 @@ func (h *handler) DeleteNamespaceAction(w http.ResponseWriter, r *http.Request) 
 	hc := context.GetContext(r)
 	name, version := action.ParseActionKey(hc.PS.ByName("key"))
 	req := action.NewDeleteActionRequest(name, version)
-	req.VisiableMode = resource.VisiableMode_NAMESPACE
+
+	tk, ok := hc.AuthInfo.(*token.Token)
+	if !ok {
+		response.Failed(w, fmt.Errorf("auth info is not an *token.Token"))
+		return
+	}
+	req.Namespace = tk.Namespace
 
 	var header, trailer metadata.MD
 	action, err := h.service.DeleteAction(
@@ -127,61 +137,6 @@ func (h *handler) DeleteNamespaceAction(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	response.Success(w, action)
-}
-
-func (h *handler) DeleteGlobalAction(w http.ResponseWriter, r *http.Request) {
-	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
-	if err != nil {
-		response.Failed(w, err)
-		return
-	}
-
-	hc := context.GetContext(r)
-	name, version := action.ParseActionKey(hc.PS.ByName("key"))
-	req := action.NewDeleteActionRequest(name, version)
-	req.VisiableMode = resource.VisiableMode_GLOBAL
-
-	var header, trailer metadata.MD
-	action, err := h.service.DeleteAction(
-		ctx.Context(),
-		req,
-		grpc.Header(&header),
-		grpc.Trailer(&trailer),
-	)
-	if err != nil {
-		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
-		return
-	}
-	response.Success(w, action)
-}
-
-// Action
-func (h *handler) CreateGlobalAction(w http.ResponseWriter, r *http.Request) {
-	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
-	if err != nil {
-		response.Failed(w, err)
-		return
-	}
-
-	req := action.NewCreateActionRequest()
-	if err := request.GetDataFromRequest(r, req); err != nil {
-		response.Failed(w, err)
-		return
-	}
-	req.VisiableMode = resource.VisiableMode_GLOBAL
-
-	var header, trailer metadata.MD
-	ins, err := h.service.CreateAction(
-		ctx.Context(),
-		req,
-		grpc.Header(&header),
-		grpc.Trailer(&trailer),
-	)
-	if err != nil {
-		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
-		return
-	}
-	response.Success(w, ins)
 }
 
 func (h *handler) QueryRunner(w http.ResponseWriter, r *http.Request) {
