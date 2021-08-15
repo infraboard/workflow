@@ -4,7 +4,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/infraboard/mcube/pb/resource"
 	"github.com/infraboard/workflow/api/pkg/action"
 )
 
@@ -52,10 +51,6 @@ func (req *describeRequest) FindFilter() bson.M {
 
 	filter["name"] = req.Name
 	filter["version"] = req.Version
-	filter["$or"] = bson.A{
-		bson.M{"namespace": req.Namespace},
-		bson.M{"visiable_mode": resource.VisiableMode_GLOBAL.String()},
-	}
 
 	return filter
 }

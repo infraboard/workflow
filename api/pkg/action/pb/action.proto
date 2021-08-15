@@ -175,10 +175,14 @@ message CreateActionRequest {
 
 // UpdateActionRequest, 不能修改ActionRunner运行参数, 如果需要修改，请新建一个版本
 message UpdateActionRequest {
-    // 名称
-    string id = 19[
-        (google.protobuf.field_tag) = {struct_tag: 'json:"id" validate:"required"'}
-        ];
+	// 指定名称
+	string name = 5[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"name" validate:"required"'}
+		];
+	// 指定版本
+	string version = 6[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"version" validate:"required"'}
+		];
 	// 可见模式
 	mcube.resource.VisiableMode visiable_mode = 1[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"visiable_mode"'}
@@ -198,17 +202,17 @@ message UpdateActionRequest {
 }
 
 message DescribeActionRequest {
+	// id
+	string id = 4[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"id"'}
+		];
 	// 名称
 	string name = 1[
-		(google.protobuf.field_tag) = {struct_tag: 'json:"name" validate:"required"'}
+		(google.protobuf.field_tag) = {struct_tag: 'json:"name"'}
 		];
 	// 对应的版本
 	string version = 3[
-		(google.protobuf.field_tag) = {struct_tag: 'json:"version" validate:"required"'}
-		];
-	// 唯一空间
-	string namespace = 2[
-		(google.protobuf.field_tag) = {struct_tag: 'json:"namespace" validate:"required"'}
+		(google.protobuf.field_tag) = {struct_tag: 'json:"version"'}
 		];
 }
 

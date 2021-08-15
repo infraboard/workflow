@@ -6,6 +6,8 @@ import (
 	"github.com/infraboard/keyauth/client/session"
 	"github.com/infraboard/mcube/exception"
 	"github.com/infraboard/mcube/grpc/gcontext"
+	"github.com/infraboard/mcube/types/ftime"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/infraboard/workflow/api/pkg/action"
@@ -69,19 +71,6 @@ func (i *impl) QueryAction(ctx context.Context, req *action.QueryActionRequest) 
 
 func (i *impl) DescribeAction(ctx context.Context, req *action.DescribeActionRequest) (
 	*action.Action, error) {
-	if req.Namespace == "" {
-		in, err := gcontext.GetGrpcInCtx(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		tk := session.S().GetToken(in.GetAccessToKen())
-		if tk == nil {
-			return nil, exception.NewUnauthorized("token required")
-		}
-		req.Namespace = tk.Namespace
-	}
-
 	if err := req.Validate(); err != nil {
 		return nil, exception.NewBadRequest("validate DescribeActionRequest error, %s", err)
 	}
@@ -97,19 +86,35 @@ func (i *impl) DescribeAction(ctx context.Context, req *action.DescribeActionReq
 			return nil, exception.NewNotFound("action %s not found", req)
 		}
 
-		return nil, exception.NewInternalServerError("find domain %s error, %s", req.Name, err)
+		return nil, exception.NewInternalServerError("find action %s error, %s", req.Name, err)
 	}
 
 	return ins, nil
 }
 
-func (i *impl) UpdateAction(context.Context, *action.UpdateActionRequest) (*action.Action, error) {
-	return nil, nil
+func (i *impl) UpdateAction(ctx context.Context, req *action.UpdateActionRequest) (*action.Action, error) {
+	if err := req.Validate(); err != nil {
+		return nil, exception.NewBadRequest(err.Error())
+	}
+
+	ins, err := i.DescribeAction(ctx, action.NewDescribeActionRequest(req.Name, req.Version))
+	if err != nil {
+		return nil, err
+	}
+
+	ins.Update(req)
+	ins.UpdateAt = ftime.Now().Timestamp()
+	_, err = i.col.UpdateOne(context.TODO(), bson.M{"name": req.Name, "version": req.Version}, bson.M{"$set": ins})
+	if err != nil {
+		return nil, exception.NewInternalServerError("update action(%s) error, %s", ins.Key(), err)
+	}
+
+	return ins, nil
 }
 
 func (i *impl) DeleteAction(ctx context.Context, req *action.DeleteActionRequest) (
 	*action.Action, error) {
-	ins, err := i.DescribeAction(ctx, action.NewDescribeActionRequest(req.Namespace, req.Name, req.Version))
+	ins, err := i.DescribeAction(ctx, action.NewDescribeActionRequest(req.Name, req.Version))
 	if err != nil {
 		return nil, err
 	}

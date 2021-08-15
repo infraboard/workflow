@@ -49,7 +49,29 @@ func (h *handler) CreateAction(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) PublicAction(w http.ResponseWriter, r *http.Request) {
+	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
+	if err != nil {
+		response.Failed(w, err)
+		return
+	}
 
+	hc := context.GetContext(r)
+	name, version := action.ParseActionKey(hc.PS.ByName("key"))
+	req := action.NewUpdateActionRequest(name, version)
+	req.VisiableMode = resource.VisiableMode_GLOBAL
+
+	var header, trailer metadata.MD
+	ins, err := h.service.UpdateAction(
+		ctx.Context(),
+		req,
+		grpc.Header(&header),
+		grpc.Trailer(&trailer),
+	)
+	if err != nil {
+		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		return
+	}
+	response.Success(w, ins)
 }
 
 func (h *handler) QueryAction(w http.ResponseWriter, r *http.Request) {
@@ -84,14 +106,8 @@ func (h *handler) DescribeAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	hc := context.GetContext(r)
-	tk, ok := hc.AuthInfo.(*token.Token)
-	if !ok {
-		response.Failed(w, fmt.Errorf("auth info is not an *token.Token"))
-		return
-	}
-
 	name, version := action.ParseActionKey(hc.PS.ByName("key"))
-	req := action.NewDescribeActionRequest(tk.Namespace, name, version)
+	req := action.NewDescribeActionRequest(name, version)
 
 	var header, trailer metadata.MD
 	ins, err := h.service.DescribeAction(

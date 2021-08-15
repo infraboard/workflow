@@ -78,7 +78,7 @@ func (i *impl) validateStage(ctx context.Context, s *pipeline.Stage) error {
 }
 
 func (i *impl) validateStep(ctx context.Context, s *pipeline.Step) error {
-	_, err := i.action.DescribeAction(ctx, action.NewDescribeActionRequest(s.GetNamespace(), s.ActionName(), s.ActionVersion()))
+	_, err := i.action.DescribeAction(ctx, action.NewDescribeActionRequest(s.ActionName(), s.ActionVersion()))
 	if err != nil {
 		return err
 	}

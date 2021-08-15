@@ -124,6 +124,17 @@ func (a *Action) Validate() error {
 	return validate.Struct(a)
 }
 
+func (a *Action) Update(req *UpdateActionRequest) {
+	a.VisiableMode = req.VisiableMode
+	a.RunParams = req.RunParams
+	a.Tags = req.Tags
+	a.Description = req.Description
+}
+
+func (a *Action) Key() string {
+	return fmt.Sprintf("%s@%s", a.Name, a.Version)
+}
+
 // NewActionSet todo
 func NewActionSet() *ActionSet {
 	return &ActionSet{
@@ -136,11 +147,10 @@ func (s *ActionSet) Add(item *Action) {
 }
 
 // NewQueryActionRequest 查询book列表
-func NewDescribeActionRequest(namespace, name, version string) *DescribeActionRequest {
+func NewDescribeActionRequest(name, version string) *DescribeActionRequest {
 	return &DescribeActionRequest{
-		Namespace: namespace,
-		Name:      name,
-		Version:   version,
+		Name:    name,
+		Version: version,
 	}
 }
 
@@ -167,5 +177,16 @@ func ParseActionKey(key string) (name, version string) {
 }
 
 func (req *DeleteActionRequest) Validate() error {
+	return validate.Struct(req)
+}
+
+func NewUpdateActionRequest(name, version string) *UpdateActionRequest {
+	return &UpdateActionRequest{
+		Name:    name,
+		Version: version,
+	}
+}
+
+func (req *UpdateActionRequest) Validate() error {
 	return validate.Struct(req)
 }
