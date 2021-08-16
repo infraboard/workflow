@@ -35,7 +35,6 @@ func (h *handler) GiteeTrigger(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 根据URL, Clone镜像仓库
-
 	response.Success(w, event)
 }
 

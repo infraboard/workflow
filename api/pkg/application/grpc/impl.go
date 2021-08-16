@@ -1,4 +1,4 @@
-package impl
+package grpc
 
 import (
 	"github.com/infraboard/mcube/logger"

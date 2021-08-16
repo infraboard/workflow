@@ -1,9 +1,10 @@
-package impl
+package grpc
 
 import (
 	"context"
 
 	"github.com/infraboard/mcube/exception"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/infraboard/workflow/api/pkg/template"
@@ -19,7 +20,7 @@ func (i *impl) CreateTemplate(ctx context.Context, req *template.CreateTemplateR
 	if _, err := i.col.InsertOne(context.TODO(), a); err != nil {
 		return nil, exception.NewInternalServerError("inserted a template document error, %s", err)
 	}
-	return nil, nil
+	return a, nil
 }
 
 func (i *impl) QueryTemplate(ctx context.Context, req *template.QueryTemplateRequest) (
@@ -48,7 +49,7 @@ func (i *impl) QueryTemplate(ctx context.Context, req *template.QueryTemplateReq
 		return nil, exception.NewInternalServerError("get template count error, error is %s", err)
 	}
 	set.Total = count
-	return nil, nil
+	return set, nil
 }
 
 func (i *impl) DescribeTemplate(ctx context.Context, req *template.DescribeTemplateRequest) (
@@ -79,7 +80,16 @@ func (i *impl) UpdateAction(context.Context, *template.UpdateTemplateRequest) (
 	return nil, nil
 }
 
-func (i *impl) DeleteTemplate(context.Context, *template.DeleteTemplateRequest) (
+func (i *impl) DeleteTemplate(ctx context.Context, req *template.DeleteTemplateRequest) (
 	*template.Template, error) {
-	return nil, nil
+	ins, err := i.DescribeTemplate(ctx, template.NewDescribeTemplateRequestWithID(req.Id))
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := i.col.DeleteOne(context.TODO(), bson.M{"_id": req.Id}); err != nil {
+		return nil, err
+	}
+
+	return ins, nil
 }

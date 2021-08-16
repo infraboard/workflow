@@ -81,3 +81,10 @@ func NewDescribeTemplateRequestWithID(id string) *DescribeTemplateRequest {
 		Id: id,
 	}
 }
+
+// NewDeleteTemplateRequestWithID 查询book列表
+func NewDeleteTemplateRequestWithID(id string) *DeleteTemplateRequest {
+	return &DeleteTemplateRequest{
+		Id: id,
+	}
+}

@@ -1,4 +1,4 @@
-package impl
+package grpc
 
 import (
 	"context"
@@ -7,11 +7,10 @@ import (
 	"github.com/infraboard/mcube/logger/zap"
 	"github.com/infraboard/mcube/pb/http"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
 
 	"github.com/infraboard/workflow/api/pkg"
-	"github.com/infraboard/workflow/api/pkg/action"
+	"github.com/infraboard/workflow/api/pkg/template"
 	"github.com/infraboard/workflow/conf"
 )
 
@@ -22,23 +21,16 @@ var (
 
 type impl struct {
 	col *mongo.Collection
-	action.UnimplementedServiceServer
+	template.UnimplementedServiceServer
 
 	log logger.Logger
 }
 
 func (s *impl) Config() error {
 	db := conf.C().Mongo.GetDB()
-	dc := db.Collection("actions")
+	dc := db.Collection("template")
 
 	indexs := []mongo.IndexModel{
-		{
-			Keys: bsonx.Doc{
-				{Key: "name", Value: bsonx.Int32(-1)},
-				{Key: "version", Value: bsonx.Int32(-1)},
-			},
-			Options: options.Index().SetUnique(true),
-		},
 		{
 			Keys: bsonx.Doc{{Key: "create_at", Value: bsonx.Int32(-1)}},
 		},
@@ -50,16 +42,16 @@ func (s *impl) Config() error {
 	}
 
 	s.col = dc
-	s.log = zap.L().Named("Action")
+	s.log = zap.L().Named("Template")
 
 	return nil
 }
 
 // HttpEntry todo
 func (s *impl) HTTPEntry() *http.EntrySet {
-	return action.HttpEntry()
+	return template.HttpEntry()
 }
 
 func init() {
-	pkg.RegistryService("action", Service)
+	pkg.RegistryService("template", Service)
 }

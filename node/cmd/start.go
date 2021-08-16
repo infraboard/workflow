@@ -20,7 +20,7 @@ import (
 	"github.com/infraboard/workflow/conf"
 	"github.com/infraboard/workflow/version"
 
-	etcd_register "github.com/infraboard/workflow/api/pkg/node/impl"
+	etcd_register "github.com/infraboard/workflow/api/pkg/node/etcd"
 	informer "github.com/infraboard/workflow/common/informers/step"
 	si_impl "github.com/infraboard/workflow/common/informers/step/etcd"
 	"github.com/infraboard/workflow/node/controller/step"

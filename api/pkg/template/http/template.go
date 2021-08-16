@@ -106,3 +106,27 @@ func (h *handler) DescribeTemplate(w http.ResponseWriter, r *http.Request) {
 	}
 	response.Success(w, ins)
 }
+
+func (h *handler) DeleteTemplate(w http.ResponseWriter, r *http.Request) {
+	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
+	if err != nil {
+		response.Failed(w, err)
+		return
+	}
+
+	hc := context.GetContext(r)
+	req := template.NewDeleteTemplateRequestWithID(hc.PS.ByName("id"))
+
+	var header, trailer metadata.MD
+	action, err := h.service.DeleteTemplate(
+		ctx.Context(),
+		req,
+		grpc.Header(&header),
+		grpc.Trailer(&trailer),
+	)
+	if err != nil {
+		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		return
+	}
+	response.Success(w, action)
+}

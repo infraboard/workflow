@@ -15,7 +15,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/infraboard/workflow/api/pkg/node"
-	etcd_register "github.com/infraboard/workflow/api/pkg/node/impl"
+	etcd_register "github.com/infraboard/workflow/api/pkg/node/etcd"
 	"github.com/infraboard/workflow/conf"
 	node_controller "github.com/infraboard/workflow/scheduler/controller/node"
 	"github.com/infraboard/workflow/scheduler/controller/pipeline"
