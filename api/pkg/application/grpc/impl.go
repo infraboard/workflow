@@ -16,7 +16,6 @@ var (
 
 type service struct {
 	application.UnimplementedServiceServer
-
 	log logger.Logger
 }
 

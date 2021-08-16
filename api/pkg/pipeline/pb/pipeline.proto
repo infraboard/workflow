@@ -65,7 +65,6 @@ enum PIPELINE_WATCH_MOD {
 	BY_NAMESPACE = 1;
 }
 
-
 service Service {
 	rpc CreatePipeline(CreatePipelineRequest) returns(Pipeline);
 	rpc QueryPipeline(QueryPipelineRequest) returns(PipelineSet);

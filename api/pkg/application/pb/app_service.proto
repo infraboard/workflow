@@ -4,31 +4,11 @@ package workflow.application;
 option go_package = "github.com/infraboard/workflow/api/pkg/application";
 
 import "github.com/infraboard/mcube/cmd/protoc-gen-go-ext/extension/tag/tag.proto";
-import "github.com/infraboard/mcube/pb/http/entry.proto";
 import "github.com/infraboard/mcube/pb/page/page.proto";
 
 service Service {
-	rpc CreateApplication(CreateApplicationRequest) returns(Application) {
-		option (mcube.http.rest_api) = {
-			path: "/applications/"
-			method: "POST"
-			resource: "application"
-			auth_enable: true
-			permission_enable: true
-			labels: [{
-				key: "action"
-				value: "create"
-			}]
-		};
-	};
-	rpc QueryApplication(QueryApplicationRequest) returns(ApplicationSet) {
-		option (mcube.http.rest_api) = {
-			path: "/applications/"
-			method: "GET"
-			resource: "application"
-			auth_enable: false
-		};
-	};
+	rpc CreateApplication(CreateApplicationRequest) returns(Application);
+	rpc QueryApplication(QueryApplicationRequest) returns(ApplicationSet);
 }
 
 // Application todo
@@ -55,7 +35,7 @@ message Application {
         ];
 	// 更新时间
 	int64 update_at = 6[
-		(google.protobuf.field_tag) = {struct_tag: 'bson:"create_at" json:"create_at"'}
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"update_at" json:"update_at"'}
 		];
 	// 更新人
 	string update_by = 7[
