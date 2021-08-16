@@ -41,7 +41,6 @@ func (i *impl) CreateAction(ctx context.Context, req *action.CreateActionRequest
 
 func (i *impl) QueryAction(ctx context.Context, req *action.QueryActionRequest) (
 	*action.ActionSet, error) {
-
 	query := newQueryActionRequest(req)
 	resp, err := i.col.Find(context.TODO(), query.FindFilter(), query.FindOptions())
 
@@ -66,7 +65,6 @@ func (i *impl) QueryAction(ctx context.Context, req *action.QueryActionRequest) 
 		return nil, exception.NewInternalServerError("get action count error, error is %s", err)
 	}
 	set.Total = count
-
 	return set, nil
 }
 

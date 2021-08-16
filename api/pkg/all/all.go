@@ -8,5 +8,7 @@ import (
 	_ "github.com/infraboard/workflow/api/pkg/application/impl"
 	_ "github.com/infraboard/workflow/api/pkg/pipeline/http"
 	_ "github.com/infraboard/workflow/api/pkg/pipeline/impl"
+	_ "github.com/infraboard/workflow/api/pkg/template/http"
+	_ "github.com/infraboard/workflow/api/pkg/template/impl"
 	_ "github.com/infraboard/workflow/api/pkg/trigger/http"
 )
