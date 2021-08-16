@@ -2,6 +2,7 @@ package impl
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/infraboard/keyauth/client/session"
 	"github.com/infraboard/mcube/exception"
@@ -119,11 +120,16 @@ func (i *impl) DeleteAction(ctx context.Context, req *action.DeleteActionRequest
 		return nil, err
 	}
 
+	if ins.Namespace != req.Namespace {
+		return nil, exception.NewBadRequest("target action namespace not match your namespace")
+	}
+
 	delReq, err := newDeleteActionRequest(req)
 	if err != nil {
 		return nil, exception.NewBadRequest(err.Error())
 	}
 
+	fmt.Println(delReq.DeleteFilter())
 	if _, err := i.col.DeleteOne(context.TODO(), delReq.DeleteFilter()); err != nil {
 		return nil, err
 	}

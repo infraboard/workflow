@@ -4,6 +4,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
+	"github.com/infraboard/mcube/pb/resource"
 	"github.com/infraboard/workflow/api/pkg/action"
 )
 
@@ -32,6 +33,19 @@ func (r *queryRequest) FindOptions() *options.FindOptions {
 
 func (r *queryRequest) FindFilter() bson.M {
 	filter := bson.M{}
+
+	cond1 := bson.M{}
+	if r.Namespace != "" {
+		cond1["namespace"] = r.Namespace
+	}
+	if r.Name != "" {
+		cond1["name"] = r.Name
+	}
+
+	filter["$or"] = bson.A{
+		cond1,
+		bson.M{"visiable_mode": resource.VisiableMode_GLOBAL},
+	}
 	return filter
 }
 

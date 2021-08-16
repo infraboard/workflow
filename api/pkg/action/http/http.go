@@ -29,7 +29,7 @@ func (h *handler) Registry(router router.SubRouter) {
 	r.Handle("POST", "/", h.CreateAction).AddLabel(label.Create)
 	r.Handle("GET", "/", h.QueryAction).AddLabel(label.List)
 	r.Handle("GET", "/:key", h.DescribeAction).AddLabel(label.Get)
-	r.Handle("PATCH", "/:key/public", h.PublicAction).AddLabel()
+	r.Handle("PUT", "/:key", h.UpdateAction).AddLabel()
 	r.Handle("DELETE", "/:key", h.DeleteAction).AddLabel(label.Delete)
 
 	r.BasePath("runners")

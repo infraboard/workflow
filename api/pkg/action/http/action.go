@@ -48,7 +48,7 @@ func (h *handler) CreateAction(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, ins)
 }
 
-func (h *handler) PublicAction(w http.ResponseWriter, r *http.Request) {
+func (h *handler) UpdateAction(w http.ResponseWriter, r *http.Request) {
 	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
 	if err != nil {
 		response.Failed(w, err)
@@ -57,8 +57,13 @@ func (h *handler) PublicAction(w http.ResponseWriter, r *http.Request) {
 
 	hc := context.GetContext(r)
 	name, version := action.ParseActionKey(hc.PS.ByName("key"))
-	req := action.NewUpdateActionRequest(name, version)
-	req.VisiableMode = resource.VisiableMode_GLOBAL
+	req := action.NewUpdateActionRequest()
+	if err := request.GetDataFromRequest(r, req); err != nil {
+		response.Failed(w, err)
+		return
+	}
+	req.Name = name
+	req.Version = version
 
 	var header, trailer metadata.MD
 	ins, err := h.service.UpdateAction(
@@ -81,8 +86,16 @@ func (h *handler) QueryAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	hc := context.GetContext(r)
+	tk, ok := hc.AuthInfo.(*token.Token)
+	if !ok {
+		response.Failed(w, fmt.Errorf("auth info is not an *token.Token"))
+		return
+	}
+
 	page := request.NewPageRequestFromHTTP(r)
 	req := action.NewQueryActionRequest(page)
+	req.Namespace = tk.Namespace
 
 	var header, trailer metadata.MD
 	actions, err := h.service.QueryAction(

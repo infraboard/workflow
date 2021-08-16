@@ -42,8 +42,7 @@ func (e *Engine) run(req *runner.RunRequest, resp *runner.RunResponse) {
 	e.log.Debugf("start run step: %s status %s", s.Key, s.Status)
 
 	// 1.查询step对应的action定义
-	descA := action.NewDescribeActionRequest(s.GetNamespace(), s.ActionName(), s.ActionVersion())
-	descA.Namespace = s.GetNamespace()
+	descA := action.NewDescribeActionRequest(s.ActionName(), s.ActionVersion())
 	ctx := gcontext.NewGrpcOutCtx()
 	actionIns, err := e.wc.Action().DescribeAction(ctx.Context(), descA)
 	if err != nil {

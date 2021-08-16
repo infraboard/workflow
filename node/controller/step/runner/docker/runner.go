@@ -25,16 +25,31 @@ const (
 )
 
 var (
-	IMAGE_URL_KEY_DESC     = &action.RunParamDesc{KeyName: IMAGE_URL_KEY, KeyDesc: "镜像地址", Required: true}
-	IMAGE_CMD_KEY_DESC     = &action.RunParamDesc{KeyName: IMAGE_CMD_KEY, KeyDesc: "执行命令", Required: true}
-	IMAGE_VERSION_KEY_DESC = &action.RunParamDesc{KeyName: IMAGE_VERSION_KEY, KeyDesc: "镜像版本", Required: true}
+	IMAGE_URL_KEY_DESC = &action.RunParamDesc{
+		KeyName:   IMAGE_URL_KEY,
+		KeyDesc:   "镜像地址",
+		Required:  true,
+		ValueDesc: "镜像仓库地址, 比如busybox, 如果是私有仓库请配置认证信息",
+	}
+	IMAGE_VERSION_KEY_DESC = &action.RunParamDesc{
+		KeyName:   IMAGE_VERSION_KEY,
+		KeyDesc:   "镜像版本",
+		Required:  false,
+		ValueDesc: "镜像对应的Tag, 比如latest",
+	}
+	IMAGE_CMD_KEY_DESC = &action.RunParamDesc{
+		KeyName:   IMAGE_CMD_KEY,
+		KeyDesc:   "执行命令",
+		Required:  true,
+		ValueDesc: "如果是多部分请用逗号分隔, 比如 sleep,10",
+	}
 )
 
 func ParamsDesc() []*action.RunParamDesc {
 	return []*action.RunParamDesc{
 		IMAGE_URL_KEY_DESC,
-		IMAGE_CMD_KEY_DESC,
 		IMAGE_VERSION_KEY_DESC,
+		IMAGE_CMD_KEY_DESC,
 	}
 }
 

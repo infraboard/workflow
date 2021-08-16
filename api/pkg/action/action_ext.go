@@ -180,11 +180,8 @@ func (req *DeleteActionRequest) Validate() error {
 	return validate.Struct(req)
 }
 
-func NewUpdateActionRequest(name, version string) *UpdateActionRequest {
-	return &UpdateActionRequest{
-		Name:    name,
-		Version: version,
-	}
+func NewUpdateActionRequest() *UpdateActionRequest {
+	return &UpdateActionRequest{}
 }
 
 func (req *UpdateActionRequest) Validate() error {
