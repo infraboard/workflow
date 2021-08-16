@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package workflow.template;
+option go_package = "github.com/infraboard/workflow/api/pkg/template";
+
+import "api/pkg/pipeline/pb/pipeline.proto";
+import "github.com/infraboard/mcube/pb/resource/base.proto";
+import "github.com/infraboard/mcube/cmd/protoc-gen-go-ext/extension/tag/tag.proto";
+
+// Template Pipeline参数模版
+message Template {
+    // 唯一ID
+    string id = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"_id" json:"id"'}
+        ];
+	// 所属域
+	string domain = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"domain" json:"domain"'}
+        ];
+	// 所属空间
+	string namespace = 3[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"namespace" json:"namespace"'}
+        ];
+	// 创建时间
+	int64 create_at = 4[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"create_at" json:"create_at"'}
+        ];
+	// 创建人
+	string create_by = 5[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"create_by" json:"create_by"'}
+        ];
+    // 用于创建pipeline的请求参数
+    workflow.pipeline.CreatePipelineRequest pipeline = 6[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"pipeline" json:"pipeline"'}
+        ];
+	// 可见模式
+	mcube.resource.VisiableMode visiable_mode = 7[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"visiable_mode" json:"visiable_mode"'}
+		];
+    // 模版的名字
+    string name = 8[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"name" json:"name"'}
+        ];
+	// 标签
+	map<string, string> tags = 9[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"tags" json:"tags"'}
+        ];
+	// 描述
+	string description = 10[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"description" json:"description"'}
+		];
+}

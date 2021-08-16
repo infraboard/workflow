@@ -126,10 +126,6 @@ message Pipeline {
 	string description = 9[
 		(google.protobuf.field_tag) = {struct_tag: 'bson:"description" json:"description"'}
 		];
-	// 触发条件
-	Trigger on = 10[
-		(google.protobuf.field_tag) = {struct_tag: 'bson:"on" json:"on"'}
-		];
 	// 当前状态
 	PipelineStatus status = 11[
 		(google.protobuf.field_tag) = {struct_tag: 'bson:"status" json:"status"'}
@@ -168,26 +164,6 @@ message MountFile {
 	// 解压目录
 	string unpack_dir = 4[
 		(google.protobuf.field_tag) = {struct_tag: 'bson:"unpack_dir" json:"unpack_dir"'}
-		];
-}
-
-// Trigger Pipeline触发执行的条件
-message Trigger {
-	// 是否允许手动触发
-	bool allow_manual = 1[
-		(google.protobuf.field_tag) = {struct_tag: 'bson:"allow_manual" json:"allow_manual"'}
-		];
-	// 是否启用自动触发
-	bool auto_enabled = 2[
-		(google.protobuf.field_tag) = {struct_tag: 'bson:"enabled" json:"enabled"'}
-		];
-	// 事件名称,那些事件可以触发
-	repeated string events = 3[
-		(google.protobuf.field_tag) = {struct_tag: 'bson:"events" json:"events"'}
-		];
-	// 分支名称, 那些分支可以触发
-	repeated string branches = 4[
-		(google.protobuf.field_tag) = {struct_tag: 'bson:"branches" json:"branches"'}
 		];
 }
 
@@ -520,10 +496,6 @@ message CreatePipelineRequest {
 	// 描述
 	string description = 3[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"description"'}
-		];
-	// 触发条件
-	Trigger on = 4[
-		(google.protobuf.field_tag) = {struct_tag: 'json:"on"'}
 		];
 	// 具体编排阶段
 	repeated Stage stages = 5[
