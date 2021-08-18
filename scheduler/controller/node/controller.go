@@ -224,9 +224,7 @@ func (c *Controller) enqueueForAdd(n *node.Node) {
 	c.workqueue.AddRateLimited(key)
 }
 
-// enqueueNetworkForDelete takes a deleted Network resource and converts it into a namespace/name
-// string which is then put onto the work queue. This method should *not* be
-// passed resources of any type other than Network.
+// 由于删除时需要对象, 所以直接在delete事件里面处理, 不交给sync handler处理
 func (c *Controller) handleDelete(n *node.Node) {
 	c.log.Infof("receive delete node: %s", n)
 	if err := n.Validate(); err != nil {
@@ -234,6 +232,7 @@ func (c *Controller) handleDelete(n *node.Node) {
 		return
 	}
 
+	// 补充重新调度的逻辑
 	fmt.Println(n)
 }
 
