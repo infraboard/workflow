@@ -33,7 +33,7 @@ func NewNodeController(
 	ni.Watcher().AddNodeEventHandler(informer.NodeEventHandlerFuncs{
 		AddFunc:    controller.enqueueForAdd,
 		UpdateFunc: controller.enqueueForUpdate,
-		DeleteFunc: controller.enqueueForDelete,
+		DeleteFunc: controller.handleDelete,
 	})
 	return controller
 }
@@ -227,15 +227,14 @@ func (c *Controller) enqueueForAdd(n *node.Node) {
 // enqueueNetworkForDelete takes a deleted Network resource and converts it into a namespace/name
 // string which is then put onto the work queue. This method should *not* be
 // passed resources of any type other than Network.
-func (c *Controller) enqueueForDelete(n *node.Node) {
+func (c *Controller) handleDelete(n *node.Node) {
 	c.log.Infof("receive delete node: %s", n)
 	if err := n.Validate(); err != nil {
 		c.log.Errorf("validate pipeline error, %s", err)
 		return
 	}
 
-	key := n.MakeObjectKey()
-	c.workqueue.AddRateLimited(key)
+	fmt.Println(n)
 }
 
 // 如果Pipeline有状态更新,

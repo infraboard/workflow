@@ -29,7 +29,7 @@ func RunStep(s *pipeline.Step) {
 }
 
 func CancelStep(s *pipeline.Step) {
-
+	engine.CancelStep(s)
 }
 
 func Init(wc *client.Client, recorder step.Recorder) (err error) {

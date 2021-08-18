@@ -17,18 +17,15 @@ func (c *Controller) syncHandler(key string) error {
 		return err
 	}
 
+	// 如果不存在, 这期望行为为删除 (DEL)
+	if !ok {
+		c.log.Debugf("remove pipeline: %s, skip", key)
+		return nil
+	}
+
 	ins, isOK := obj.(*pipeline.Pipeline)
 	if !isOK {
 		return errors.New("invalidate *pipeline.Pipeline obj")
-	}
-
-	// 如果不存在, 这期望行为为删除 (DEL)
-	if !ok {
-		c.log.Debugf("wating remove step: %s", key)
-		if err := c.deletePipeline(ins); err != nil {
-			return err
-		}
-		c.log.Infof("remove success, step: %s", key)
 	}
 
 	// 运行pipeline
@@ -36,11 +33,6 @@ func (c *Controller) syncHandler(key string) error {
 		return err
 	}
 
-	return nil
-}
-
-func (c *Controller) deletePipeline(*pipeline.Pipeline) error {
-	c.log.Debugf("sync delete pipeline ...")
 	return nil
 }
 

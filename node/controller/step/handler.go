@@ -17,18 +17,14 @@ func (c *Controller) syncHandler(key string) error {
 		return err
 	}
 
+	// 如果不存在, 这期望行为为删除 (DEL)
+	if !ok {
+		c.log.Debugf("remove step: %s, skip", key)
+	}
+
 	st, isOK := obj.(*pipeline.Step)
 	if !isOK {
 		return errors.New("invalidate *pipeline.Step obj")
-	}
-
-	// 如果不存在, 这期望行为为删除 (DEL)
-	if !ok {
-		c.log.Debugf("wating remove step: %s", key)
-		if err := c.deleteStep(st); err != nil {
-			return err
-		}
-		c.log.Infof("remove success, step: %s", key)
 	}
 
 	// 添加step
@@ -80,9 +76,8 @@ func (c *Controller) cancelStep(s *pipeline.Step) error {
 }
 
 // 当step删除时, 如果任务还在运行, 直接kill掉该任务
-func (c *Controller) deleteStep(s *pipeline.Step) error {
+func (c *Controller) deleteStep(key string) error {
 	// 取消任务
-	c.cancelStep(s)
 
 	return nil
 }

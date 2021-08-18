@@ -42,7 +42,7 @@ func NewPipelineController(
 	pi.Watcher().AddPipelineTaskEventHandler(informer.PipelineTaskEventHandlerFuncs{
 		AddFunc:    controller.enqueueForAdd,
 		UpdateFunc: controller.enqueueForUpdate,
-		DeleteFunc: controller.enqueueForDelete,
+		DeleteFunc: controller.handleDelete,
 	})
 
 	picker, err := roundrobin.NewPipelinePicker(nodeStore)
@@ -278,15 +278,14 @@ func (c *Controller) enqueueForAdd(p *pipeline.Pipeline) {
 // enqueueNetworkForDelete takes a deleted Network resource and converts it into a namespace/name
 // string which is then put onto the work queue. This method should *not* be
 // passed resources of any type other than Network.
-func (c *Controller) enqueueForDelete(p *pipeline.Pipeline) {
+func (c *Controller) handleDelete(p *pipeline.Pipeline) {
 	c.log.Infof("receive delete object: %s", p)
 	if err := p.Validate(); err != nil {
 		c.log.Errorf("validate pipeline error, %s", err)
 		return
 	}
 
-	key := p.MakeObjectKey()
-	c.workqueue.AddRateLimited(key)
+	fmt.Println(p)
 }
 
 // pipeline有状态变化, 并且状态变化是由step变化为comeplete引用的 则需要进行Next任务调度了

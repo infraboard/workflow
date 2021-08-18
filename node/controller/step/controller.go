@@ -36,7 +36,7 @@ func NewController(
 	inform.Watcher().AddStepEventHandler(step.StepEventHandlerFuncs{
 		AddFunc:    controller.enqueueForAdd,
 		UpdateFunc: controller.enqueueForUpdate,
-		DeleteFunc: controller.enqueueForDelete,
+		DeleteFunc: controller.handleDelete,
 	})
 
 	return controller
@@ -157,14 +157,17 @@ func (c *Controller) enqueueForAdd(s *pipeline.Step) {
 // enqueueNetworkForDelete takes a deleted Network resource and converts it into a namespace/name
 // string which is then put onto the work queue. This method should *not* be
 // passed resources of any type other than Network.
-func (c *Controller) enqueueForDelete(s *pipeline.Step) {
+func (c *Controller) handleDelete(s *pipeline.Step) {
 	c.log.Infof("receive delete object: %s", s)
 	if err := s.Validate(); err != nil {
 		c.log.Errorf("invalidate *pipeline.Step obj")
 		return
 	}
-	key := s.MakeObjectKey()
-	c.workqueue.AddRateLimited(key)
+
+	if err := c.cancelStep(s); err != nil {
+		c.log.Errorf("cancel step error, %s", err)
+		return
+	}
 }
 
 // 如果step有状态更新, 存在几种场景:
