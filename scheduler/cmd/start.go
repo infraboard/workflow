@@ -118,6 +118,7 @@ func newService(cfg *conf.Config) (*service, error) {
 	}
 	return svr, nil
 }
+
 func (s *service) start() error {
 	// 启动informer, Informer 需要先与Controller启动,避免事件丢失
 	ctx, cancel := context.WithCancel(context.Background())

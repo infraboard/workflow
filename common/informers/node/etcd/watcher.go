@@ -49,8 +49,16 @@ func (i *shared) dealEvents() {
 		select {
 		case nodeResp := <-i.watchChan:
 			for _, event := range nodeResp.Events {
-				if err := i.notifyNode(event, nodeResp.Header.GetRevision()); err != nil {
-					i.log.Error(err)
+				switch event.Type {
+				case mvccpb.PUT:
+					if err := i.handlePut(event, nodeResp.Header.GetRevision()); err != nil {
+						i.log.Error(err)
+					}
+				case mvccpb.DELETE:
+					if err := i.handleDelete(event); err != nil {
+						i.log.Error(err)
+					}
+				default:
 				}
 			}
 		}
@@ -84,8 +92,8 @@ func (i *shared) watch(ctx context.Context) {
 	i.log.Infof("watch etcd node resource key: %s", nodeWatchKey)
 }
 
-func (i *shared) notifyNode(event *clientv3.Event, eventVersion int64) error {
-	i.log.Debugf("receive node notify event, %s", event.Kv.Key)
+func (i *shared) handlePut(event *clientv3.Event, eventVersion int64) error {
+	i.log.Debugf("receive node put event, %s", event.Kv.Key)
 
 	// 解析对象
 	new, err := node.LoadNodeFromBytes(event.Kv.Value)
@@ -107,35 +115,43 @@ func (i *shared) notifyNode(event *clientv3.Event, eventVersion int64) error {
 		return nil
 	}
 
-	switch event.Type {
-	case mvccpb.PUT:
-		// 区分Update
-		if hasOld {
-			// 更新缓存
-			i.log.Debugf("update node: %s", new.ShortDescribe())
-			if err := i.indexer.Update(new); err != nil {
-				i.log.Errorf("update indexer cache error, %s", err)
-			}
-			i.handler.OnUpdate(old.(*node.Node), new)
-		} else {
-			// 添加缓存
-			i.log.Debugf("add node: %s", new.ShortDescribe())
-			if err := i.indexer.Add(new); err != nil {
-				i.log.Errorf("add indexer cache error, %s", err)
-			}
-			i.handler.OnAdd(new)
+	// 区分Update
+	if hasOld {
+		// 更新缓存
+		i.log.Debugf("update node: %s", new.ShortDescribe())
+		if err := i.indexer.Update(new); err != nil {
+			i.log.Errorf("update indexer cache error, %s", err)
 		}
-	case mvccpb.DELETE:
-		if !hasOld {
-			return nil
+		i.handler.OnUpdate(old.(*node.Node), new)
+	} else {
+		// 添加缓存
+		i.log.Debugf("add node: %s", new.ShortDescribe())
+		if err := i.indexer.Add(new); err != nil {
+			i.log.Errorf("add indexer cache error, %s", err)
 		}
-		// 清除缓存
-		i.log.Debugf("delete node: %s", new.ShortDescribe())
-		if err := i.indexer.Delete(new); err != nil {
-			i.log.Errorf("delete indexer cache error, %s", err)
-		}
-		i.handler.OnDelete(new)
-	default:
+		i.handler.OnAdd(new)
 	}
+
+	return nil
+}
+
+func (i *shared) handleDelete(event *clientv3.Event) error {
+	key := event.Kv.Key
+	i.log.Debugf("receive node delete event, %s", key)
+
+	obj, ok, err := i.indexer.GetByKey(string(key))
+	if err != nil {
+		i.log.Errorf("get key %s from store error, %s", key)
+	}
+	if !ok {
+		i.log.Warnf("key %s found in store", key)
+	}
+
+	// 清除缓存
+	if err := i.indexer.Delete(obj); err != nil {
+		i.log.Errorf("delete indexer cache error, %s", err)
+	}
+
+	i.handler.OnDelete(obj.(*node.Node))
 	return nil
 }

@@ -35,6 +35,12 @@ func messageContent(s *pipeline.Step) []*Element {
 	return []*Element{content}
 }
 
+func messageFiledContent(s *pipeline.Step) []*Element {
+	e := NewFieldsElement()
+	e.AddField(NewField(true, ""))
+	return nil
+}
+
 func messageHeader(s *pipeline.Step) *CardHeader {
 	return &CardHeader{
 		Title: map[string]string{

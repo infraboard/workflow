@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	feishuBotURL = "https://open.feishu.cn/open-apis/bot/v2/hook/xxx"
+	feishuBotURL = "https://open.feishu.cn/open-apis/bot/v2/hook/83bde95c-00b2-4df1-91e4-705f66102479"
 	dingBotURL   = "https://oapi.dingtalk.com/robot/send?access_token=xxxx"
 	wechatBotURL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=693axxx6-7aoc-4bc4-97a0-0ec2sifa5aaa"
 )
