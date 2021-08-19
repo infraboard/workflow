@@ -45,7 +45,7 @@ func (c *Controller) HandleAdd(n *node.Node) error {
 	for i := range steps {
 		s := steps[i]
 		if s.IsScheduledFailed() {
-			c.log.Infof("step %s is running but schedule node is down, need reschedule ...", s.Key)
+			c.log.Infof("step %s schedule failed, need reschedule ...", s.Key)
 			s.SetScheduleNode("")
 			err := c.stepRecorder.Update(s)
 			if err != nil {

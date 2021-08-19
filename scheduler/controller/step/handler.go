@@ -42,7 +42,12 @@ func (c *Controller) addStep(s *pipeline.Step) error {
 
 	// 已经调度的任务不处理
 	if s.IsScheduled() {
-		return fmt.Errorf("step %s has scheuled to node %s", s.Key, s.ScheduledNodeName())
+		return fmt.Errorf("step %s has schedule to node %s, skip add", s.Key, s.ScheduledNodeName())
+	}
+
+	// 已经调度的任务不处理
+	if s.IsScheduledFailed() {
+		return fmt.Errorf("step %s schedule failed, skip add", s.Key)
 	}
 
 	// 如果开启审核，需要通过后，才能调度执行
@@ -88,7 +93,7 @@ func (c *Controller) isAllow(s *pipeline.Step) bool {
 func (c *Controller) scheduleStep(step *pipeline.Step) error {
 	node, err := c.picker.Pick(step)
 	if err != nil || node == nil {
-		c.log.Warnf("step %s pick node error, %s", step.Name)
+		c.log.Warnf("step %s pick node error, %s", step.Name, err)
 		step.ScheduleFailed(err.Error())
 		// 清除一下其他数据
 		if err := c.informer.Recorder().Update(step.Clone()); err != nil {
