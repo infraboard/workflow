@@ -102,7 +102,7 @@ func newService(cfg *conf.Config) (*service, error) {
 	si := si_impl.NewInformer(cfg.Etcd.GetClient())
 	pi := pi_impl.NewInformerr(cfg.Etcd.GetClient(), nil)
 
-	nc := node_controller.NewNodeController(ni)
+	nc := node_controller.NewNodeController(ni, si.Lister(), si.Recorder())
 	pc := pipeline.NewPipelineController(rn.InstanceName, ni.GetStore(), pi, si)
 	sc := step.NewStepController(rn.InstanceName, ni.GetStore(), si, pc.UpdateStepCallback)
 

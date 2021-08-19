@@ -14,15 +14,20 @@ import (
 	"github.com/infraboard/workflow/api/pkg/node"
 	"github.com/infraboard/workflow/common/cache"
 	informer "github.com/infraboard/workflow/common/informers/node"
+	"github.com/infraboard/workflow/common/informers/step"
 )
 
 // NewNodeController pipeline controller
 func NewNodeController(
 	ni informer.Informer,
+	stepLister step.Lister,
+	stepRecorder step.Recorder,
 ) *Controller {
 	wq := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Node")
 	controller := &Controller{
 		store:          ni.GetStore(),
+		stepLister:     stepLister,
+		stepRecorder:   stepRecorder,
 		informer:       ni,
 		workqueue:      wq,
 		workerNums:     4,
@@ -52,6 +57,8 @@ type Controller struct {
 	runningWorkers map[string]bool
 	wLock          sync.Mutex
 	store          cache.Store // 存储每个region的node信息
+	stepLister     step.Lister
+	stepRecorder   step.Recorder
 }
 
 func (c *Controller) Debug(log logger.Logger) {
@@ -233,7 +240,26 @@ func (c *Controller) handleDelete(n *node.Node) {
 	}
 
 	// 补充重新调度的逻辑
-	fmt.Println(n)
+	steps, err := c.stepLister.List(context.Background())
+	if err != nil {
+		c.log.Errorf("list steps error, %s", err)
+		return
+	}
+
+	// 该删除节点上运行中的step进行重新调度
+	for i := range steps {
+		s := steps[i]
+		if s.ScheduledNodeName() == n.InstanceName && s.IsRunning() {
+			c.log.Infof("step %s is running but schedule node is down, need reschedule ...", s.Key)
+			s.SetScheduleNode("")
+			err := c.stepRecorder.Update(s)
+			if err != nil {
+				c.log.Errorf("update step for reschedule error, %s", err)
+				continue
+			}
+			c.log.Infof("reset step %s schedule node to \"\", waiting for reschedule", s.Key)
+		}
+	}
 }
 
 // 如果Pipeline有状态更新,
