@@ -1,6 +1,7 @@
 package node
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/infraboard/workflow/api/pkg/node"
@@ -33,5 +34,26 @@ func (c *Controller) syncHandler(key string) error {
 
 // 当有新的节点加入时, 那些调度失败的节点需要重新调度
 func (c *Controller) HandleAdd(n *node.Node) error {
+	// 补充重新调度的逻辑
+	steps, err := c.stepLister.List(context.Background())
+	if err != nil {
+		c.log.Errorf("list steps error, %s", err)
+		return nil
+	}
+
+	// 该删除节点上运行中的step进行重新调度
+	for i := range steps {
+		s := steps[i]
+		if s.IsScheduledFailed() {
+			c.log.Infof("step %s is running but schedule node is down, need reschedule ...", s.Key)
+			s.SetScheduleNode("")
+			err := c.stepRecorder.Update(s)
+			if err != nil {
+				c.log.Errorf("update step for reschedule error, %s", err)
+				continue
+			}
+			c.log.Infof("reset step %s schedule node to \"\", waiting for reschedule", s.Key)
+		}
+	}
 	return nil
 }

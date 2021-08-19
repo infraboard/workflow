@@ -373,6 +373,18 @@ func (s *Step) IsScheduled() bool {
 	return s.ScheduledNodeName() != ""
 }
 
+func (s *Step) IsScheduledFailed() bool {
+	if s.Status == nil {
+		return false
+	}
+
+	if s.Status.Status.IsIn(STEP_STATUS_SCHEDULE_FAILED) {
+		return true
+	}
+
+	return false
+}
+
 func (s *Step) IsComplete() bool {
 	if s.Status == nil {
 		return false
