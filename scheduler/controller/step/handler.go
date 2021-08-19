@@ -15,18 +15,15 @@ func (c *Controller) syncHandler(key string) error {
 		return err
 	}
 
+	// 如果不存在, 这期望行为为删除 (DEL)
+	if !ok {
+		c.log.Debugf("removed step: %s, skip", key)
+		return nil
+	}
+
 	st, isOK := obj.(*pipeline.Step)
 	if !isOK {
 		return fmt.Errorf("object %T invalidate, is not *pipeline.Step obj, ", obj)
-	}
-
-	// 如果不存在, 这期望行为为删除 (DEL)
-	if !ok {
-		c.log.Debugf("wating remove step: %s", key)
-		if err := c.deleteStep(st); err != nil {
-			return err
-		}
-		c.log.Infof("remove success, step: %s", key)
 	}
 
 	// 添加
@@ -90,13 +87,14 @@ func (c *Controller) isAllow(s *pipeline.Step) bool {
 // Step任务调度
 func (c *Controller) scheduleStep(step *pipeline.Step) error {
 	node, err := c.picker.Pick(step)
-	if err != nil {
+	if err != nil || node == nil {
+		c.log.Warnf("step %s pick node error, %s", step.Name)
+		step.ScheduleFailed(err.Error())
+		// 清除一下其他数据
+		if err := c.informer.Recorder().Update(step.Clone()); err != nil {
+			c.log.Errorf("update scheduled step error, %s", err)
+		}
 		return err
-	}
-
-	// 没有合法的node
-	if node == nil {
-		return fmt.Errorf("no available nodes")
 	}
 
 	c.log.Debugf("choice [%s] %s for step %s", node.Type, node.InstanceName, step.Key)
@@ -105,16 +103,5 @@ func (c *Controller) scheduleStep(step *pipeline.Step) error {
 	if err := c.informer.Recorder().Update(step.Clone()); err != nil {
 		c.log.Errorf("update scheduled step error, %s", err)
 	}
-	return nil
-}
-
-func (c *Controller) deleteStep(p *pipeline.Step) error {
-	c.log.Infof("receive add object: %s", p)
-	if err := p.Validate(); err != nil {
-		c.log.Errorf("invalidate node error, %s", err)
-		return nil
-	}
-
-	// 未调度的交给调度
 	return nil
 }

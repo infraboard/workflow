@@ -2,6 +2,8 @@ package node
 
 import (
 	"fmt"
+
+	"github.com/infraboard/workflow/api/pkg/node"
 )
 
 // syncHandler compares the actual state with the desired, and attempts to
@@ -21,7 +23,15 @@ func (c *Controller) syncHandler(key string) error {
 		return nil
 	}
 
-	fmt.Println(obj)
+	n, isOK := obj.(*node.Node)
+	if !isOK {
+		return fmt.Errorf("object %T invalidate, is not *node.Node obj, ", obj)
+	}
 
+	return c.HandleAdd(n)
+}
+
+// 当有新的节点加入时, 那些调度失败的节点需要重新调度
+func (c *Controller) HandleAdd(n *node.Node) error {
 	return nil
 }

@@ -10,6 +10,8 @@ import "github.com/infraboard/mcube/pb/page/page.proto";
 enum STEP_STATUS {
     // 任务等待被执行
     PENDDING = 0;
+	// 任务调度失败
+	SCHEDULE_FAILED = 10;
 	// 正在执行
 	RUNNING = 1;
     // 执行成功

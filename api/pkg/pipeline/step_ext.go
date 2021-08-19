@@ -288,6 +288,12 @@ func (s *Step) Failed(format string, a ...interface{}) {
 	s.Status.Message = fmt.Sprintf(format, a...)
 }
 
+func (s *Step) ScheduleFailed(format string, a ...interface{}) {
+	s.Status.EndAt = ftime.Now().Timestamp()
+	s.Status.Status = STEP_STATUS_SCHEDULE_FAILED
+	s.Status.Message = fmt.Sprintf(format, a...)
+}
+
 func (s *Step) Cancel(format string, a ...interface{}) {
 	s.Status.Status = STEP_STATUS_CANCELING
 	s.Status.Message = fmt.Sprintf(format, a...)
