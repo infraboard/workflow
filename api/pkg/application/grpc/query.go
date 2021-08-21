@@ -5,17 +5,17 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/infraboard/mcube/pb/resource"
-	"github.com/infraboard/workflow/api/pkg/template"
+	"github.com/infraboard/workflow/api/pkg/application"
 )
 
-func newQueryActionRequest(req *template.QueryTemplateRequest) *queryRequest {
+func newQueryApplicationRequest(req *application.QueryApplicationRequest) *queryRequest {
 	return &queryRequest{
-		QueryTemplateRequest: req,
+		QueryApplicationRequest: req,
 	}
 }
 
 type queryRequest struct {
-	*template.QueryTemplateRequest
+	*application.QueryApplicationRequest
 }
 
 func (r *queryRequest) FindOptions() *options.FindOptions {
@@ -46,25 +46,5 @@ func (r *queryRequest) FindFilter() bson.M {
 		cond1,
 		bson.M{"visiable_mode": resource.VisiableMode_GLOBAL},
 	}
-
-	return filter
-}
-
-func newDescTemplateRequest(req *template.DescribeTemplateRequest) (*describeRequest, error) {
-	if err := req.Validate(); err != nil {
-		return nil, err
-	}
-	return &describeRequest{req}, nil
-}
-
-type describeRequest struct {
-	*template.DescribeTemplateRequest
-}
-
-func (req *describeRequest) FindFilter() bson.M {
-	filter := bson.M{}
-
-	filter["_id"] = req.Id
-
 	return filter
 }

@@ -4,9 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/infraboard/keyauth/client/session"
 	"github.com/infraboard/mcube/exception"
-	"github.com/infraboard/mcube/grpc/gcontext"
 	"github.com/infraboard/mcube/types/ftime"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -16,21 +14,10 @@ import (
 
 func (i *impl) CreateAction(ctx context.Context, req *action.CreateActionRequest) (
 	*action.Action, error) {
-	in, err := gcontext.GetGrpcInCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	tk := session.S().GetToken(in.GetAccessToKen())
-	if tk == nil {
-		return nil, exception.NewUnauthorized("token required")
-	}
-
 	a, err := action.NewAction(req)
 	if err != nil {
 		return nil, err
 	}
-
-	a.UpdateOwner(tk)
 
 	if _, err := i.col.InsertOne(context.TODO(), a); err != nil {
 		return nil, exception.NewInternalServerError("inserted a action document error, %s", err)

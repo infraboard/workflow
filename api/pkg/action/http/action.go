@@ -27,12 +27,20 @@ func (h *handler) CreateAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	hc := context.GetContext(r)
+	tk, ok := hc.AuthInfo.(*token.Token)
+	if !ok {
+		response.Failed(w, fmt.Errorf("auth info is not an *token.Token"))
+		return
+	}
+
 	req := action.NewCreateActionRequest()
 	if err := request.GetDataFromRequest(r, req); err != nil {
 		response.Failed(w, err)
 		return
 	}
 	req.VisiableMode = resource.VisiableMode_NAMESPACE
+	req.UpdateOwner(tk)
 
 	var header, trailer metadata.MD
 	ins, err := h.service.CreateAction(

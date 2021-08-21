@@ -42,7 +42,8 @@ linux: ## Linux build
 	@sh ./script/build.sh linux dist/${SCH_PROJECT_NAME} ${SCH_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
 	@sh ./script/build.sh linux dist/${NODE_PROJECT_NAME} ${NODE_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
 	
-run-api: dep build-api ## Run Server
+run-api: dep ## Run Server
+	@sh ./script/build.sh local dist/${API_PROJECT_NAME} ${API_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
 	@./dist/${API_PROJECT_NAME} start
 
 build-sch: dep ## Build the binary file

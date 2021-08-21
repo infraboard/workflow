@@ -32,6 +32,12 @@ func (req *CreateActionRequest) Validate() error {
 	return validate.Struct(req)
 }
 
+func (req *CreateActionRequest) UpdateOwner(tk *token.Token) {
+	req.CreateBy = tk.Account
+	req.Domain = tk.Domain
+	req.Namespace = tk.Namespace
+}
+
 func LoadActionFromBytes(payload []byte) (*Action, error) {
 	ins := NewDefaultAction()
 
@@ -61,6 +67,9 @@ func NewAction(req *CreateActionRequest) (*Action, error) {
 		Id:           xid.New().String(),
 		CreateAt:     ftime.Now().Timestamp(),
 		UpdateAt:     ftime.Now().Timestamp(),
+		Domain:       req.Domain,
+		Namespace:    req.Namespace,
+		CreateBy:     req.CreateBy,
 		Name:         req.Name,
 		Version:      req.Version,
 		VisiableMode: req.VisiableMode,
@@ -72,12 +81,6 @@ func NewAction(req *CreateActionRequest) (*Action, error) {
 	}
 
 	return p, nil
-}
-
-func (a *Action) UpdateOwner(tk *token.Token) {
-	a.CreateBy = tk.Account
-	a.Domain = tk.Domain
-	a.Namespace = tk.Namespace
 }
 
 func (a *Action) DefaultRunParam() map[string]string {
