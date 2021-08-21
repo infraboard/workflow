@@ -31,12 +31,16 @@ test-coverage: ## Run tests with coverage
 	@go test -short -coverprofile cover.out -covermode=atomic ${PKG_LIST} 
 	@cat cover.out >> coverage.txt
 
-build-api: dep ## Build the binary file
+build: dep ## Build the binary file
 	@go fmt ./...
 	@sh ./script/build.sh local dist/${API_PROJECT_NAME} ${API_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
+	@sh ./script/build.sh local dist/${SCH_PROJECT_NAME} ${SCH_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
+	@sh ./script/build.sh local dist/${NODE_PROJECT_NAME} ${NODE_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
 
-linux-api: ## Linux build
+linux: ## Linux build
 	@sh ./script/build.sh linux dist/${API_PROJECT_NAME} ${API_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
+	@sh ./script/build.sh linux dist/${SCH_PROJECT_NAME} ${SCH_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
+	@sh ./script/build.sh linux dist/${NODE_PROJECT_NAME} ${NODE_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
 	
 run-api: dep build-api ## Run Server
 	@./dist/${API_PROJECT_NAME} start
