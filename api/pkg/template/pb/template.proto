@@ -47,7 +47,7 @@ message Template {
         (google.protobuf.field_tag) = {struct_tag: 'bson:"update_by" json:"update_by"'}
         ];
         // 用于创建pipeline的请求参数
-        workflow.pipeline.CreatePipelineRequest pipeline = 8[
+        repeated workflow.pipeline.CreatePipelineRequest pipeline = 8[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"pipeline" json:"pipeline"'}
         ];
         // 可见模式
@@ -94,7 +94,7 @@ message CreateTemplateRequest {
         (google.protobuf.field_tag) = {struct_tag: 'bson:"create_by" json:"create_by" validate:"required"'}
         ];
         // 用于创建pipeline的请求参数
-        workflow.pipeline.CreatePipelineRequest pipeline = 4[
+        repeated workflow.pipeline.CreatePipelineRequest pipeline = 4[
         (google.protobuf.field_tag) = {struct_tag: 'json:"pipeline"'}
         ];
         // 可见模式
@@ -118,7 +118,7 @@ message CreateTemplateRequest {
 // UpdateTemplateRequest todo
 message UpdateTemplateRequest {
         // 用于创建pipeline的请求参数
-        workflow.pipeline.CreatePipelineRequest pipeline = 1[
+        repeated workflow.pipeline.CreatePipelineRequest pipeline = 1[
         (google.protobuf.field_tag) = {struct_tag: 'json:"pipeline"'}
         ];
         // 可见模式
