@@ -93,6 +93,7 @@ func NewPipeline(req *CreatePipelineRequest) (*Pipeline, error) {
 		Mount:       req.Mount,
 		Tags:        req.Tags,
 		Description: req.Description,
+		On:          req.On,
 		Stages:      req.Stages,
 		Status:      &PipelineStatus{},
 	}

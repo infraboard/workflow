@@ -127,6 +127,10 @@ message Pipeline {
 	string description = 9[
 		(google.protobuf.field_tag) = {struct_tag: 'bson:"description" json:"description"'}
 		];
+	// 触发条件
+	Trigger on = 10[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"on" json:"on"'}
+		];
 	// 当前状态
 	PipelineStatus status = 11[
 		(google.protobuf.field_tag) = {struct_tag: 'bson:"status" json:"status"'}
@@ -134,6 +138,18 @@ message Pipeline {
 	// 具体编排阶段
 	repeated Stage stages = 12[
 		(google.protobuf.field_tag) = {struct_tag: 'bson:"stages" json:"stages"'}
+		];
+}
+
+// Trigger Pipeline触发执行的条件
+message Trigger {
+	// 事件名称,那些事件可以触发
+	repeated string events = 1[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"events" json:"events"'}
+		];
+	// 分支名称, 那些分支可以触发
+	repeated string branches = 2[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"branches" json:"branches"'}
 		];
 }
 
@@ -498,10 +514,15 @@ message CreatePipelineRequest {
 	string description = 3[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"description"'}
 		];
+	// 触发条件
+	Trigger on = 4[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"on"'}
+		];
 	// 具体编排阶段
 	repeated Stage stages = 5[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"stages"'}
 		];
+
 }
 
 // QueryPipelineRequest 查询Book请求

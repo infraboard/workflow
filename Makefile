@@ -65,7 +65,7 @@ run-node: dep build-node ## Run node
 
 clean: ## Remove previous build
 	@go clean .
-	@rm -f dist/${PROJECT_NAME}
+	@rm -f dist/*
 
 install: ## Install depence go package
 	@go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.26

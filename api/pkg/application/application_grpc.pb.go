@@ -133,5 +133,5 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "api/pkg/application/pb/app_service.proto",
+	Metadata: "api/pkg/application/pb/application.proto",
 }

@@ -1,0 +1,100 @@
+syntax = "proto3";
+
+package workflow.application;
+option go_package = "github.com/infraboard/workflow/api/pkg/application";
+
+import "github.com/infraboard/mcube/cmd/protoc-gen-go-ext/extension/tag/tag.proto";
+import "github.com/infraboard/mcube/pb/page/page.proto";
+
+service Service {
+	rpc CreateApplication(CreateApplicationRequest) returns(Application);
+	rpc QueryApplication(QueryApplicationRequest) returns(ApplicationSet);
+}
+
+// Application todo
+message Application {
+        // 唯一ID
+        string id = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"_id" json:"id"'}
+        ];
+        // 所属域
+        string domain = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"domain" json:"domain"'}
+        ];
+        // 所属空间
+        string namespace = 3[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"namespace" json:"namespace"'}
+        ];
+        // 创建时间
+        int64 create_at = 4[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"create_at" json:"create_at"'}
+        ];
+        // 创建人
+        string create_by = 5[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"create_by" json:"create_by"'}
+        ];
+        // 更新时间
+        int64 update_at = 6[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"update_at" json:"update_at"'}
+        ];
+        // 更新人
+        string update_by = 7[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"update_by" json:"update_by"'}
+        ];
+        // 名称
+        string name = 8[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"name" json:"name"'}
+        ];
+        // 应用标签
+        map<string, string> tags = 9[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"tags" json:"tags"'}
+        ];
+        // 描述
+        string description = 10[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"description" json:"description"'}
+        ];
+}
+
+// ApplicationSet todo
+message ApplicationSet {
+    int64 total = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"total" json:"total"'}
+        ];
+    repeated Application items = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"items" json:"items"'}
+        ];
+}
+
+// CreateApplicationRequest 创建Book请求
+message CreateApplicationRequest {
+        // 所属域
+        string domain = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"domain" validate:"required"'}
+        ];
+        // 所属空间
+        string namespace = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"namespace" validate:"required"'}
+        ];
+        // 创建人
+        string create_by = 3[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"create_by" validate:"required"'}
+        ];
+        // 名称
+        string name = 4[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"name" validate:"required"'}
+        ];
+        // 应用标签
+        map<string, string> tags = 5[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"tags"'}
+        ];
+        // 描述
+        string description = 6[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"description"'}
+        ];
+}
+
+// QueryApplicationRequest 查询Book请求
+message QueryApplicationRequest {
+    page.PageRequest page = 1;
+    string name = 2;
+}
