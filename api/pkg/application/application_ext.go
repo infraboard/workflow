@@ -38,16 +38,20 @@ func NewApplication(req *CreateApplicationRequest) (*Application, error) {
 	}
 
 	ins := &Application{
-		Id:          xid.New().String(),
-		CreateAt:    ftime.Now().Timestamp(),
-		UpdateAt:    ftime.Now().Timestamp(),
-		Domain:      req.Domain,
-		Namespace:   req.Namespace,
-		CreateBy:    req.CreateBy,
-		Name:        req.Name,
-		Tags:        req.Tags,
-		Description: req.Description,
-		Pipeline:    req.Pipeline,
+		Id:           xid.New().String(),
+		CreateAt:     ftime.Now().Timestamp(),
+		UpdateAt:     ftime.Now().Timestamp(),
+		Domain:       req.Domain,
+		Namespace:    req.Namespace,
+		CreateBy:     req.CreateBy,
+		Name:         req.Name,
+		Tags:         req.Tags,
+		Description:  req.Description,
+		Pipeline:     req.Pipeline,
+		RepoSshUrl:   req.RepoSshUrl,
+		RepoHttpUrl:  req.RepoHttpUrl,
+		ScmType:      req.ScmType,
+		ScmProjectId: req.ScmProjectId,
 	}
 
 	return ins, nil

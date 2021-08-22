@@ -630,10 +630,10 @@ github.com/imdario/mergo v0.3.10/go.mod h1:jmQim1M+e3UYxmgPu/WyfjB3N3VflVyUjjjwH
 github.com/imdario/mergo v0.3.11/go.mod h1:jmQim1M+e3UYxmgPu/WyfjB3N3VflVyUjjjwH0dnCYA=
 github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NHg9XEKhtSvM=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
-github.com/infraboard/keyauth v0.5.4 h1:4o5rCCnPk3IYlWqucm/V2ZQbytueW+xNzuwVjrjz4aM=
-github.com/infraboard/keyauth v0.5.4/go.mod h1:Jdie4C442lJbC5OtMV2APopGsoQua6gU5RCyCnCBvAo=
-github.com/infraboard/mcube v1.3.7 h1:bZ/9JMhohZcNqqF08Ky0fVChYQkGpG5ZkBB2/0NDd80=
-github.com/infraboard/mcube v1.3.7/go.mod h1:ACrk5bx7RutbZeVAwEhcgs/EqcD3HJjXc5zWkMqqa4s=
+github.com/infraboard/keyauth v0.5.5 h1:m/4EBj/SdEULVB0oD137ESN6ihWVttuf5vl+BU+1iKU=
+github.com/infraboard/keyauth v0.5.5/go.mod h1:YfEDl8Djq9etQ4iG/4PsEm6YyX0CVysVcqEe+vcJohQ=
+github.com/infraboard/mcube v1.4.1 h1:tXRICGrSW+BJl2zJIyhw8T+2Do/j71ghDHrVMfJkYZI=
+github.com/infraboard/mcube v1.4.1/go.mod h1:ACrk5bx7RutbZeVAwEhcgs/EqcD3HJjXc5zWkMqqa4s=
 github.com/j-keck/arping v0.0.0-20160618110441-2cf9dc699c56/go.mod h1:ymszkNOg6tORTn+6F6j+Jc8TOr5osrynvN6ivFWZ2GA=
 github.com/jcmturner/aescts/v2 v2.0.0/go.mod h1:AiaICIRyfYg35RUkr8yESTqvSy7csK90qZ5xfvvsoNs=
 github.com/jcmturner/dnsutils/v2 v2.0.0/go.mod h1:b0TnjGOvI/n42bZa+hmXL+kFJZsFT7G4t3HTlQ184QM=

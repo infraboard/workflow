@@ -54,6 +54,26 @@ message Application {
     string description = 10[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"description" json:"description"'}
         ];
+    // 仓库ssh url地址
+    string repo_ssh_url = 12[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"repo_ssh_url"'}
+        ];
+    // 仓库http url地址
+    string repo_http_url = 13[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"repo_http_url"'}
+        ];
+    // 仓库来源类型
+    string scm_type = 14[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"scm_type"'}
+        ];
+    // 仓库来源类型
+    string scm_project_id = 15[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"scm_project_id"'}
+        ];
+    // scm设置Hook后返回的id, 用于删除应用时，取消hook使用
+    string scm_hook_id = 16[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"scm_hook_id"'}
+        ];
     // 用于创建pipeline的请求参数
     repeated workflow.pipeline.CreatePipelineRequest pipeline = 11[
         (google.protobuf.field_tag) = {struct_tag: 'json:"pipeline"'}
@@ -95,6 +115,26 @@ message CreateApplicationRequest {
     // 描述
     string description = 6[
         (google.protobuf.field_tag) = {struct_tag: 'json:"description"'}
+        ];
+    // 仓库ssh url地址
+    string repo_ssh_url = 8[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"repo_ssh_url"'}
+        ];
+    // 仓库http url地址
+    string repo_http_url = 9[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"repo_http_url"'}
+        ];
+    // 仓库来源类型
+    string scm_type = 10[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"scm_type"'}
+        ];
+    // 仓库来源类型
+    string scm_project_id = 11[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"scm_project_id"'}
+        ];
+    // 仓库的priviate token, 用于设置回调
+    string scm_private_token = 12[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"scm_private_token"'}
         ];
     // 用于创建pipeline的请求参数
     repeated workflow.pipeline.CreatePipelineRequest pipeline = 7[

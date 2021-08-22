@@ -25,6 +25,9 @@ func (h *handler) Registry(router router.SubRouter) {
 	r.BasePath("applications")
 	r.Handle("POST", "/", h.CreateApplication)
 	r.Handle("GET", "/", h.QueryApplication)
+
+	r.BasePath("repo/projects")
+	r.Handle("GET", "/", h.QueryRepoProject)
 }
 
 func (h *handler) Config() error {
