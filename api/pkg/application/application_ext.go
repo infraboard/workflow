@@ -1,10 +1,15 @@
 package application
 
 import (
+	"fmt"
+	"net/url"
+	"strconv"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/infraboard/keyauth/pkg/token"
 	"github.com/infraboard/mcube/http/request"
 	"github.com/infraboard/mcube/types/ftime"
+	"github.com/infraboard/workflow/common/repo/gitlab"
 	"github.com/rs/xid"
 )
 
@@ -25,6 +30,28 @@ func (req *CreateApplicationRequest) UpdateOwner(tk *token.Token) {
 	req.CreateBy = tk.Account
 	req.Domain = tk.Domain
 	req.Namespace = tk.Namespace
+}
+
+func (req *CreateApplicationRequest) NeedSetHook() bool {
+	return req.ScmProjectId != "" && req.ScmPrivateToken != ""
+}
+
+func (req *CreateApplicationRequest) GetScmAddr() (string, error) {
+	if req.RepoHttpUrl == "" {
+		return "", nil
+	}
+
+	url, err := url.Parse(req.RepoHttpUrl)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s://%s", url.Scheme, url.Host), nil
+}
+
+func (req *CreateApplicationRequest) Int64ScmProjectID() int64 {
+	id, _ := strconv.ParseInt(req.ScmProjectId, 10, 64)
+	return id
 }
 
 func (req *CreateApplicationRequest) Validate() error {
@@ -55,6 +82,20 @@ func NewApplication(req *CreateApplicationRequest) (*Application, error) {
 	}
 
 	return ins, nil
+}
+
+func (a *Application) AddError(err error) {
+	a.Errors = append(a.Errors, err.Error())
+}
+
+func (a *Application) GenWebHook(callbackURL string) *gitlab.WebHook {
+	return &gitlab.WebHook{
+		PushEvents:          true,
+		TagPushEvents:       true,
+		MergeRequestsEvents: true,
+		Token:               a.Id,
+		Url:                 callbackURL,
+	}
 }
 
 // NewApplicationSet 实例

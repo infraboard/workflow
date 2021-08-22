@@ -2,10 +2,12 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/infraboard/mcube/exception"
 
 	"github.com/infraboard/workflow/api/pkg/application"
+	"github.com/infraboard/workflow/common/repo/gitlab"
 )
 
 func (s *service) CreateApplication(ctx context.Context, req *application.CreateApplicationRequest) (
@@ -15,11 +17,37 @@ func (s *service) CreateApplication(ctx context.Context, req *application.Create
 		return nil, err
 	}
 
+	hookId, err := s.setWebHook(req, ins.GenWebHook(s.platform))
+	if err != nil {
+		ins.AddError(fmt.Errorf("add web hook error, %s", err))
+	}
+	ins.ScmHookId = hookId
+
 	if _, err := s.col.InsertOne(context.TODO(), ins); err != nil {
 		return nil, exception.NewInternalServerError("inserted a application document error, %s", err)
 	}
 
 	return ins, nil
+}
+
+func (s *service) setWebHook(req *application.CreateApplicationRequest, hook *gitlab.WebHook) (string, error) {
+	if req.NeedSetHook() {
+		return "", nil
+	}
+
+	addr, err := req.GetScmAddr()
+	if err != nil {
+		return "", fmt.Errorf("get scm addr from http_url error, %s", err)
+	}
+
+	repo := gitlab.NewRepository(addr, req.ScmPrivateToken)
+	addHookReq := gitlab.NewAddProjectHookRequest(req.Int64ScmProjectID(), hook)
+	resp, err := repo.AddProjectHook(addHookReq)
+	if err != nil {
+		return "", err
+	}
+
+	return string(resp.ID), nil
 }
 
 func (s *service) QueryApplication(ctx context.Context, req *application.QueryApplicationRequest) (

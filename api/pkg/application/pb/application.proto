@@ -7,6 +7,16 @@ import "github.com/infraboard/mcube/cmd/protoc-gen-go-ext/extension/tag/tag.prot
 import "github.com/infraboard/mcube/pb/page/page.proto";
 import "api/pkg/pipeline/pb/pipeline.proto";
 
+// SCM_TYPE 流水线状态
+enum SCM_TYPE {
+    // gitlab
+    GITLAB = 0;
+	// github
+	GITHUB = 1;
+	// coding.net
+	CODING = 2;
+}
+
 service Service {
 	rpc CreateApplication(CreateApplicationRequest) returns(Application);
 	rpc QueryApplication(QueryApplicationRequest) returns(ApplicationSet);
@@ -63,7 +73,7 @@ message Application {
         (google.protobuf.field_tag) = {struct_tag: 'json:"repo_http_url"'}
         ];
     // 仓库来源类型
-    string scm_type = 14[
+    SCM_TYPE scm_type = 14[
         (google.protobuf.field_tag) = {struct_tag: 'json:"scm_type"'}
         ];
     // 仓库来源类型
@@ -72,6 +82,10 @@ message Application {
         ];
     // scm设置Hook后返回的id, 用于删除应用时，取消hook使用
     string scm_hook_id = 16[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"scm_hook_id"'}
+        ];
+    // 应用创建过程中的一些异常错误，但是不影响创建
+    repeated string errors = 17[
         (google.protobuf.field_tag) = {struct_tag: 'json:"scm_hook_id"'}
         ];
     // 用于创建pipeline的请求参数
@@ -118,14 +132,14 @@ message CreateApplicationRequest {
         ];
     // 仓库ssh url地址
     string repo_ssh_url = 8[
-        (google.protobuf.field_tag) = {struct_tag: 'json:"repo_ssh_url"'}
+        (google.protobuf.field_tag) = {struct_tag: 'json:"repo_ssh_url" validate:"required"'}
         ];
     // 仓库http url地址
     string repo_http_url = 9[
         (google.protobuf.field_tag) = {struct_tag: 'json:"repo_http_url"'}
         ];
     // 仓库来源类型
-    string scm_type = 10[
+    SCM_TYPE scm_type = 10[
         (google.protobuf.field_tag) = {struct_tag: 'json:"scm_type"'}
         ];
     // 仓库来源类型

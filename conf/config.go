@@ -54,8 +54,9 @@ type bus struct {
 }
 
 type app struct {
-	Name string `toml:"name" env:"APP_NAME"`
-	Key  string `toml:"key" env:"APP_KEY"`
+	Name     string `toml:"name" env:"APP_NAME"`
+	Key      string `toml:"key" env:"APP_KEY"`
+	Platform string `toml:"platform" env:"APP_PLATFORM"`
 }
 
 func newDefaultAPP() *app {

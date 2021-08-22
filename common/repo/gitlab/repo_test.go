@@ -29,15 +29,14 @@ func TestAddProjectHook(t *testing.T) {
 
 	repo := gitlab.NewRepository(GitLabAddr, PraviateToken)
 
-	req := gitlab.NewAddProjectHookRequest()
-	req.ProjectID = ProjectID
-	req.Hook = &gitlab.WebHook{
+	hook := &gitlab.WebHook{
 		PushEvents:          true,
 		TagPushEvents:       true,
 		MergeRequestsEvents: true,
 		Token:               "9999",
 		Url:                 "http://www.baidu.com",
 	}
+	req := gitlab.NewAddProjectHookRequest(ProjectID, hook)
 	ins, err := repo.AddProjectHook(req)
 	should.NoError(err)
 	fmt.Println(ins)

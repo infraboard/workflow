@@ -21,8 +21,9 @@ var (
 )
 
 type service struct {
-	col *mongo.Collection
-	log logger.Logger
+	col      *mongo.Collection
+	log      logger.Logger
+	platform string
 
 	application.UnimplementedServiceServer
 }
@@ -49,6 +50,7 @@ func (s *service) Config() error {
 		return err
 	}
 
+	s.platform = conf.C().App.Platform
 	s.col = dc
 	s.log = zap.L().Named("Application")
 	return nil

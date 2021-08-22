@@ -82,9 +82,10 @@ func (req *WebHook) FormValue() url.Values {
 	return val
 }
 
-func NewAddProjectHookRequest() *AddProjectHookRequest {
+func NewAddProjectHookRequest(projectID int64, hook *WebHook) *AddProjectHookRequest {
 	return &AddProjectHookRequest{
-		Hook: &WebHook{},
+		ProjectID: projectID,
+		Hook:      hook,
 	}
 }
 
