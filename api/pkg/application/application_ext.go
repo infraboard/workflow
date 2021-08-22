@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/infraboard/keyauth/pkg/token"
@@ -89,12 +90,15 @@ func (a *Application) AddError(err error) {
 }
 
 func (a *Application) GenWebHook(callbackURL string) *gitlab.WebHook {
+	cb := fmt.Sprintf("%s/workflow/api/v1/triggers/scm/%s",
+		callbackURL, strings.ToLower(a.ScmType.String()))
+
 	return &gitlab.WebHook{
 		PushEvents:          true,
 		TagPushEvents:       true,
 		MergeRequestsEvents: true,
 		Token:               a.Id,
-		Url:                 callbackURL,
+		Url:                 cb,
 	}
 }
 

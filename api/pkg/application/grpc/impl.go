@@ -30,7 +30,7 @@ type service struct {
 
 func (s *service) Config() error {
 	db := conf.C().Mongo.GetDB()
-	dc := db.Collection("application")
+	dc := db.Collection("dev_application")
 
 	indexs := []mongo.IndexModel{
 		{
