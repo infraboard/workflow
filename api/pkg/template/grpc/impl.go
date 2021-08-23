@@ -7,6 +7,7 @@ import (
 	"github.com/infraboard/mcube/logger/zap"
 	"github.com/infraboard/mcube/pb/http"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
 
 	"github.com/infraboard/workflow/api/pkg"
@@ -31,6 +32,13 @@ func (s *impl) Config() error {
 	dc := db.Collection("template")
 
 	indexs := []mongo.IndexModel{
+		{
+			Keys: bsonx.Doc{
+				{Key: "namespace", Value: bsonx.Int32(-1)},
+				{Key: "name", Value: bsonx.Int32(-1)},
+			},
+			Options: options.Index().SetUnique(true),
+		},
 		{
 			Keys: bsonx.Doc{{Key: "create_at", Value: bsonx.Int32(-1)}},
 		},

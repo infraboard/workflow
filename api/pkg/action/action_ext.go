@@ -70,6 +70,7 @@ func NewAction(req *CreateActionRequest) (*Action, error) {
 		Domain:       req.Domain,
 		Namespace:    req.Namespace,
 		CreateBy:     req.CreateBy,
+		Logo:         req.Logo,
 		Name:         req.Name,
 		Version:      req.Version,
 		VisiableMode: req.VisiableMode,
@@ -97,8 +98,8 @@ func (a *Action) DefaultRunParam() map[string]string {
 func (a *Action) RunnerParam() map[string]string {
 	param := map[string]string{}
 	for k, v := range a.RunnerParams {
-		if v != nil && v.Value != "" {
-			param[k] = v.Value
+		if v != "" {
+			param[k] = v
 		}
 	}
 	return param

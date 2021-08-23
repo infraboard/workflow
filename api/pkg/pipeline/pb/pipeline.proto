@@ -522,7 +522,6 @@ message CreatePipelineRequest {
 	repeated Stage stages = 5[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"stages"'}
 		];
-
 }
 
 // QueryPipelineRequest 查询Book请求

@@ -92,12 +92,6 @@ func (h *handler) DescribeApplication(w http.ResponseWriter, r *http.Request) {
 	}
 
 	hc := context.GetContext(r)
-	// tk, ok := hc.AuthInfo.(*token.Token)
-	// if !ok {
-	// 	response.Failed(w, fmt.Errorf("auth info is not an *token.Token"))
-	// 	return
-	// }
-
 	req := application.NewDescribeApplicationRequestWithID(hc.PS.ByName("id"))
 	var header, trailer metadata.MD
 	ins, err := h.service.DescribeApplication(

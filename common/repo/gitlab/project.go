@@ -64,12 +64,18 @@ func (r *Repository) ListProjects() (*ProjectSet, error) {
 }
 
 type WebHook struct {
-	PushEventsBranchFilter string `json:"push_events_branch_filter"`
-	PushEvents             bool   `json:"push_events"`
-	TagPushEvents          bool   `json:"tag_push_events"`
-	MergeRequestsEvents    bool   `json:"merge_requests_events"`
-	Token                  string `json:"token"`
-	Url                    string `json:"url"`
+	PushEventsBranchFilter   string `json:"push_events_branch_filter"`
+	PushEvents               bool   `json:"push_events"`
+	IssuesEvents             bool   `json:"issues_events"`
+	ConfidentialIssuesEvents bool   `json:"confidential_issues_events"`
+	MergeRequestsEvents      bool   `json:"merge_requests_events"`
+	TagPushEvents            bool   `json:"tag_push_events"`
+	NoteEvents               bool   `json:"note_events"`
+	ConfidentialNoteEvents   bool   `json:"confidential_note_events"`
+	WikiPageEvents           bool   `json:"wiki_page_events"`
+	ReleasesEvents           bool   `json:"releases_events"`
+	Token                    string `json:"token"`
+	Url                      string `json:"url"`
 }
 
 func (req *WebHook) FormValue() url.Values {
