@@ -48,3 +48,29 @@ func (r *queryRequest) FindFilter() bson.M {
 	}
 	return filter
 }
+
+func newDescRequest(req *application.DescribeApplicationRequest) (*describeRequest, error) {
+	if err := req.Validate(); err != nil {
+		return nil, err
+	}
+	return &describeRequest{req}, nil
+}
+
+type describeRequest struct {
+	*application.DescribeApplicationRequest
+}
+
+func (req *describeRequest) FindFilter() bson.M {
+	filter := bson.M{}
+
+	if req.Id != "" {
+		filter["_id"] = req.Id
+	}
+
+	if req.Name != "" {
+		filter["name"] = req.Name
+		filter["namespace"] = req.Namespace
+	}
+
+	return filter
+}

@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/infraboard/mcube/exception"
 	"github.com/infraboard/mcube/types/ftime"
@@ -114,7 +113,6 @@ func (i *impl) DeleteAction(ctx context.Context, req *action.DeleteActionRequest
 		return nil, exception.NewBadRequest(err.Error())
 	}
 
-	fmt.Println(delReq.DeleteFilter())
 	if _, err := i.col.DeleteOne(context.TODO(), delReq.DeleteFilter()); err != nil {
 		return nil, err
 	}

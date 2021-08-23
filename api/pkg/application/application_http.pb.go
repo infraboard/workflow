@@ -18,6 +18,14 @@ func HttpEntry() *http.EntrySet {
 				Path:         "/workflow.application.Service/QueryApplication",
 				FunctionName: "QueryApplication",
 			},
+			{
+				Path:         "/workflow.application.Service/DescribeApplication",
+				FunctionName: "DescribeApplication",
+			},
+			{
+				Path:         "/workflow.application.Service/DeleteApplication",
+				FunctionName: "DeleteApplication",
+			},
 		},
 	}
 	return set

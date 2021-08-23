@@ -83,3 +83,62 @@ func (h *handler) QueryApplication(w http.ResponseWriter, r *http.Request) {
 	}
 	response.Success(w, dommains)
 }
+
+func (h *handler) DescribeApplication(w http.ResponseWriter, r *http.Request) {
+	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
+	if err != nil {
+		response.Failed(w, err)
+		return
+	}
+
+	hc := context.GetContext(r)
+	// tk, ok := hc.AuthInfo.(*token.Token)
+	// if !ok {
+	// 	response.Failed(w, fmt.Errorf("auth info is not an *token.Token"))
+	// 	return
+	// }
+
+	req := application.NewDescribeApplicationRequestWithID(hc.PS.ByName("id"))
+	var header, trailer metadata.MD
+	ins, err := h.service.DescribeApplication(
+		ctx.Context(),
+		req,
+		grpc.Header(&header),
+		grpc.Trailer(&trailer),
+	)
+	if err != nil {
+		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		return
+	}
+	response.Success(w, ins)
+}
+
+func (h *handler) DeleteApplication(w http.ResponseWriter, r *http.Request) {
+	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
+	if err != nil {
+		response.Failed(w, err)
+		return
+	}
+
+	hc := context.GetContext(r)
+	tk, ok := hc.AuthInfo.(*token.Token)
+	if !ok {
+		response.Failed(w, fmt.Errorf("auth info is not an *token.Token"))
+		return
+	}
+
+	req := application.NewDeleteApplicationRequest(tk.Namespace, hc.PS.ByName("name"))
+
+	var header, trailer metadata.MD
+	action, err := h.service.DeleteApplication(
+		ctx.Context(),
+		req,
+		grpc.Header(&header),
+		grpc.Trailer(&trailer),
+	)
+	if err != nil {
+		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		return
+	}
+	response.Success(w, action)
+}

@@ -20,6 +20,8 @@ const _ = grpc.SupportPackageIsVersion7
 type ServiceClient interface {
 	CreateApplication(ctx context.Context, in *CreateApplicationRequest, opts ...grpc.CallOption) (*Application, error)
 	QueryApplication(ctx context.Context, in *QueryApplicationRequest, opts ...grpc.CallOption) (*ApplicationSet, error)
+	DescribeApplication(ctx context.Context, in *DescribeApplicationRequest, opts ...grpc.CallOption) (*Application, error)
+	DeleteApplication(ctx context.Context, in *DeleteApplicationRequest, opts ...grpc.CallOption) (*Application, error)
 }
 
 type serviceClient struct {
@@ -48,12 +50,32 @@ func (c *serviceClient) QueryApplication(ctx context.Context, in *QueryApplicati
 	return out, nil
 }
 
+func (c *serviceClient) DescribeApplication(ctx context.Context, in *DescribeApplicationRequest, opts ...grpc.CallOption) (*Application, error) {
+	out := new(Application)
+	err := c.cc.Invoke(ctx, "/workflow.application.Service/DescribeApplication", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) DeleteApplication(ctx context.Context, in *DeleteApplicationRequest, opts ...grpc.CallOption) (*Application, error) {
+	out := new(Application)
+	err := c.cc.Invoke(ctx, "/workflow.application.Service/DeleteApplication", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ServiceServer is the server API for Service service.
 // All implementations must embed UnimplementedServiceServer
 // for forward compatibility
 type ServiceServer interface {
 	CreateApplication(context.Context, *CreateApplicationRequest) (*Application, error)
 	QueryApplication(context.Context, *QueryApplicationRequest) (*ApplicationSet, error)
+	DescribeApplication(context.Context, *DescribeApplicationRequest) (*Application, error)
+	DeleteApplication(context.Context, *DeleteApplicationRequest) (*Application, error)
 	mustEmbedUnimplementedServiceServer()
 }
 
@@ -66,6 +88,12 @@ func (UnimplementedServiceServer) CreateApplication(context.Context, *CreateAppl
 }
 func (UnimplementedServiceServer) QueryApplication(context.Context, *QueryApplicationRequest) (*ApplicationSet, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method QueryApplication not implemented")
+}
+func (UnimplementedServiceServer) DescribeApplication(context.Context, *DescribeApplicationRequest) (*Application, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DescribeApplication not implemented")
+}
+func (UnimplementedServiceServer) DeleteApplication(context.Context, *DeleteApplicationRequest) (*Application, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteApplication not implemented")
 }
 func (UnimplementedServiceServer) mustEmbedUnimplementedServiceServer() {}
 
@@ -116,6 +144,42 @@ func _Service_QueryApplication_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Service_DescribeApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DescribeApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).DescribeApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/workflow.application.Service/DescribeApplication",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).DescribeApplication(ctx, req.(*DescribeApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_DeleteApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).DeleteApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/workflow.application.Service/DeleteApplication",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).DeleteApplication(ctx, req.(*DeleteApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Service_ServiceDesc is the grpc.ServiceDesc for Service service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -130,6 +194,14 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "QueryApplication",
 			Handler:    _Service_QueryApplication_Handler,
+		},
+		{
+			MethodName: "DescribeApplication",
+			Handler:    _Service_DescribeApplication_Handler,
+		},
+		{
+			MethodName: "DeleteApplication",
+			Handler:    _Service_DeleteApplication_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

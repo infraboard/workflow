@@ -25,6 +25,8 @@ func (h *handler) Registry(router router.SubRouter) {
 	r.BasePath("applications")
 	r.Handle("POST", "/", h.CreateApplication)
 	r.Handle("GET", "/", h.QueryApplication)
+	r.Handle("GET", "/:id", h.DescribeApplication)
+	r.Handle("DELETE", "/:name", h.DeleteApplication)
 
 	r.BasePath("repo/projects")
 	r.Handle("GET", "/", h.QueryRepoProject)

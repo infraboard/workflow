@@ -20,6 +20,8 @@ enum SCM_TYPE {
 service Service {
 	rpc CreateApplication(CreateApplicationRequest) returns(Application);
 	rpc QueryApplication(QueryApplicationRequest) returns(ApplicationSet);
+    rpc DescribeApplication(DescribeApplicationRequest) returns(Application);
+    rpc DeleteApplication(DeleteApplicationRequest) returns(Application);
 }
 
 // Application todo
@@ -173,4 +175,30 @@ message QueryApplicationRequest {
     string name = 4[
         (google.protobuf.field_tag) = {struct_tag: 'json:"name"'}
         ];
+}
+
+message DeleteApplicationRequest {
+    // 所属空间
+    string namespace = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"namespace" validate:"required"'}
+        ]; 
+    // 应用的名字
+    string name = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"name" validate:"required"'}
+        ];  
+}
+
+message DescribeApplicationRequest {
+    // 唯一ID
+    string id = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"id"'}
+        ];
+    // 所属空间
+    string namespace = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"namespace"'}
+        ]; 
+    // 应用的名字
+    string name = 3[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"name"'}
+        ]; 
 }

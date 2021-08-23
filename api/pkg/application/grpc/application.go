@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/infraboard/mcube/exception"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/infraboard/workflow/api/pkg/application"
 	"github.com/infraboard/workflow/common/repo/gitlab"
@@ -47,7 +49,7 @@ func (s *service) setWebHook(req *application.CreateApplicationRequest, hook *gi
 		return "", err
 	}
 
-	return string(resp.ID), nil
+	return fmt.Sprintf("%d", resp.ID), nil
 }
 
 func (s *service) QueryApplication(ctx context.Context, req *application.QueryApplicationRequest) (
@@ -77,4 +79,39 @@ func (s *service) QueryApplication(ctx context.Context, req *application.QueryAp
 	}
 	set.Total = count
 	return set, nil
+}
+
+func (s *service) DescribeApplication(ctx context.Context, req *application.DescribeApplicationRequest) (
+	*application.Application, error) {
+	if err := req.Validate(); err != nil {
+		return nil, exception.NewBadRequest("validate DescribeApplicationRequest error, %s", err)
+	}
+
+	desc, err := newDescRequest(req)
+	if err != nil {
+		return nil, exception.NewBadRequest(err.Error())
+	}
+
+	ins := application.NewDefaultApplication()
+	if err := s.col.FindOne(context.TODO(), desc.FindFilter()).Decode(ins); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, exception.NewNotFound("application %s not found", req)
+		}
+
+		return nil, exception.NewInternalServerError("find application %s error, %s", req.Id, err)
+	}
+	return ins, nil
+}
+
+func (s *service) DeleteApplication(ctx context.Context, req *application.DeleteApplicationRequest) (
+	*application.Application, error) {
+	ins, err := s.DescribeApplication(ctx, application.NewDescribeApplicationRequestWithName(req.Namespace, req.Name))
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := s.col.DeleteOne(context.TODO(), bson.M{"_id": ins.Id}); err != nil {
+		return nil, err
+	}
+	return ins, nil
 }

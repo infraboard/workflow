@@ -119,3 +119,27 @@ func NewQueryBookRequest(page *request.PageRequest) *QueryApplicationRequest {
 		Page: &page.PageRequest,
 	}
 }
+
+func NewDescribeApplicationRequestWithID(id string) *DescribeApplicationRequest {
+	return &DescribeApplicationRequest{
+		Id: id,
+	}
+}
+
+func NewDescribeApplicationRequestWithName(namespace, name string) *DescribeApplicationRequest {
+	return &DescribeApplicationRequest{
+		Namespace: namespace,
+		Name:      name,
+	}
+}
+
+func (r *DescribeApplicationRequest) Validate() error {
+	return validate.Struct(r)
+}
+
+func NewDeleteApplicationRequest(namespace, name string) *DeleteApplicationRequest {
+	return &DeleteApplicationRequest{
+		Namespace: namespace,
+		Name:      name,
+	}
+}
