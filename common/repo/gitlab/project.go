@@ -30,7 +30,7 @@ type ProjectSet struct {
 
 // https://gitlab.com/api/v4/projects?owned=true
 // https://docs.gitlab.com/ce/api/projects.html
-func (r *Repository) ListProjects() (*ProjectSet, error) {
+func (r *SCM) ListProjects() (*ProjectSet, error) {
 	projectURL := r.resourceURL("projects", map[string]string{"owned": "true", "simple": "true"})
 	req, err := r.newJSONRequest("GET", projectURL)
 	if err != nil {
@@ -113,7 +113,7 @@ type AddProjectHookResponse struct {
 
 // POST /projects/:id/hooks
 // https://docs.gitlab.com/ce/api/projects.html#add-project-hook
-func (r *Repository) AddProjectHook(in *AddProjectHookRequest) (*AddProjectHookResponse, error) {
+func (r *SCM) AddProjectHook(in *AddProjectHookRequest) (*AddProjectHookResponse, error) {
 	addHookURL := r.resourceURL(fmt.Sprintf("projects/%d/hooks", in.ProjectID), nil)
 	req, err := r.newFormReqeust("POST", addHookURL, strings.NewReader(in.Hook.FormValue().Encode()))
 	if err != nil {
@@ -160,7 +160,7 @@ type DeleteProjectReqeust struct {
 
 // DELETE /projects/:id/hooks/:hook_id
 // https://docs.gitlab.com/ce/api/projects.html#delete-project-hook
-func (r *Repository) DeleteProjectHook(in *DeleteProjectReqeust) error {
+func (r *SCM) DeleteProjectHook(in *DeleteProjectReqeust) error {
 	addHookURL := r.resourceURL(fmt.Sprintf("projects/%d/hooks/%d", in.ProjectID, in.HookID), nil)
 	req, err := r.newFormReqeust("DELETE", addHookURL, nil)
 	if err != nil {

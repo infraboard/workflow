@@ -42,7 +42,7 @@ func (s *service) setWebHook(req *application.CreateApplicationRequest, hook *gi
 		return "", fmt.Errorf("get scm addr from http_url error, %s", err)
 	}
 
-	repo := gitlab.NewRepository(addr, req.ScmPrivateToken)
+	repo := gitlab.NewSCM(addr, req.ScmPrivateToken)
 	addHookReq := gitlab.NewAddProjectHookRequest(req.Int64ScmProjectID(), hook)
 	resp, err := repo.AddProjectHook(addHookReq)
 	if err != nil {
@@ -137,7 +137,7 @@ func (s *service) delWebHook(req *application.Application) error {
 		return fmt.Errorf("get scm addr from http_url error, %s", err)
 	}
 
-	repo := gitlab.NewRepository(addr, req.ScmPrivateToken)
+	repo := gitlab.NewSCM(addr, req.ScmPrivateToken)
 	delHookReq := gitlab.NewDeleteProjectReqeust(req.Int64ScmProjectID(), req.Int64ScmHookID())
 
 	return repo.DeleteProjectHook(delHookReq)

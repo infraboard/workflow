@@ -29,7 +29,7 @@ func (h *handler) Registry(router router.SubRouter) {
 	r.Handle("DELETE", "/:name", h.DeleteApplication)
 
 	r.BasePath("repo/projects")
-	r.Handle("GET", "/", h.QueryRepoProject)
+	r.Handle("GET", "/", h.QuerySCMProject)
 
 	r.BasePath("triggers/scm/gitlab")
 	r.Handle("GET", "/", h.GitLabHookHanler).DisableAuth()

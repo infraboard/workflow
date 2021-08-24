@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-func NewRepository(addr, token string) *Repository {
-	return &Repository{
+func NewSCM(addr, token string) *SCM {
+	return &SCM{
 		Address:      addr,
 		PrivateToken: token,
 		Version:      "v4",
@@ -17,7 +17,7 @@ func NewRepository(addr, token string) *Repository {
 	}
 }
 
-type Repository struct {
+type SCM struct {
 	Address      string
 	PrivateToken string
 	Version      string
@@ -25,7 +25,7 @@ type Repository struct {
 	client *http.Client
 }
 
-func (r *Repository) newJSONRequest(method, url string) (*http.Request, error) {
+func (r *SCM) newJSONRequest(method, url string) (*http.Request, error) {
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func (r *Repository) newJSONRequest(method, url string) (*http.Request, error) {
 	return req, nil
 }
 
-func (r Repository) newFormReqeust(method, url string, payload io.Reader) (*http.Request, error) {
+func (r SCM) newFormReqeust(method, url string, payload io.Reader) (*http.Request, error) {
 	req, err := http.NewRequest(method, url, payload)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (r Repository) newFormReqeust(method, url string, payload io.Reader) (*http
 	return req, nil
 }
 
-func (r *Repository) resourceURL(resource string, params map[string]string) string {
+func (r *SCM) resourceURL(resource string, params map[string]string) string {
 	val := make(url.Values)
 
 	for k, v := range params {

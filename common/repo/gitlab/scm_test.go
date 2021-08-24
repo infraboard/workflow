@@ -18,7 +18,7 @@ var (
 func TestListProject(t *testing.T) {
 	should := assert.New(t)
 
-	repo := gitlab.NewRepository(GitLabAddr, PraviateToken)
+	repo := gitlab.NewSCM(GitLabAddr, PraviateToken)
 	ps, err := repo.ListProjects()
 	should.NoError(err)
 	fmt.Println(ps)
@@ -27,7 +27,7 @@ func TestListProject(t *testing.T) {
 func TestAddProjectHook(t *testing.T) {
 	should := assert.New(t)
 
-	repo := gitlab.NewRepository(GitLabAddr, PraviateToken)
+	repo := gitlab.NewSCM(GitLabAddr, PraviateToken)
 
 	hook := &gitlab.WebHook{
 		PushEvents:          true,
@@ -45,7 +45,7 @@ func TestAddProjectHook(t *testing.T) {
 func TestDeleteProjectHook(t *testing.T) {
 	should := assert.New(t)
 
-	repo := gitlab.NewRepository(GitLabAddr, PraviateToken)
+	repo := gitlab.NewSCM(GitLabAddr, PraviateToken)
 
 	req := gitlab.NewDeleteProjectReqeust(ProjectID, 8439846)
 	err := repo.DeleteProjectHook(req)
