@@ -6,6 +6,7 @@ option go_package = "github.com/infraboard/workflow/api/pkg/application";
 import "github.com/infraboard/mcube/cmd/protoc-gen-go-ext/extension/tag/tag.proto";
 import "github.com/infraboard/mcube/pb/page/page.proto";
 import "api/pkg/pipeline/pb/pipeline.proto";
+import "api/pkg/scm/pb/gitlab.proto";
 
 // SCM_TYPE 流水线状态
 enum SCM_TYPE {
@@ -22,6 +23,7 @@ service Service {
 	rpc QueryApplication(QueryApplicationRequest) returns(ApplicationSet);
     rpc DescribeApplication(DescribeApplicationRequest) returns(Application);
     rpc DeleteApplication(DeleteApplicationRequest) returns(Application);
+    rpc HandleApplicationEvent(ApplicationEvent) returns(workflow.pipeline.PipelineSet);
 }
 
 // Application todo
@@ -205,4 +207,15 @@ message DescribeApplicationRequest {
     string name = 3[
         (google.protobuf.field_tag) = {struct_tag: 'json:"name"'}
         ]; 
+}
+
+message ApplicationEvent {
+    // 应用ID
+    string app_id = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"app_id" validate:"required"'}
+        ];
+    // webhook事件
+    workflow.pipeline.scm.WebHookEvent webhook_event = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"webhook_event"'}
+        ];
 }

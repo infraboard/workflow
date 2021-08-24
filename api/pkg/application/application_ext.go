@@ -10,6 +10,8 @@ import (
 	"github.com/infraboard/keyauth/pkg/token"
 	"github.com/infraboard/mcube/http/request"
 	"github.com/infraboard/mcube/types/ftime"
+	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/api/pkg/scm"
 	"github.com/infraboard/workflow/api/pkg/scm/gitlab"
 	"github.com/rs/xid"
 )
@@ -130,6 +132,15 @@ func (a *Application) Int64ScmHookID() int64 {
 	return id
 }
 
+func (a *Application) MatchPipeline(e *scm.WebHookEvent) (mached []*pipeline.CreatePipelineRequest) {
+	for i := range a.Pipeline {
+		if a.Pipeline[i].On.IsMatch(e.GetRef(), e.GetEventName()) {
+			mached = append(mached, a.Pipeline[i])
+		}
+	}
+	return
+}
+
 // NewApplicationSet 实例
 func NewApplicationSet() *ApplicationSet {
 	return &ApplicationSet{
@@ -170,4 +181,12 @@ func NewDeleteApplicationRequest(namespace, name string) *DeleteApplicationReque
 		Namespace: namespace,
 		Name:      name,
 	}
+}
+
+func (req *ApplicationEvent) Validate() error {
+	if req.WebhookEvent == nil {
+		return fmt.Errorf("web hook event is nil")
+	}
+
+	return validate.Struct(req)
 }

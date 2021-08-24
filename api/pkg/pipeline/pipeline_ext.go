@@ -3,10 +3,12 @@ package pipeline
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/infraboard/keyauth/pkg/token"
 	"github.com/infraboard/mcube/http/request"
+	"github.com/infraboard/mcube/logger/zap"
 	"github.com/infraboard/mcube/types/ftime"
 	"github.com/rs/xid"
 )
@@ -88,6 +90,7 @@ func NewPipeline(req *CreatePipelineRequest) (*Pipeline, error) {
 	p := &Pipeline{
 		Id:          xid.New().String(),
 		CreateAt:    ftime.Now().Timestamp(),
+		TemplateId:  req.TemplateId,
 		Name:        req.Name,
 		With:        req.With,
 		Mount:       req.Mount,
@@ -396,4 +399,31 @@ func (req *WatchPipelineRequest) Validate() error {
 	}
 
 	return nil
+}
+
+func (t *Trigger) IsMatch(branche, event string) bool {
+	return t.matchBranche(branche) && t.matchEvent(event)
+}
+
+func (t *Trigger) matchBranche(b string) bool {
+	for i := range t.Branches {
+		matched, err := regexp.MatchString(b, t.Branches[i])
+		zap.L().Errorf("match branche string error, %s", err)
+		if matched {
+			return true
+		}
+	}
+	return false
+}
+
+func (t *Trigger) matchEvent(e string) bool {
+	for i := range t.Events {
+		matched, err := regexp.MatchString(e, t.Events[i])
+		zap.L().Errorf("match event string error, %s", err)
+		if matched {
+			return true
+		}
+	}
+
+	return false
 }

@@ -8,15 +8,15 @@ import "github.com/infraboard/mcube/cmd/protoc-gen-go-ext/extension/tag/tag.prot
 message WebHookEvent {
     // 事件类型
     string object_kind = 1[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"object_kind" json:"object_kind"'}
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"object_kind" json:"object_kind" validate:"required"'}
         ];
     // 事件名称
     string event_name = 2[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"event_name" json:"event_name"'}
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"event_name" json:"event_name" validate:"required"'}
         ];
     // 关联分支
     string ref = 3[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"ref" json:"ref"'}
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"ref" json:"ref" validate:"required"'}
         ];
     // 触发者用户ID
     int64 user_id = 4[
