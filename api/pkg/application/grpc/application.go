@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/infraboard/workflow/api/pkg/application"
-	"github.com/infraboard/workflow/common/repo/gitlab"
+	"github.com/infraboard/workflow/api/pkg/scm/gitlab"
 )
 
 func (s *service) CreateApplication(ctx context.Context, req *application.CreateApplicationRequest) (

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/infraboard/workflow/common/repo/gitlab"
+	"github.com/infraboard/workflow/api/pkg/scm/gitlab"
 	"github.com/stretchr/testify/assert"
 )
 

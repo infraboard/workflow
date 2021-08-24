@@ -6,31 +6,19 @@ import (
 	"io"
 	"net/url"
 	"strings"
+
+	"github.com/infraboard/workflow/api/pkg/scm"
 )
 
-type Project struct {
-	ID            int64  `json:"id"`
-	Desc          string `json:"description"`
-	Name          string `json:"name"`
-	SshURL        string `json:"ssh_url_to_repo"`
-	HttpURL       string `json:"http_url_to_repo"`
-	NamespacePath string `json:"path_with_namespace"`
-	HasSynced     bool   `json:"has_synced"`
-}
-
-func NewProjectSet() *ProjectSet {
-	return &ProjectSet{
-		Items: []*Project{},
+func NewProjectSet() *scm.ProjectSet {
+	return &scm.ProjectSet{
+		Items: []*scm.Project{},
 	}
-}
-
-type ProjectSet struct {
-	Items []*Project `json:"items"`
 }
 
 // https://gitlab.com/api/v4/projects?owned=true
 // https://docs.gitlab.com/ce/api/projects.html
-func (r *SCM) ListProjects() (*ProjectSet, error) {
+func (r *SCM) ListProjects() (*scm.ProjectSet, error) {
 	projectURL := r.resourceURL("projects", map[string]string{"owned": "true", "simple": "true"})
 	req, err := r.newJSONRequest("GET", projectURL)
 	if err != nil {

@@ -10,7 +10,7 @@ import (
 	"github.com/infraboard/keyauth/pkg/token"
 	"github.com/infraboard/mcube/http/request"
 	"github.com/infraboard/mcube/types/ftime"
-	"github.com/infraboard/workflow/common/repo/gitlab"
+	"github.com/infraboard/workflow/api/pkg/scm/gitlab"
 	"github.com/rs/xid"
 )
 

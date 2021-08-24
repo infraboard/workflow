@@ -5,6 +5,7 @@ option go_package = "github.com/infraboard/workflow/api/pkg/pipeline";
 
 import "github.com/infraboard/mcube/cmd/protoc-gen-go-ext/extension/tag/tag.proto";
 import "github.com/infraboard/mcube/pb/page/page.proto";
+import "api/pkg/scm/pb/gitlab.proto";
 
 // STEP_STATUS Step任务状态
 enum STEP_STATUS {
@@ -130,6 +131,10 @@ message Pipeline {
 	// 触发条件
 	Trigger on = 10[
 		(google.protobuf.field_tag) = {struct_tag: 'bson:"on" json:"on"'}
+		];
+	// 触发事件
+	workflow.pipeline.scm.WebHookEvent hook_event = 15[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"hook_event" json:"hook_event"'}
 		];
 	// 当前状态
 	PipelineStatus status = 11[
@@ -479,7 +484,6 @@ message PipelineStatus {
     string message = 6[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"message" json:"message"'}
         ];
-
 }
 
 // PipelineSet todo

@@ -7,7 +7,8 @@ import (
 	"github.com/infraboard/mcube/exception"
 	"github.com/infraboard/mcube/http/request"
 	"github.com/infraboard/mcube/http/response"
-	"github.com/infraboard/workflow/common/repo/gitlab"
+	"github.com/infraboard/workflow/api/pkg/scm"
+	"github.com/infraboard/workflow/api/pkg/scm/gitlab"
 )
 
 const (
@@ -20,7 +21,7 @@ func (h *handler) QuerySCMProject(w http.ResponseWriter, r *http.Request) {
 	srcType := qs.Get("scm_type")
 
 	var (
-		ps  *gitlab.ProjectSet
+		ps  *scm.ProjectSet
 		err error
 	)
 	switch srcType {
@@ -48,7 +49,7 @@ func (h *handler) GitLabHookHanler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(appID)
 	switch eventType {
 	case "Push Hook":
-		event := gitlab.NewDefaultWebHookEvent()
+		event := scm.NewDefaultWebHookEvent()
 		if err := request.GetDataFromRequest(r, event); err != nil {
 			response.Failed(w, err)
 			return
