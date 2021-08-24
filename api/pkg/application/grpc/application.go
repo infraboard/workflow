@@ -33,7 +33,7 @@ func (s *service) CreateApplication(ctx context.Context, req *application.Create
 }
 
 func (s *service) setWebHook(req *application.CreateApplicationRequest, hook *gitlab.WebHook) (string, error) {
-	if req.NeedSetHook() {
+	if !req.NeedSetHook() {
 		return "", nil
 	}
 
@@ -69,6 +69,7 @@ func (s *service) QueryApplication(ctx context.Context, req *application.QueryAp
 			return nil, exception.NewInternalServerError("decode application error, error is %s", err)
 		}
 
+		a.Desensitize()
 		set.Add(a)
 	}
 
@@ -110,8 +111,34 @@ func (s *service) DeleteApplication(ctx context.Context, req *application.Delete
 		return nil, err
 	}
 
+	// 删除Hook
+	if err := s.delWebHook(ins); err != nil {
+		s.log.Errorf("delete scm hook error, %s", err)
+	}
+
 	if _, err := s.col.DeleteOne(context.TODO(), bson.M{"_id": ins.Id}); err != nil {
 		return nil, err
 	}
 	return ins, nil
+}
+
+func (s *service) delWebHook(req *application.Application) error {
+	if req.ScmHookId == "" {
+		return nil
+	}
+
+	if req.ScmPrivateToken == "" {
+		s.log.Errorf("delete scm hook error, scm_private_token is empty")
+		return nil
+	}
+
+	addr, err := req.GetScmAddr()
+	if err != nil {
+		return fmt.Errorf("get scm addr from http_url error, %s", err)
+	}
+
+	repo := gitlab.NewRepository(addr, req.ScmPrivateToken)
+	delHookReq := gitlab.NewDeleteProjectReqeust(req.Int64ScmProjectID(), req.Int64ScmHookID())
+
+	return repo.DeleteProjectHook(delHookReq)
 }

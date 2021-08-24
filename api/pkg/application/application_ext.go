@@ -66,20 +66,21 @@ func NewApplication(req *CreateApplicationRequest) (*Application, error) {
 	}
 
 	ins := &Application{
-		Id:           xid.New().String(),
-		CreateAt:     ftime.Now().Timestamp(),
-		UpdateAt:     ftime.Now().Timestamp(),
-		Domain:       req.Domain,
-		Namespace:    req.Namespace,
-		CreateBy:     req.CreateBy,
-		Name:         req.Name,
-		Tags:         req.Tags,
-		Description:  req.Description,
-		Pipeline:     req.Pipeline,
-		RepoSshUrl:   req.RepoSshUrl,
-		RepoHttpUrl:  req.RepoHttpUrl,
-		ScmType:      req.ScmType,
-		ScmProjectId: req.ScmProjectId,
+		Id:              xid.New().String(),
+		CreateAt:        ftime.Now().Timestamp(),
+		UpdateAt:        ftime.Now().Timestamp(),
+		Domain:          req.Domain,
+		Namespace:       req.Namespace,
+		CreateBy:        req.CreateBy,
+		Name:            req.Name,
+		Tags:            req.Tags,
+		Description:     req.Description,
+		Pipeline:        req.Pipeline,
+		RepoSshUrl:      req.RepoSshUrl,
+		RepoHttpUrl:     req.RepoHttpUrl,
+		ScmType:         req.ScmType,
+		ScmProjectId:    req.ScmProjectId,
+		ScmPrivateToken: req.ScmPrivateToken,
 	}
 
 	return ins, nil
@@ -87,6 +88,10 @@ func NewApplication(req *CreateApplicationRequest) (*Application, error) {
 
 func (a *Application) AddError(err error) {
 	a.Errors = append(a.Errors, err.Error())
+}
+
+func (a *Application) Desensitize() {
+	a.ScmPrivateToken = "****"
 }
 
 func (a *Application) GenWebHook(callbackURL string) *gitlab.WebHook {
@@ -100,6 +105,29 @@ func (a *Application) GenWebHook(callbackURL string) *gitlab.WebHook {
 		Token:               a.Id,
 		Url:                 cb,
 	}
+}
+
+func (a *Application) GetScmAddr() (string, error) {
+	if a.RepoHttpUrl == "" {
+		return "", nil
+	}
+
+	url, err := url.Parse(a.RepoHttpUrl)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s://%s", url.Scheme, url.Host), nil
+}
+
+func (a *Application) Int64ScmProjectID() int64 {
+	id, _ := strconv.ParseInt(a.ScmProjectId, 10, 64)
+	return id
+}
+
+func (a *Application) Int64ScmHookID() int64 {
+	id, _ := strconv.ParseInt(a.ScmHookId, 10, 64)
+	return id
 }
 
 // NewApplicationSet 实例

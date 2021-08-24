@@ -30,6 +30,9 @@ func (h *handler) Registry(router router.SubRouter) {
 
 	r.BasePath("repo/projects")
 	r.Handle("GET", "/", h.QueryRepoProject)
+
+	r.BasePath("triggers/scm/gitlab")
+	r.Handle("GET", "/", h.GitLabHookHanler).DisableAuth()
 }
 
 func (h *handler) Config() error {

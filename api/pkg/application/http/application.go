@@ -104,6 +104,7 @@ func (h *handler) DescribeApplication(w http.ResponseWriter, r *http.Request) {
 		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
 		return
 	}
+	ins.Desensitize()
 	response.Success(w, ins)
 }
 

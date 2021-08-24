@@ -88,7 +88,11 @@ message Application {
         ];
     // 应用创建过程中的一些异常错误，但是不影响创建
     repeated string errors = 17[
-        (google.protobuf.field_tag) = {struct_tag: 'json:"scm_hook_id"'}
+        (google.protobuf.field_tag) = {struct_tag: 'json:"errors"'}
+        ];
+    // 仓库的priviate token, 用于设置回调
+    string scm_private_token = 18[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"scm_private_token"'}
         ];
     // 用于创建pipeline的请求参数
     repeated workflow.pipeline.CreatePipelineRequest pipeline = 11[
