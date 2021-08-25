@@ -18,6 +18,8 @@ func (i *impl) CreateAction(ctx context.Context, req *action.CreateActionRequest
 		return nil, err
 	}
 
+	// 获取之前最新的版本
+
 	if _, err := i.col.InsertOne(context.TODO(), a); err != nil {
 		return nil, exception.NewInternalServerError("inserted a action document error, %s", err)
 	}

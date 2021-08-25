@@ -72,6 +72,7 @@ func NewAction(req *CreateActionRequest) (*Action, error) {
 		CreateBy:     req.CreateBy,
 		Logo:         req.Logo,
 		DisplayName:  req.DisplayName,
+		IsLatest:     true,
 		Name:         req.Name,
 		Version:      req.Version,
 		VisiableMode: req.VisiableMode,
