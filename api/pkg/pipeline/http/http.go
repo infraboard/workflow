@@ -42,6 +42,9 @@ func (h *handler) Registry(router router.SubRouter) {
 	r.Handle("DELETE", "/:id", h.DeleteStep).AddLabel(label.Delete)
 	r.Handle("POST", "/:id/audit", h.AuditStep).AddLabel(label.Update)
 	r.Handle("POST", "/:id/cancel", h.CancelStep).AddLabel(label.Update)
+
+	r.BasePath("variable_templates")
+	r.Handle("GET", "/", h.QueryVariableTemplate).AddLabel(label.List)
 }
 
 func (h *handler) Config() error {

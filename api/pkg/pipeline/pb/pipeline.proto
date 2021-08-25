@@ -41,12 +41,18 @@ enum PIPELINE_STATUS {
 	COMPLETE = 2;
 }
 
-// PIPELINE_STATUS 流水线状态
-enum VALUE_TYPE {
+// PARAM_VALUE_TYPE 参数值类型
+enum PARAM_VALUE_TYPE {
+	// 明文文本信息
+	PLAIN = 0;
     // 应用变量
-    APP_VAR = 0;
+    APP_VAR = 1;
 	// secret 引用
-	SECRET_REF = 1;
+	SECRET_REF = 2;
+	// 明文敏感信息, 需要后端加密
+	PASSWORD = 3;
+	// 密文信息, 由PASSWORD类型加密后得到
+	CRYPTO = 4;
 }
 
 // AUDIT_RESPONSE 审核结果

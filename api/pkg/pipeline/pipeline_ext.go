@@ -18,6 +18,15 @@ const (
 	PIPELINE_MAX_STEPS = 100
 )
 
+var (
+	VALUE_TYPE_ID_MAP = map[string]PARAM_VALUE_TYPE{
+		"$p$": PARAM_VALUE_TYPE_PASSWORD,
+		"$c$": PARAM_VALUE_TYPE_CRYPTO,
+		"$a$": PARAM_VALUE_TYPE_APP_VAR,
+		"$s$": PARAM_VALUE_TYPE_SECRET_REF,
+	}
+)
+
 // use a single instance of Validate, it caches struct info
 var (
 	validate = validator.New()

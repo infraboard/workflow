@@ -166,3 +166,64 @@ func (h *handler) CancelStep(w http.ResponseWriter, r *http.Request) {
 	}
 	response.Success(w, dommains)
 }
+
+func (h *handler) QueryVariableTemplate(w http.ResponseWriter, r *http.Request) {
+	if !tempateIsInit {
+		for k, v := range pipeline.VALUE_TYPE_ID_MAP {
+			for i := range valueTempate {
+				if valueTempate[i].Type == v {
+					valueTempate[i].Prefix = k
+				}
+			}
+		}
+		tempateIsInit = true
+	}
+
+	response.Success(w, valueTempate)
+}
+
+var (
+	tempateIsInit = false
+	valueTempate  = []*ValueTypeDesc{
+		{
+			Type:   pipeline.PARAM_VALUE_TYPE_PLAIN,
+			Prefix: "",
+			Name:   "明文",
+			Desc:   "值为明文文本, 敏感信息请不要使用这个类型",
+		},
+		{
+			Type:   pipeline.PARAM_VALUE_TYPE_PASSWORD,
+			Prefix: "",
+			Name:   "秘文",
+			Desc:   "一些敏感信息, 比如密码之类, 由系统加密存储, 运行时解密注入",
+		},
+		{
+			Type:   pipeline.PARAM_VALUE_TYPE_CRYPTO,
+			Prefix: "",
+			Name:   "解密",
+			Desc:   "敏感信息加密后的密文, 无法修改",
+			IsEdit: true,
+		},
+		{
+			Type:   pipeline.PARAM_VALUE_TYPE_APP_VAR,
+			Prefix: "",
+			Name:   "应用变量",
+			Desc:   "应用属性, 也包含自定义变量, 运行时, 由系统动态注入",
+		},
+		{
+			Type:   pipeline.PARAM_VALUE_TYPE_SECRET_REF,
+			Prefix: "",
+			Name:   "Secret引用",
+			Desc:   "运行时，由系统查询Secret, 然后动态注入",
+		},
+	}
+)
+
+type ValueTypeDesc struct {
+	Type   pipeline.PARAM_VALUE_TYPE `json:"type"`
+	Prefix string                    `json:"prefix"`
+	Name   string                    `json:"name"`
+	Desc   string                    `json:"desc"`
+	Value  string                    `json:"value"`
+	IsEdit bool                      `json:"is_edit"`
+}
