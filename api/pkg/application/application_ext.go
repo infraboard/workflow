@@ -77,7 +77,7 @@ func NewApplication(req *CreateApplicationRequest) (*Application, error) {
 		Name:            req.Name,
 		Tags:            req.Tags,
 		Description:     req.Description,
-		Pipeline:        req.Pipeline,
+		Pipelines:       req.Pipelines,
 		RepoSshUrl:      req.RepoSshUrl,
 		RepoHttpUrl:     req.RepoHttpUrl,
 		ScmType:         req.ScmType,
@@ -133,9 +133,9 @@ func (a *Application) Int64ScmHookID() int64 {
 }
 
 func (a *Application) MatchPipeline(e *scm.WebHookEvent) (mached []*pipeline.CreatePipelineRequest) {
-	for i := range a.Pipeline {
-		if a.Pipeline[i].On.IsMatch(e.GetRef(), e.GetEventName()) {
-			mached = append(mached, a.Pipeline[i])
+	for i := range a.Pipelines {
+		if a.Pipelines[i].On.IsMatch(e.GetRef(), e.GetEventName()) {
+			mached = append(mached, a.Pipelines[i])
 		}
 	}
 	return

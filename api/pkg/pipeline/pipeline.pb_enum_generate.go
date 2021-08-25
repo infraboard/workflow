@@ -99,6 +99,51 @@ func (t *PIPELINE_STATUS) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// ParseVALUE_TYPEFromString Parse VALUE_TYPE from string
+func ParseVALUE_TYPEFromString(str string) (VALUE_TYPE, error) {
+	key := strings.Trim(string(str), `"`)
+	v, ok := VALUE_TYPE_value[strings.ToUpper(key)]
+	if !ok {
+		return 0, fmt.Errorf("unknown VALUE_TYPE: %s", str)
+	}
+
+	return VALUE_TYPE(v), nil
+}
+
+// Equal type compare
+func (t VALUE_TYPE) Equal(target VALUE_TYPE) bool {
+	return t == target
+}
+
+// IsIn todo
+func (t VALUE_TYPE) IsIn(targets ...VALUE_TYPE) bool {
+	for _, target := range targets {
+		if t.Equal(target) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// MarshalJSON todo
+func (t VALUE_TYPE) MarshalJSON() ([]byte, error) {
+	b := bytes.NewBufferString(`"`)
+	b.WriteString(strings.ToUpper(t.String()))
+	b.WriteString(`"`)
+	return b.Bytes(), nil
+}
+
+// UnmarshalJSON todo
+func (t *VALUE_TYPE) UnmarshalJSON(b []byte) error {
+	ins, err := ParseVALUE_TYPEFromString(string(b))
+	if err != nil {
+		return err
+	}
+	*t = ins
+	return nil
+}
+
 // ParseAUDIT_RESPONSEFromString Parse AUDIT_RESPONSE from string
 func ParseAUDIT_RESPONSEFromString(str string) (AUDIT_RESPONSE, error) {
 	key := strings.Trim(string(str), `"`)

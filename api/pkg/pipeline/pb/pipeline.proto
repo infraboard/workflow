@@ -41,6 +41,14 @@ enum PIPELINE_STATUS {
 	COMPLETE = 2;
 }
 
+// PIPELINE_STATUS 流水线状态
+enum VALUE_TYPE {
+    // 应用变量
+    APP_VAR = 0;
+	// secret 引用
+	SECRET_REF = 1;
+}
+
 // AUDIT_RESPONSE 审核结果
 enum AUDIT_RESPONSE {
 	// 未处理

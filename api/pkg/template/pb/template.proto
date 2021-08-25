@@ -47,8 +47,8 @@ message Template {
         (google.protobuf.field_tag) = {struct_tag: 'bson:"update_by" json:"update_by"'}
         ];
         // 用于创建pipeline的请求参数
-        repeated workflow.pipeline.CreatePipelineRequest pipeline = 8[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"pipeline" json:"pipeline"'}
+        repeated workflow.pipeline.CreatePipelineRequest pipelines = 8[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"pipelines" json:"pipelines"'}
         ];
         // 可见模式
         mcube.resource.VisiableMode visiable_mode = 9[
@@ -94,8 +94,8 @@ message CreateTemplateRequest {
         (google.protobuf.field_tag) = {struct_tag: 'bson:"create_by" json:"create_by" validate:"required"'}
         ];
         // 用于创建pipeline的请求参数
-        repeated workflow.pipeline.CreatePipelineRequest pipeline = 4[
-        (google.protobuf.field_tag) = {struct_tag: 'json:"pipeline"'}
+        repeated workflow.pipeline.CreatePipelineRequest pipelines = 4[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"pipelines"'}
         ];
         // 可见模式
         mcube.resource.VisiableMode visiable_mode = 5[

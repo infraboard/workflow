@@ -28,7 +28,7 @@ func NewTemplate(req *CreateTemplateRequest) (*Template, error) {
 		Name:         req.Name,
 		Tags:         req.Tags,
 		VisiableMode: req.VisiableMode,
-		Pipeline:     req.Pipeline,
+		Pipelines:    req.Pipelines,
 		Description:  req.Description,
 	}
 

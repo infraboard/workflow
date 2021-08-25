@@ -32,6 +32,10 @@ message Application {
     string id = 1[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"_id" json:"id"'}
         ];
+    // 用于加密应用的铭感信息
+    string key = 19[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"key" json:"key"'}
+        ];
     // 所属域
     string domain = 2[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"domain" json:"domain"'}
@@ -97,8 +101,8 @@ message Application {
         (google.protobuf.field_tag) = {struct_tag: 'json:"scm_private_token"'}
         ];
     // 用于创建pipeline的请求参数
-    repeated workflow.pipeline.CreatePipelineRequest pipeline = 11[
-        (google.protobuf.field_tag) = {struct_tag: 'json:"pipeline"'}
+    repeated workflow.pipeline.CreatePipelineRequest pipelines = 11[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"pipelines"'}
         ];
 }
 
@@ -159,8 +163,8 @@ message CreateApplicationRequest {
         (google.protobuf.field_tag) = {struct_tag: 'json:"scm_private_token"'}
         ];
     // 用于创建pipeline的请求参数
-    repeated workflow.pipeline.CreatePipelineRequest pipeline = 7[
-        (google.protobuf.field_tag) = {struct_tag: 'json:"pipeline"'}
+    repeated workflow.pipeline.CreatePipelineRequest pipelines = 7[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"pipelines"'}
         ];
 }
 

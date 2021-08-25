@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/infraboard/mcube/exception"
 
@@ -28,6 +29,9 @@ func (s *service) HandleApplicationEvent(ctx context.Context, in *application.Ap
 	}
 
 	// pipeline参数实例化
+	for i := range matched {
+		fmt.Println(matched[i])
+	}
 
 	return nil, nil
 }
