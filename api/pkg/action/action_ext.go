@@ -71,6 +71,7 @@ func NewAction(req *CreateActionRequest) (*Action, error) {
 		Namespace:    req.Namespace,
 		CreateBy:     req.CreateBy,
 		Logo:         req.Logo,
+		DisplayName:  req.DisplayName,
 		Name:         req.Name,
 		Version:      req.Version,
 		VisiableMode: req.VisiableMode,

@@ -35,6 +35,14 @@ message Action {
 	string logo = 20[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"logo" json:"logo"'}
         ];
+	// 展示名称
+	string display_name = 21[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"display_name" json:"display_name"'}
+        ];
+	// 是否是最新版本, 最新版本只有一个
+	bool is_latest = 22[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"is_latest" json:"is_latest"'}
+        ];
     // 名称
     string name = 8[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"name" json:"name" validate:"required"'}
@@ -171,6 +179,10 @@ message CreateActionRequest {
 	string version = 8[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"version" validate:"required"'}
 		];
+	// 展示名称
+	string display_name = 13[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"display_name"'}
+        ];
 	// 可见模式
 	mcube.resource.VisiableMode visiable_mode = 6[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"visiable_mode"'}
