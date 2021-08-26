@@ -7,6 +7,14 @@ import "github.com/infraboard/mcube/cmd/protoc-gen-go-ext/extension/tag/tag.prot
 import "github.com/infraboard/mcube/pb/page/page.proto";
 import "github.com/infraboard/mcube/pb/resource/base.proto";
 
+service Service {
+	rpc CreateAction(CreateActionRequest) returns(Action);
+	rpc QueryAction(QueryActionRequest) returns(ActionSet);
+	rpc DescribeAction(DescribeActionRequest) returns(Action);
+	rpc UpdateAction(UpdateActionRequest) returns(Action);
+	rpc DeleteAction(DeleteActionRequest) returns(Action);
+}
+
 // STEP_RUNNER step执行类型
 enum RUNNER_TYPE {
 	// 使用Node节点本地安装的Docker执行
@@ -15,14 +23,6 @@ enum RUNNER_TYPE {
 	K8s = 1;
 	// 本地执行, 用于在Node节点本地执行
 	LOCAL = 2;
-}
-
-service Service {
-	rpc CreateAction(CreateActionRequest) returns(Action);
-	rpc QueryAction(QueryActionRequest) returns(ActionSet);
-	rpc DescribeAction(DescribeActionRequest) returns(Action);
-	rpc UpdateAction(UpdateActionRequest) returns(Action);
-	rpc DeleteAction(DeleteActionRequest) returns(Action);
 }
 
 // Action 动作定义

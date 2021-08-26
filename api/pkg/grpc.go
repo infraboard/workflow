@@ -8,6 +8,7 @@ import (
 
 	"github.com/infraboard/workflow/api/pkg/action"
 	"github.com/infraboard/workflow/api/pkg/application"
+	"github.com/infraboard/workflow/api/pkg/deploy"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/api/pkg/template"
 )
@@ -18,6 +19,7 @@ var (
 	Pipeline    pipeline.ServiceServer
 	Action      action.ServiceServer
 	Template    template.ServiceServer
+	Deploy      deploy.ServiceServer
 )
 
 var (
@@ -33,6 +35,7 @@ func InitV1GRPCAPI(server *grpc.Server) {
 	pipeline.RegisterServiceServer(server, Pipeline)
 	action.RegisterServiceServer(server, Action)
 	template.RegisterServiceServer(server, Template)
+	deploy.RegisterServiceServer(server, Deploy)
 }
 
 // HTTPEntry todo
@@ -93,6 +96,12 @@ func RegistryService(name string, svr Service) {
 			registryError(name)
 		}
 		Template = value
+		addService(name, svr)
+	case deploy.ServiceServer:
+		if Deploy != nil {
+			registryError(name)
+		}
+		Deploy = value
 		addService(name, svr)
 	default:
 		panic(fmt.Sprintf("unknown service type %s", name))

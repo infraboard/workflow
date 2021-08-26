@@ -1,6 +1,8 @@
 package template
 
 import (
+	"fmt"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/infraboard/keyauth/pkg/token"
 	"github.com/infraboard/mcube/http/request"
@@ -36,6 +38,16 @@ func NewTemplate(req *CreateTemplateRequest) (*Template, error) {
 }
 
 func (req *CreateTemplateRequest) Validate() error {
+	// 判断同一个模版里面,Pipeline名字是否相同
+	nameMap := map[string]struct{}{}
+	for i := range req.Pipelines {
+		_, ok := nameMap[req.Pipelines[i].Name]
+		if ok {
+			return fmt.Errorf("in this template name is ready exist")
+		}
+		nameMap[req.Pipelines[i].Name] = struct{}{}
+	}
+
 	return validate.Struct(req)
 }
 

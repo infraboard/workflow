@@ -7,6 +7,20 @@ import "github.com/infraboard/mcube/cmd/protoc-gen-go-ext/extension/tag/tag.prot
 import "github.com/infraboard/mcube/pb/page/page.proto";
 import "api/pkg/scm/pb/gitlab.proto";
 
+service Service {
+	rpc CreatePipeline(CreatePipelineRequest) returns(Pipeline);
+	rpc QueryPipeline(QueryPipelineRequest) returns(PipelineSet);
+	rpc DescribePipeline(DescribePipelineRequest) returns(Pipeline);
+	rpc WatchPipeline(WatchPipelineRequest) returns(stream Pipeline);
+	rpc CreateStep(CreateStepRequest) returns(Step);
+	rpc QueryStep(QueryStepRequest) returns(StepSet);
+	rpc DescribeStep(DescribeStepRequest) returns(Step);
+	rpc DeleteStep(DeleteStepRequest) returns(Step);
+	rpc CancelStep(CancelStepRequest) returns(Step);
+	rpc AuditStep(AuditStepRequest) returns(Step);
+	rpc DeletePipeline(DeletePipelineRequest) returns(Pipeline);
+}
+
 // STEP_STATUS Step任务状态
 enum STEP_STATUS {
     // 任务等待被执行
@@ -80,20 +94,6 @@ enum PIPELINE_WATCH_MOD {
 	BY_ID = 0;
 	// watch namespace pipeline
 	BY_NAMESPACE = 1;
-}
-
-service Service {
-	rpc CreatePipeline(CreatePipelineRequest) returns(Pipeline);
-	rpc QueryPipeline(QueryPipelineRequest) returns(PipelineSet);
-	rpc DescribePipeline(DescribePipelineRequest) returns(Pipeline);
-	rpc WatchPipeline(WatchPipelineRequest) returns(stream Pipeline);
-	rpc CreateStep(CreateStepRequest) returns(Step);
-	rpc QueryStep(QueryStepRequest) returns(StepSet);
-	rpc DescribeStep(DescribeStepRequest) returns(Step);
-	rpc DeleteStep(DeleteStepRequest) returns(Step);
-	rpc CancelStep(CancelStepRequest) returns(Step);
-	rpc AuditStep(AuditStepRequest) returns(Step);
-	rpc DeletePipeline(DeletePipelineRequest) returns(Pipeline);
 }
 
 // Pipeline todo

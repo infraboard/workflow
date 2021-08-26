@@ -8,6 +8,14 @@ import "github.com/infraboard/mcube/pb/page/page.proto";
 import "api/pkg/pipeline/pb/pipeline.proto";
 import "api/pkg/scm/pb/gitlab.proto";
 
+service Service {
+	rpc CreateApplication(CreateApplicationRequest) returns(Application);
+	rpc QueryApplication(QueryApplicationRequest) returns(ApplicationSet);
+    rpc DescribeApplication(DescribeApplicationRequest) returns(Application);
+    rpc DeleteApplication(DeleteApplicationRequest) returns(Application);
+    rpc HandleApplicationEvent(ApplicationEvent) returns(workflow.pipeline.PipelineSet);
+}
+
 // SCM_TYPE 流水线状态
 enum SCM_TYPE {
     // gitlab
@@ -16,14 +24,6 @@ enum SCM_TYPE {
 	GITHUB = 1;
 	// coding.net
 	CODING = 2;
-}
-
-service Service {
-	rpc CreateApplication(CreateApplicationRequest) returns(Application);
-	rpc QueryApplication(QueryApplicationRequest) returns(ApplicationSet);
-    rpc DescribeApplication(DescribeApplicationRequest) returns(Application);
-    rpc DeleteApplication(DeleteApplicationRequest) returns(Application);
-    rpc HandleApplicationEvent(ApplicationEvent) returns(workflow.pipeline.PipelineSet);
 }
 
 // Application todo
