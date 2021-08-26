@@ -129,7 +129,7 @@ type service struct {
 }
 
 func (s *service) start() error {
-	s.log.Infof("loaded domain pkg: %v", pkg.LoadedService())
+	s.log.Infof("loaded grpc service: %v", pkg.LoadedService())
 	s.log.Infof("loaded http service: %s", pkg.LoadedHTTP())
 
 	// 注册服务权限条目

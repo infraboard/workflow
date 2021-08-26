@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
@@ -24,6 +25,7 @@ var (
 type service struct {
 	col *mongo.Collection
 	log logger.Logger
+	app application.ServiceServer
 
 	deploy.UnimplementedServiceServer
 }
@@ -51,6 +53,11 @@ func (s *service) Config() error {
 		return err
 	}
 
+	if pkg.Application == nil {
+		return fmt.Errorf("dependence application service is nil")
+	}
+	s.app = pkg.Application
+
 	s.col = dc
 	s.log = zap.L().Named("Deploy")
 	return nil
@@ -58,7 +65,7 @@ func (s *service) Config() error {
 
 // HttpEntry todo
 func (s *service) HTTPEntry() *http.EntrySet {
-	return application.HttpEntry()
+	return deploy.HttpEntry()
 }
 
 func init() {

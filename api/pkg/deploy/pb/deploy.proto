@@ -100,7 +100,7 @@ message ApplicationDeploy {
 message HostModeConfig {
     // 关联的主机列表, 这里是关联id, 来源于cmdb系统
     repeated string hosts_ref = 1[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"hosts_ref" json:"hosts_ref"'}
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"hosts_ref" json:"hosts_ref" validate:"required"'}
     ];
 }
 
@@ -132,11 +132,11 @@ message FileConfig {
     ];
     // 配置文件放置路径
     string path = 2[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"path" json:"path"'}
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"path" json:"path" validate:"required"'}
     ];
     // 配置文件的内容
     string content = 3[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"content" json:"content"'}
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"content" json:"content" validate:"required"'}
     ];
 }
 
@@ -144,15 +144,15 @@ message FileConfig {
 message K8sModeConfig {
     // k8s 认证配置
     string kube_config = 1[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"kube_config" json:"kube_config"'}
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"kube_config" json:"kube_config" validate:"required"'}
     ];
     // Deployment配置
     string deployment = 2[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"deployment" json:"deployment"'}
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"deployment" json:"deployment" validate:"required"'}
     ];
     // Service配置
     string service =3[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"service" json:"service"'}
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"service" json:"service" validate:"required"'}
     ];
 }
 
@@ -167,40 +167,44 @@ message CreateApplicationDeployRequest {
     string namespace = 2[
         (google.protobuf.field_tag) = {struct_tag: 'json:"namespace" validate:"required"'}
     ];
+    // 创建人
+    string create_by = 3[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"create_by" validate:"required"'}
+    ];
     // 关联的应用
-    string app_id = 3[
+    string app_id = 4[
         (google.protobuf.field_tag) = {struct_tag: 'json:"app_id" validate:"required"'}
         ];
     // 所属环境
-    string environment = 4[
+    string environment = 5[
         (google.protobuf.field_tag) = {struct_tag: 'json:"environment" validate:"required"'}
     ];
     // 部署的名称
-    string name = 5[
+    string name = 6[
         (google.protobuf.field_tag) = {struct_tag: 'json:"name" validate:"required"'}
     ];
     // 应用配置
-    ApplicationConfig application_conf = 6[
+    ApplicationConfig application_conf = 7[
         (google.protobuf.field_tag) = {struct_tag: 'json:"application_conf"'}
     ];
     // 部署模式
-    Mode deploy_mode = 7[
+    Mode deploy_mode = 8[
         (google.protobuf.field_tag) = {struct_tag: 'json:"deploy_mode"'}
     ];
     // 主机模式的部署配置
-    HostModeConfig host_deploy_config = 8[
+    HostModeConfig host_deploy_config = 9[
         (google.protobuf.field_tag) = {struct_tag: 'json:"host_deploy_config"'}
     ];
     // k8s模式下的部署配置
-    K8sModeConfig k8s_deploy_config = 9[
+    K8sModeConfig k8s_deploy_config = 10[
         (google.protobuf.field_tag) = {struct_tag: 'json:"k8s_deploy_config"'}
     ];
 	// 标签
-	map<string, string> tags = 10[
+	map<string, string> tags = 11[
         (google.protobuf.field_tag) = {struct_tag: 'json:"tags"'}
     ];
 	// 描述
-	string description = 11[
+	string description = 12[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"description"'}
 	];
 }
@@ -217,7 +221,8 @@ message ApplicationDeploySet {
 
 message QueryApplicationDeployRequest {
     page.PageRequest page = 1;
-    string namespace = 4;
-    string app_id = 2;
-    string environment = 3;    
+    string domain = 2;
+    string namespace = 3;
+    string app_id = 4;
+    string environment = 5;    
 }

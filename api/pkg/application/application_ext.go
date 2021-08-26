@@ -7,13 +7,15 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/rs/xid"
+
 	"github.com/infraboard/keyauth/pkg/token"
 	"github.com/infraboard/mcube/http/request"
 	"github.com/infraboard/mcube/types/ftime"
+
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/api/pkg/scm"
 	"github.com/infraboard/workflow/api/pkg/scm/gitlab"
-	"github.com/rs/xid"
 )
 
 // use a single instance of Validate, it caches struct info
@@ -152,8 +154,8 @@ func (s *ApplicationSet) Add(item *Application) {
 	s.Items = append(s.Items, item)
 }
 
-// NewQueryBookRequest 查询book列表
-func NewQueryBookRequest(page *request.PageRequest) *QueryApplicationRequest {
+// NewQueryApplicationRequest 查询book列表
+func NewQueryApplicationRequest(page *request.PageRequest) *QueryApplicationRequest {
 	return &QueryApplicationRequest{
 		Page: &page.PageRequest,
 	}

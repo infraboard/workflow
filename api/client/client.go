@@ -8,6 +8,7 @@ import (
 
 	"github.com/infraboard/workflow/api/pkg/action"
 	"github.com/infraboard/workflow/api/pkg/application"
+	"github.com/infraboard/workflow/api/pkg/deploy"
 	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/api/pkg/template"
 )
@@ -66,4 +67,9 @@ func (c *Client) Action() action.ServiceClient {
 // Example todo
 func (c *Client) Template() template.ServiceClient {
 	return template.NewServiceClient(c.conn)
+}
+
+// Example todo
+func (c *Client) Deploy() deploy.ServiceClient {
+	return deploy.NewServiceClient(c.conn)
 }

@@ -66,7 +66,7 @@ func (h *handler) QueryApplication(w http.ResponseWriter, r *http.Request) {
 	}
 
 	page := request.NewPageRequestFromHTTP(r)
-	req := application.NewQueryBookRequest(page)
+	req := application.NewQueryApplicationRequest(page)
 	req.Domain = tk.Domain
 	req.Namespace = tk.Namespace
 
