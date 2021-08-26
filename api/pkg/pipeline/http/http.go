@@ -45,6 +45,8 @@ func (h *handler) Registry(router router.SubRouter) {
 
 	r.BasePath("variable_templates")
 	r.Handle("GET", "/", h.QueryVariableTemplate).AddLabel(label.List)
+	r.BasePath("enums")
+	r.Handle("GET", "/step_status", h.QueryStepStatusEnum).AddLabel(label.List)
 }
 
 func (h *handler) Config() error {
