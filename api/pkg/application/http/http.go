@@ -4,6 +4,8 @@ import (
 	"errors"
 
 	"github.com/infraboard/mcube/http/router"
+	"github.com/infraboard/mcube/logger"
+	"github.com/infraboard/mcube/logger/zap"
 
 	"github.com/infraboard/workflow/api/client"
 	"github.com/infraboard/workflow/api/pkg"
@@ -16,6 +18,8 @@ var (
 
 type handler struct {
 	service application.ServiceClient
+
+	log logger.Logger
 }
 
 // Registry 注册HTTP服务路由
@@ -41,6 +45,7 @@ func (h *handler) Config() error {
 		return errors.New("grpc client not initial")
 	}
 
+	h.log = zap.L().Named("Application")
 	h.service = client.Application()
 	return nil
 }

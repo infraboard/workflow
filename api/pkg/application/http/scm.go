@@ -1,18 +1,19 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 
 	"github.com/infraboard/mcube/exception"
 	"github.com/infraboard/mcube/grpc/gcontext"
 	"github.com/infraboard/mcube/http/request"
 	"github.com/infraboard/mcube/http/response"
+
 	"github.com/infraboard/workflow/api/pkg/application"
 	"github.com/infraboard/workflow/api/pkg/scm"
 	"github.com/infraboard/workflow/api/pkg/scm/gitlab"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 )
 
 const (
@@ -59,6 +60,7 @@ func (h *handler) GitLabHookHanler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		req := application.NewApplicationEvent(appID, event)
+		h.log.Debugf("application %d accept event: %s", appID, event)
 
 		var header, trailer metadata.MD
 		_, err := h.service.HandleApplicationEvent(
@@ -72,7 +74,6 @@ func (h *handler) GitLabHookHanler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		fmt.Println(event)
 	default:
 		return
 	}
