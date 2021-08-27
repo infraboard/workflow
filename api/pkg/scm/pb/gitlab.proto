@@ -92,7 +92,7 @@ message Author {
 
 message Project {
     // 项目id
-    string id = 1[
+    int64 id = 1[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"id" json:"id"'}
         ];
     // 描述

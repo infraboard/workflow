@@ -100,6 +100,9 @@ func NewPipeline(req *CreatePipelineRequest) (*Pipeline, error) {
 		Id:          xid.New().String(),
 		CreateAt:    ftime.Now().Timestamp(),
 		TemplateId:  req.TemplateId,
+		CreateBy:    req.CreateBy,
+		Domain:      req.Domain,
+		Namespace:   req.Namespace,
 		Name:        req.Name,
 		With:        req.With,
 		Mount:       req.Mount,
@@ -418,7 +421,9 @@ func (t *Trigger) IsMatch(branche, event string) bool {
 func (t *Trigger) matchBranche(b string) bool {
 	for i := range t.Branches {
 		matched, err := regexp.MatchString(b, t.Branches[i])
-		zap.L().Errorf("match branche string error, %s", err)
+		if err != nil {
+			zap.L().Errorf("match branche string error, %s", err)
+		}
 		if matched {
 			return true
 		}
@@ -429,7 +434,9 @@ func (t *Trigger) matchBranche(b string) bool {
 func (t *Trigger) matchEvent(e string) bool {
 	for i := range t.Events {
 		matched, err := regexp.MatchString(e, t.Events[i])
-		zap.L().Errorf("match event string error, %s", err)
+		if err != nil {
+			zap.L().Errorf("match event string error, %s", err)
+		}
 		if matched {
 			return true
 		}

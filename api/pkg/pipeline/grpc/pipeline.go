@@ -17,20 +17,10 @@ import (
 
 func (i *impl) CreatePipeline(ctx context.Context, req *pipeline.CreatePipelineRequest) (
 	*pipeline.Pipeline, error) {
-	in, err := gcontext.GetGrpcInCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	tk := session.S().GetToken(in.GetAccessToKen())
-	if tk == nil {
-		return nil, exception.NewUnauthorized("token required")
-	}
-
 	p, err := pipeline.NewPipeline(req)
 	if err != nil {
 		return nil, err
 	}
-	p.UpdateOwner(tk)
 
 	if err := i.validatePipeline(ctx, p); err != nil {
 		return nil, err

@@ -8,9 +8,11 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/xid"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/infraboard/keyauth/pkg/token"
 	"github.com/infraboard/mcube/http/request"
+	pb "github.com/infraboard/mcube/pb/request"
 	"github.com/infraboard/mcube/types/ftime"
 
 	"github.com/infraboard/workflow/api/pkg/pipeline"
@@ -60,6 +62,16 @@ func (req *CreateApplicationRequest) Int64ScmProjectID() int64 {
 }
 
 func (req *CreateApplicationRequest) Validate() error {
+	names := map[string]struct{}{}
+	for i := range req.Pipelines {
+		p := req.Pipelines[i]
+		_, ok := names[p.Name]
+		if ok {
+			return fmt.Errorf("pipeline name %s ready exist", p.Name)
+		}
+		names[p.Name] = struct{}{}
+	}
+
 	return validate.Struct(req)
 }
 
@@ -88,6 +100,33 @@ func NewApplication(req *CreateApplicationRequest) (*Application, error) {
 	}
 
 	return ins, nil
+}
+
+func (a *Application) Update(updater string, req *UpdateApplicationData) {
+	a.UpdateAt = ftime.Now().Timestamp()
+	a.UpdateBy = updater
+	a.Name = req.Name
+	a.Tags = req.Tags
+	a.Description = req.Description
+	a.Pipelines = req.Pipelines
+}
+
+func (a *Application) Patch(updater string, req *UpdateApplicationData) {
+	a.UpdateAt = ftime.Now().Timestamp()
+	a.UpdateBy = updater
+
+	if req.Name != "" {
+		a.Name = req.Name
+	}
+	if req.Description != "" {
+		a.Description = req.Description
+	}
+	if len(req.Tags) > 0 {
+		a.Tags = req.Tags
+	}
+	if len(req.Pipelines) > 0 {
+		a.Pipelines = req.Pipelines
+	}
 }
 
 func (a *Application) Desensitize() {
@@ -132,7 +171,7 @@ func (a *Application) Int64ScmHookID() int64 {
 
 func (a *Application) MatchPipeline(e *scm.WebHookEvent) (mached []*pipeline.CreatePipelineRequest) {
 	for i := range a.Pipelines {
-		if a.Pipelines[i].On.IsMatch(e.GetRef(), e.GetEventName()) {
+		if a.Pipelines[i].On.IsMatch(e.GetBranche(), e.GetEventName()) {
 			mached = append(mached, a.Pipelines[i])
 		}
 	}
@@ -191,6 +230,7 @@ func (req *ApplicationEvent) Validate() error {
 
 func NewPipelineCreateStatus(pipelineName string) *PipelineCreateStatus {
 	return &PipelineCreateStatus{
+		Timestamp:    ftime.Now().Timestamp(),
 		PipelineName: pipelineName,
 	}
 }
@@ -200,4 +240,35 @@ func NewApplicationEvent(appid string, event *scm.WebHookEvent) *ApplicationEven
 		AppId:        appid,
 		WebhookEvent: event,
 	}
+}
+
+func (s *PipelineCreateStatus) Clone() *PipelineCreateStatus {
+	return proto.Clone(s).(*PipelineCreateStatus)
+}
+
+func (s *Application) UpdatePipelineStatus(item *PipelineCreateStatus) {
+	if s.PiplineCreateStatus == nil {
+		s.PiplineCreateStatus = []*PipelineCreateStatus{}
+	}
+
+	for i := range s.PiplineCreateStatus {
+		if s.PiplineCreateStatus[i].PipelineName == item.PipelineName {
+			s.PiplineCreateStatus[i] = item.Clone()
+			return
+		}
+	}
+
+	s.PiplineCreateStatus = append(s.PiplineCreateStatus, item)
+}
+
+func NewUpdateApplicationRequest(appId string) *UpdateApplicationRequest {
+	return &UpdateApplicationRequest{
+		Id:         appId,
+		UpdateMode: pb.UpdateMode_PUT,
+		Data:       &UpdateApplicationData{},
+	}
+}
+
+func (req *UpdateApplicationRequest) Validate() error {
+	return validate.Struct(req)
 }

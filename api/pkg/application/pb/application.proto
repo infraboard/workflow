@@ -5,11 +5,13 @@ option go_package = "github.com/infraboard/workflow/api/pkg/application";
 
 import "github.com/infraboard/mcube/cmd/protoc-gen-go-ext/extension/tag/tag.proto";
 import "github.com/infraboard/mcube/pb/page/page.proto";
+import "github.com/infraboard/mcube/pb/request/request.proto";
 import "api/pkg/pipeline/pb/pipeline.proto";
 import "api/pkg/scm/pb/gitlab.proto";
 
 service Service {
 	rpc CreateApplication(CreateApplicationRequest) returns(Application);
+    rpc UpdateApplication(UpdateApplicationRequest) returns(Application);
 	rpc QueryApplication(QueryApplicationRequest) returns(ApplicationSet);
     rpc DescribeApplication(DescribeApplicationRequest) returns(Application);
     rpc DeleteApplication(DeleteApplicationRequest) returns(Application);
@@ -114,6 +116,10 @@ message PipelineCreateStatus {
     // pipeline 创建请求的pingpline名称
     string pipeline_name = 1[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"pipeline_name" json:"pipeline_name"'}
+        ];
+    // 触发时间
+    int64 timestamp = 4[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"timestamp" json:"timestamp"'}
         ];
     // 创建错误
     string create_error = 2[
@@ -241,5 +247,44 @@ message ApplicationEvent {
     // webhook事件
     workflow.pipeline.scm.WebHookEvent webhook_event = 2[
         (google.protobuf.field_tag) = {struct_tag: 'json:"webhook_event"'}
+        ];
+}
+
+
+message UpdateApplicationRequest {
+    // 更新模式
+    mcube.request.UpdateMode update_mode = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"update_mode"'}
+    ];
+    // 更新人
+    string update_by = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"update_by"'}
+        ];
+    // 应用ID
+    string id = 3[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"id" validate:"required"'}
+    ];
+    // 需要更新的数据
+    UpdateApplicationData data = 4[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"data" validate:"required"'}
+    ];
+}
+
+message UpdateApplicationData {
+    // 名称
+    string name = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"name"'}
+        ];
+    // 应用标签
+    map<string, string> tags = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"tags"'}
+        ];
+    // 描述
+    string description = 3[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"description"'}
+        ];
+    // 用于创建pipeline的请求参数
+    repeated workflow.pipeline.CreatePipelineRequest pipelines = 4[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"pipelines"'}
         ];
 }

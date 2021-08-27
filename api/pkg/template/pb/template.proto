@@ -83,15 +83,15 @@ message TemplateSet {
 message CreateTemplateRequest {
         // 所属域
         string domain = 1[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"domain" json:"domain" validate:"required"'}
+        (google.protobuf.field_tag) = {struct_tag: 'json:"domain" validate:"required"'}
         ];
         // 所属空间
         string namespace = 2[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"namespace" json:"namespace" validate:"required"'}
+        (google.protobuf.field_tag) = {struct_tag: 'json:"namespace" validate:"required"'}
         ];
         // 创建人
         string create_by = 3[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"create_by" json:"create_by" validate:"required"'}
+        (google.protobuf.field_tag) = {struct_tag: 'json:"create_by" validate:"required"'}
         ];
         // 用于创建pipeline的请求参数
         repeated workflow.pipeline.CreatePipelineRequest pipelines = 4[

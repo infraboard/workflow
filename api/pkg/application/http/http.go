@@ -30,13 +30,15 @@ func (h *handler) Registry(router router.SubRouter) {
 	r.Handle("POST", "/", h.CreateApplication)
 	r.Handle("GET", "/", h.QueryApplication)
 	r.Handle("GET", "/:id", h.DescribeApplication)
+	r.Handle("PUT", "/:id", h.PutApplication)
+	r.Handle("PATCH", "/:id", h.PatchApplication)
 	r.Handle("DELETE", "/:name", h.DeleteApplication)
 
 	r.BasePath("repo/projects")
 	r.Handle("GET", "/", h.QuerySCMProject)
 
 	r.BasePath("triggers/scm/gitlab")
-	r.Handle("GET", "/", h.GitLabHookHanler).DisableAuth()
+	r.Handle("POST", "/", h.GitLabHookHanler).DisableAuth()
 }
 
 func (h *handler) Config() error {

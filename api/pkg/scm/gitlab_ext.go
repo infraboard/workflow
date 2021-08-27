@@ -1,6 +1,9 @@
 package scm
 
-import "fmt"
+import (
+	"fmt"
+	"path"
+)
 
 func NewDefaultWebHookEvent() *WebHookEvent {
 	return &WebHookEvent{
@@ -16,4 +19,8 @@ func NewProjectSet() *ProjectSet {
 
 func (e *WebHookEvent) ShortDesc() string {
 	return fmt.Sprintf("%s %s [%s]", e.Ref, e.EventName, e.ObjectKind)
+}
+
+func (e *WebHookEvent) GetBranche() string {
+	return path.Base(e.GetRef())
 }

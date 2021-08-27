@@ -523,6 +523,18 @@ message CreatePipelineRequest {
 	workflow.pipeline.scm.WebHookEvent hook_event = 9[
 		(google.protobuf.field_tag) = {struct_tag: 'bson:"hook_event" json:"hook_event"'}
 		];
+	// 所属域
+	string domain = 10[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"domain" json:"domain"'}
+        ];
+	// 所属空间
+	string namespace = 11[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"namespace" json:"namespace"'}
+        ];
+	// 创建人
+	string create_by = 12[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"create_by" json:"create_by"'}
+        ];
     // 名称
     string name = 1[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"name" json:"name" validate:"required"'}

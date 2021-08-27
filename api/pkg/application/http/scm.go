@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 
 	"google.golang.org/grpc"
@@ -73,8 +74,10 @@ func (h *handler) GitLabHookHanler(w http.ResponseWriter, r *http.Request) {
 			response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
 			return
 		}
-
+		response.Success(w, fmt.Sprintf("event %s has accept", event.ShortDesc()))
+		return
 	default:
+		response.Failed(w, fmt.Errorf("known gitlab event type %s", eventType))
 		return
 	}
 }

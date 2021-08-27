@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ServiceClient interface {
 	CreateApplication(ctx context.Context, in *CreateApplicationRequest, opts ...grpc.CallOption) (*Application, error)
+	UpdateApplication(ctx context.Context, in *UpdateApplicationRequest, opts ...grpc.CallOption) (*Application, error)
 	QueryApplication(ctx context.Context, in *QueryApplicationRequest, opts ...grpc.CallOption) (*ApplicationSet, error)
 	DescribeApplication(ctx context.Context, in *DescribeApplicationRequest, opts ...grpc.CallOption) (*Application, error)
 	DeleteApplication(ctx context.Context, in *DeleteApplicationRequest, opts ...grpc.CallOption) (*Application, error)
@@ -36,6 +37,15 @@ func NewServiceClient(cc grpc.ClientConnInterface) ServiceClient {
 func (c *serviceClient) CreateApplication(ctx context.Context, in *CreateApplicationRequest, opts ...grpc.CallOption) (*Application, error) {
 	out := new(Application)
 	err := c.cc.Invoke(ctx, "/workflow.application.Service/CreateApplication", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) UpdateApplication(ctx context.Context, in *UpdateApplicationRequest, opts ...grpc.CallOption) (*Application, error) {
+	out := new(Application)
+	err := c.cc.Invoke(ctx, "/workflow.application.Service/UpdateApplication", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -83,6 +93,7 @@ func (c *serviceClient) HandleApplicationEvent(ctx context.Context, in *Applicat
 // for forward compatibility
 type ServiceServer interface {
 	CreateApplication(context.Context, *CreateApplicationRequest) (*Application, error)
+	UpdateApplication(context.Context, *UpdateApplicationRequest) (*Application, error)
 	QueryApplication(context.Context, *QueryApplicationRequest) (*ApplicationSet, error)
 	DescribeApplication(context.Context, *DescribeApplicationRequest) (*Application, error)
 	DeleteApplication(context.Context, *DeleteApplicationRequest) (*Application, error)
@@ -96,6 +107,9 @@ type UnimplementedServiceServer struct {
 
 func (UnimplementedServiceServer) CreateApplication(context.Context, *CreateApplicationRequest) (*Application, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateApplication not implemented")
+}
+func (UnimplementedServiceServer) UpdateApplication(context.Context, *UpdateApplicationRequest) (*Application, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateApplication not implemented")
 }
 func (UnimplementedServiceServer) QueryApplication(context.Context, *QueryApplicationRequest) (*ApplicationSet, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method QueryApplication not implemented")
@@ -136,6 +150,24 @@ func _Service_CreateApplication_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ServiceServer).CreateApplication(ctx, req.(*CreateApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_UpdateApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).UpdateApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/workflow.application.Service/UpdateApplication",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).UpdateApplication(ctx, req.(*UpdateApplicationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -222,6 +254,10 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateApplication",
 			Handler:    _Service_CreateApplication_Handler,
+		},
+		{
+			MethodName: "UpdateApplication",
+			Handler:    _Service_UpdateApplication_Handler,
 		},
 		{
 			MethodName: "QueryApplication",

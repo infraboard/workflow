@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/infraboard/mcube/exception"
+	"github.com/infraboard/mcube/pb/request"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 
@@ -141,4 +142,31 @@ func (s *service) delWebHook(req *application.Application) error {
 	delHookReq := gitlab.NewDeleteProjectReqeust(req.Int64ScmProjectID(), req.Int64ScmHookID())
 
 	return repo.DeleteProjectHook(delHookReq)
+}
+
+func (s *service) UpdateApplication(ctx context.Context, req *application.UpdateApplicationRequest) (
+	*application.Application, error) {
+	if err := req.Validate(); err != nil {
+		return nil, exception.NewBadRequest("validate update application error, %s", err)
+	}
+
+	app, err := s.DescribeApplication(ctx, application.NewDescribeApplicationRequestWithID(req.Id))
+	if err != nil {
+		return nil, err
+	}
+
+	switch req.UpdateMode {
+	case request.UpdateMode_PUT:
+		app.Update(req.UpdateBy, req.Data)
+	case request.UpdateMode_PATCH:
+		app.Patch(req.UpdateBy, req.Data)
+	default:
+		return nil, fmt.Errorf("unknown update mode: %s", req.UpdateMode)
+	}
+
+	if err := s.update(ctx, app); err != nil {
+		return nil, err
+	}
+
+	return app, nil
 }
