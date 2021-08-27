@@ -13,7 +13,7 @@ service Service {
 	rpc QueryApplication(QueryApplicationRequest) returns(ApplicationSet);
     rpc DescribeApplication(DescribeApplicationRequest) returns(Application);
     rpc DeleteApplication(DeleteApplicationRequest) returns(Application);
-    rpc HandleApplicationEvent(ApplicationEvent) returns(workflow.pipeline.PipelineSet);
+    rpc HandleApplicationEvent(ApplicationEvent) returns(Application);
 }
 
 // SCM_TYPE 流水线状态
@@ -92,9 +92,9 @@ message Application {
     string scm_hook_id = 16[
         (google.protobuf.field_tag) = {struct_tag: 'json:"scm_hook_id"'}
         ];
-    // 应用创建过程中的一些异常错误，但是不影响创建
-    repeated string errors = 17[
-        (google.protobuf.field_tag) = {struct_tag: 'json:"errors"'}
+    // 创建hook过程中的错误信息
+    string hook_error = 17[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"hook_error"'}
         ];
     // 仓库的priviate token, 用于设置回调
     string scm_private_token = 18[
@@ -104,7 +104,27 @@ message Application {
     repeated workflow.pipeline.CreatePipelineRequest pipelines = 11[
         (google.protobuf.field_tag) = {struct_tag: 'json:"pipelines"'}
         ];
+    // 应用事件的处理状态
+    repeated PipelineCreateStatus pipline_create_status = 20[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"pipline_create_status"'}
+        ];
 }
+
+message PipelineCreateStatus {
+    // pipeline 创建请求的pingpline名称
+    string pipeline_name = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"pipeline_name" json:"pipeline_name"'}
+        ];
+    // 创建错误
+    string create_error = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"create_error" json:"create_error"'}
+        ];
+    // 创建成功后的,pipline实例
+    workflow.pipeline.Pipeline pipeline = 3[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"pipeline" json:"pipeline"'}
+        ];
+}
+
 
 // ApplicationSet todo
 message ApplicationSet {

@@ -21,7 +21,7 @@ func (s *service) CreateApplication(ctx context.Context, req *application.Create
 
 	hookId, err := s.setWebHook(req, ins.GenWebHook(s.platform))
 	if err != nil {
-		ins.AddError(fmt.Errorf("add web hook error, %s", err))
+		ins.HookError = fmt.Sprintf("add web hook error, %s", err)
 	}
 	ins.ScmHookId = hookId
 

@@ -2,15 +2,14 @@ package grpc
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/infraboard/mcube/exception"
 
 	"github.com/infraboard/workflow/api/pkg/application"
-	"github.com/infraboard/workflow/api/pkg/pipeline"
 )
 
-func (s *service) HandleApplicationEvent(ctx context.Context, in *application.ApplicationEvent) (*pipeline.PipelineSet, error) {
+func (s *service) HandleApplicationEvent(ctx context.Context, in *application.ApplicationEvent) (
+	*application.Application, error) {
 	if err := in.Validate(); err != nil {
 		return nil, exception.NewBadRequest("validate ApplicationEvent error, %s", err)
 	}
@@ -25,13 +24,30 @@ func (s *service) HandleApplicationEvent(ctx context.Context, in *application.Ap
 	matched := app.MatchPipeline(in.WebhookEvent)
 	if len(matched) == 0 {
 		s.log.Infof("application %s no pipeline matched the event", app.Id, in.WebhookEvent.ShortDesc())
-		return nil, nil
+		return app, nil
 	}
 
-	// pipeline参数实例化
+	set := []*application.PipelineCreateStatus{}
+	// 运行这些匹配到的pipeline
 	for i := range matched {
-		fmt.Println(matched[i])
+		req := matched[i]
+		req.HookEvent = in.WebhookEvent
+		status := application.NewPipelineCreateStatus(req.Name)
+		p, err := s.pipeline.CreatePipeline(ctx, req)
+		if err != nil {
+			status.CreateError = err.Error()
+		} else {
+			status.Pipeline = p
+		}
+		set = append(set, status)
 	}
 
-	return nil, nil
+	app.PiplineCreateStatus = set
+
+	// 更新应用状态
+	if err := s.update(ctx, app); err != nil {
+		return nil, err
+	}
+
+	return app, nil
 }

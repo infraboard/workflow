@@ -4,7 +4,6 @@ package application
 
 import (
 	context "context"
-	pipeline "github.com/infraboard/workflow/api/pkg/pipeline"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -23,7 +22,7 @@ type ServiceClient interface {
 	QueryApplication(ctx context.Context, in *QueryApplicationRequest, opts ...grpc.CallOption) (*ApplicationSet, error)
 	DescribeApplication(ctx context.Context, in *DescribeApplicationRequest, opts ...grpc.CallOption) (*Application, error)
 	DeleteApplication(ctx context.Context, in *DeleteApplicationRequest, opts ...grpc.CallOption) (*Application, error)
-	HandleApplicationEvent(ctx context.Context, in *ApplicationEvent, opts ...grpc.CallOption) (*pipeline.PipelineSet, error)
+	HandleApplicationEvent(ctx context.Context, in *ApplicationEvent, opts ...grpc.CallOption) (*Application, error)
 }
 
 type serviceClient struct {
@@ -70,8 +69,8 @@ func (c *serviceClient) DeleteApplication(ctx context.Context, in *DeleteApplica
 	return out, nil
 }
 
-func (c *serviceClient) HandleApplicationEvent(ctx context.Context, in *ApplicationEvent, opts ...grpc.CallOption) (*pipeline.PipelineSet, error) {
-	out := new(pipeline.PipelineSet)
+func (c *serviceClient) HandleApplicationEvent(ctx context.Context, in *ApplicationEvent, opts ...grpc.CallOption) (*Application, error) {
+	out := new(Application)
 	err := c.cc.Invoke(ctx, "/workflow.application.Service/HandleApplicationEvent", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -87,7 +86,7 @@ type ServiceServer interface {
 	QueryApplication(context.Context, *QueryApplicationRequest) (*ApplicationSet, error)
 	DescribeApplication(context.Context, *DescribeApplicationRequest) (*Application, error)
 	DeleteApplication(context.Context, *DeleteApplicationRequest) (*Application, error)
-	HandleApplicationEvent(context.Context, *ApplicationEvent) (*pipeline.PipelineSet, error)
+	HandleApplicationEvent(context.Context, *ApplicationEvent) (*Application, error)
 	mustEmbedUnimplementedServiceServer()
 }
 
@@ -107,7 +106,7 @@ func (UnimplementedServiceServer) DescribeApplication(context.Context, *Describe
 func (UnimplementedServiceServer) DeleteApplication(context.Context, *DeleteApplicationRequest) (*Application, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteApplication not implemented")
 }
-func (UnimplementedServiceServer) HandleApplicationEvent(context.Context, *ApplicationEvent) (*pipeline.PipelineSet, error) {
+func (UnimplementedServiceServer) HandleApplicationEvent(context.Context, *ApplicationEvent) (*Application, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HandleApplicationEvent not implemented")
 }
 func (UnimplementedServiceServer) mustEmbedUnimplementedServiceServer() {}

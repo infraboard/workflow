@@ -107,6 +107,7 @@ func NewPipeline(req *CreatePipelineRequest) (*Pipeline, error) {
 		Description: req.Description,
 		On:          req.On,
 		Stages:      req.Stages,
+		HookEvent:   req.HookEvent,
 		Status:      &PipelineStatus{},
 	}
 	return p, nil

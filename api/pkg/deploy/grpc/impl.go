@@ -38,8 +38,9 @@ func (s *service) Config() error {
 		{
 			Keys: bsonx.Doc{
 				{Key: "namespace", Value: bsonx.Int32(-1)},
-				{Key: "name", Value: bsonx.Int32(-1)},
+				{Key: "app_id", Value: bsonx.Int32(-1)},
 				{Key: "environment", Value: bsonx.Int32(-1)},
+				{Key: "name", Value: bsonx.Int32(-1)},
 			},
 			Options: options.Index().SetUnique(true),
 		},

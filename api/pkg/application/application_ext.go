@@ -90,10 +90,6 @@ func NewApplication(req *CreateApplicationRequest) (*Application, error) {
 	return ins, nil
 }
 
-func (a *Application) AddError(err error) {
-	a.Errors = append(a.Errors, err.Error())
-}
-
 func (a *Application) Desensitize() {
 	a.ScmPrivateToken = "****"
 }
@@ -191,4 +187,17 @@ func (req *ApplicationEvent) Validate() error {
 	}
 
 	return validate.Struct(req)
+}
+
+func NewPipelineCreateStatus(pipelineName string) *PipelineCreateStatus {
+	return &PipelineCreateStatus{
+		PipelineName: pipelineName,
+	}
+}
+
+func NewApplicationEvent(appid string, event *scm.WebHookEvent) *ApplicationEvent {
+	return &ApplicationEvent{
+		AppId:        appid,
+		WebhookEvent: event,
+	}
 }

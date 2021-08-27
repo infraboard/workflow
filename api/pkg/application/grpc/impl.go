@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/infraboard/workflow/api/pkg"
 	"github.com/infraboard/workflow/api/pkg/application"
+	"github.com/infraboard/workflow/api/pkg/pipeline"
 	"github.com/infraboard/workflow/conf"
 )
 
@@ -23,6 +25,8 @@ var (
 type service struct {
 	col      *mongo.Collection
 	log      logger.Logger
+	pipeline pipeline.ServiceServer
+
 	platform string
 
 	application.UnimplementedServiceServer
@@ -49,6 +53,11 @@ func (s *service) Config() error {
 	if err != nil {
 		return err
 	}
+
+	if pkg.Pipeline == nil {
+		return fmt.Errorf("dependence service pipeline is nil")
+	}
+	s.pipeline = pkg.Pipeline
 
 	s.platform = conf.C().App.Platform
 	s.col = dc

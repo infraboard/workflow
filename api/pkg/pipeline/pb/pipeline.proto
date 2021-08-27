@@ -519,9 +519,13 @@ message CreatePipelineRequest {
 	string template_id = 8[
 		(google.protobuf.field_tag) = {struct_tag: 'bson:"template_id" json:"template_id"'}
 		];
+	// 触发事件
+	workflow.pipeline.scm.WebHookEvent hook_event = 9[
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"hook_event" json:"hook_event"'}
+		];
     // 名称
     string name = 1[
-        (google.protobuf.field_tag) = {struct_tag: 'json:"name" validate:"required"'}
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"name" json:"name" validate:"required"'}
         ];
 	// 全局参数, Step执行时合并处理
 	map<string, string> with = 6[
@@ -533,19 +537,19 @@ message CreatePipelineRequest {
 		];
 	// 标签
 	map<string, string> tags = 2[
-        (google.protobuf.field_tag) = {struct_tag: 'json:"tags"'}
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"tags" json:"tags"'}
         ];
 	// 描述
 	string description = 3[
-		(google.protobuf.field_tag) = {struct_tag: 'json:"description"'}
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"description" json:"description"'}
 		];
 	// 触发条件
 	Trigger on = 4[
-		(google.protobuf.field_tag) = {struct_tag: 'json:"on"'}
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"on" json:"on"'}
 		];
 	// 具体编排阶段
 	repeated Stage stages = 5[
-		(google.protobuf.field_tag) = {struct_tag: 'json:"stages"'}
+		(google.protobuf.field_tag) = {struct_tag: 'bson:"stages" json:"stages"'}
 		];
 }
 

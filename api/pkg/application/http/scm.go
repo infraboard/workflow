@@ -5,10 +5,14 @@ import (
 	"net/http"
 
 	"github.com/infraboard/mcube/exception"
+	"github.com/infraboard/mcube/grpc/gcontext"
 	"github.com/infraboard/mcube/http/request"
 	"github.com/infraboard/mcube/http/response"
+	"github.com/infraboard/workflow/api/pkg/application"
 	"github.com/infraboard/workflow/api/pkg/scm"
 	"github.com/infraboard/workflow/api/pkg/scm/gitlab"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 const (
@@ -46,7 +50,6 @@ func (h *handler) QuerySCMProject(w http.ResponseWriter, r *http.Request) {
 func (h *handler) GitLabHookHanler(w http.ResponseWriter, r *http.Request) {
 	eventType := r.Header.Get(GitlabEventHeaderKey)
 	appID := r.Header.Get(GitlabEventTokenKey)
-	fmt.Println(appID)
 	switch eventType {
 	case "Push Hook":
 		event := scm.NewDefaultWebHookEvent()
@@ -54,6 +57,21 @@ func (h *handler) GitLabHookHanler(w http.ResponseWriter, r *http.Request) {
 			response.Failed(w, err)
 			return
 		}
+
+		req := application.NewApplicationEvent(appID, event)
+
+		var header, trailer metadata.MD
+		_, err := h.service.HandleApplicationEvent(
+			r.Context(),
+			req,
+			grpc.Header(&header),
+			grpc.Trailer(&trailer),
+		)
+		if err != nil {
+			response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+			return
+		}
+
 		fmt.Println(event)
 	default:
 		return
