@@ -94,3 +94,20 @@ func NewQueryApplicationDeployRequest(page *request.PageRequest) *QueryApplicati
 		Page: &page.PageRequest,
 	}
 }
+
+func (req *DescribeApplicationDeployRequest) Validate() error {
+	return validate.Struct(req)
+}
+
+func NewDescribeApplicationDeployRequestWithID(id string) *DescribeApplicationDeployRequest {
+	return &DescribeApplicationDeployRequest{
+		Id: id,
+	}
+}
+
+func NewDeleteApplicationDeployRequest(namespace, id string) *DeleteApplicationDeployRequest {
+	return &DeleteApplicationDeployRequest{
+		Namespace: namespace,
+		Id:        id,
+	}
+}

@@ -9,6 +9,8 @@ import "github.com/infraboard/mcube/pb/page/page.proto";
 service Service {
 	rpc CreateApplicationDeploy(CreateApplicationDeployRequest) returns(ApplicationDeploy);
     rpc QueryApplicationDeploy(QueryApplicationDeployRequest) returns(ApplicationDeploySet);
+    rpc DescribeApplicationDeploy(DescribeApplicationDeployRequest) returns(ApplicationDeploy);
+    rpc DeleteApplicationDeploy(DeleteApplicationDeployRequest) returns(ApplicationDeploy);
 }
 
 // Mode 部署的形式
@@ -220,9 +222,37 @@ message ApplicationDeploySet {
 }
 
 message QueryApplicationDeployRequest {
-    page.PageRequest page = 1;
-    string domain = 2;
-    string namespace = 3;
-    string app_id = 4;
-    string environment = 5;    
+    page.PageRequest page = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"page"'}
+    ];
+    string domain = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"domain"'}
+    ];
+    string namespace = 3[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"namespace"'}
+    ];
+    string app_id = 4[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"app_id"'}
+    ];
+    string environment = 5[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"environment"'}
+    ];    
+}
+
+message DeleteApplicationDeployRequest {
+    string namespace = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"namespace"'}
+    ];
+    string id = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"id"'}
+    ];
+}
+
+message DescribeApplicationDeployRequest {
+    string namespace = 1[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"namespace"'}
+    ];
+    string id = 2[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"id" validate:"required"'}
+    ];
 }

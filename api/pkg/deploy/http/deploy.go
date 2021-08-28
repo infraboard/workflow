@@ -83,3 +83,57 @@ func (h *handler) QueryApplicationDeploy(w http.ResponseWriter, r *http.Request)
 	}
 	response.Success(w, dommains)
 }
+
+func (h *handler) DescribeApplicationDeploy(w http.ResponseWriter, r *http.Request) {
+	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
+	if err != nil {
+		response.Failed(w, err)
+		return
+	}
+
+	hc := context.GetContext(r)
+	req := deploy.NewDescribeApplicationDeployRequestWithID(hc.PS.ByName("id"))
+	var header, trailer metadata.MD
+	ins, err := h.service.DescribeApplicationDeploy(
+		ctx.Context(),
+		req,
+		grpc.Header(&header),
+		grpc.Trailer(&trailer),
+	)
+	if err != nil {
+		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		return
+	}
+	ins.Desensitize()
+	response.Success(w, ins)
+}
+
+func (h *handler) DeleteApplicationDeploy(w http.ResponseWriter, r *http.Request) {
+	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
+	if err != nil {
+		response.Failed(w, err)
+		return
+	}
+
+	hc := context.GetContext(r)
+	tk, ok := hc.AuthInfo.(*token.Token)
+	if !ok {
+		response.Failed(w, fmt.Errorf("auth info is not an *token.Token"))
+		return
+	}
+
+	req := deploy.NewDeleteApplicationDeployRequest(tk.Namespace, hc.PS.ByName("id"))
+
+	var header, trailer metadata.MD
+	action, err := h.service.DeleteApplicationDeploy(
+		ctx.Context(),
+		req,
+		grpc.Header(&header),
+		grpc.Trailer(&trailer),
+	)
+	if err != nil {
+		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		return
+	}
+	response.Success(w, action)
+}

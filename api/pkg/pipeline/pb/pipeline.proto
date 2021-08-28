@@ -525,15 +525,15 @@ message CreatePipelineRequest {
 		];
 	// 所属域
 	string domain = 10[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"domain" json:"domain"'}
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"domain" json:"domain" validate:"required"'}
         ];
 	// 所属空间
 	string namespace = 11[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"namespace" json:"namespace"'}
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"namespace" json:"namespace" validate:"required"'}
         ];
 	// 创建人
 	string create_by = 12[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"create_by" json:"create_by"'}
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"create_by" json:"create_by" validate:"required"'}
         ];
     // 名称
     string name = 1[

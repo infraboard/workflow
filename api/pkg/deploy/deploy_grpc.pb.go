@@ -20,6 +20,8 @@ const _ = grpc.SupportPackageIsVersion7
 type ServiceClient interface {
 	CreateApplicationDeploy(ctx context.Context, in *CreateApplicationDeployRequest, opts ...grpc.CallOption) (*ApplicationDeploy, error)
 	QueryApplicationDeploy(ctx context.Context, in *QueryApplicationDeployRequest, opts ...grpc.CallOption) (*ApplicationDeploySet, error)
+	DescribeApplicationDeploy(ctx context.Context, in *DescribeApplicationDeployRequest, opts ...grpc.CallOption) (*ApplicationDeploy, error)
+	DeleteApplicationDeploy(ctx context.Context, in *DeleteApplicationDeployRequest, opts ...grpc.CallOption) (*ApplicationDeploy, error)
 }
 
 type serviceClient struct {
@@ -48,12 +50,32 @@ func (c *serviceClient) QueryApplicationDeploy(ctx context.Context, in *QueryApp
 	return out, nil
 }
 
+func (c *serviceClient) DescribeApplicationDeploy(ctx context.Context, in *DescribeApplicationDeployRequest, opts ...grpc.CallOption) (*ApplicationDeploy, error) {
+	out := new(ApplicationDeploy)
+	err := c.cc.Invoke(ctx, "/workflow.deploy.Service/DescribeApplicationDeploy", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) DeleteApplicationDeploy(ctx context.Context, in *DeleteApplicationDeployRequest, opts ...grpc.CallOption) (*ApplicationDeploy, error) {
+	out := new(ApplicationDeploy)
+	err := c.cc.Invoke(ctx, "/workflow.deploy.Service/DeleteApplicationDeploy", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ServiceServer is the server API for Service service.
 // All implementations must embed UnimplementedServiceServer
 // for forward compatibility
 type ServiceServer interface {
 	CreateApplicationDeploy(context.Context, *CreateApplicationDeployRequest) (*ApplicationDeploy, error)
 	QueryApplicationDeploy(context.Context, *QueryApplicationDeployRequest) (*ApplicationDeploySet, error)
+	DescribeApplicationDeploy(context.Context, *DescribeApplicationDeployRequest) (*ApplicationDeploy, error)
+	DeleteApplicationDeploy(context.Context, *DeleteApplicationDeployRequest) (*ApplicationDeploy, error)
 	mustEmbedUnimplementedServiceServer()
 }
 
@@ -66,6 +88,12 @@ func (UnimplementedServiceServer) CreateApplicationDeploy(context.Context, *Crea
 }
 func (UnimplementedServiceServer) QueryApplicationDeploy(context.Context, *QueryApplicationDeployRequest) (*ApplicationDeploySet, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method QueryApplicationDeploy not implemented")
+}
+func (UnimplementedServiceServer) DescribeApplicationDeploy(context.Context, *DescribeApplicationDeployRequest) (*ApplicationDeploy, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DescribeApplicationDeploy not implemented")
+}
+func (UnimplementedServiceServer) DeleteApplicationDeploy(context.Context, *DeleteApplicationDeployRequest) (*ApplicationDeploy, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteApplicationDeploy not implemented")
 }
 func (UnimplementedServiceServer) mustEmbedUnimplementedServiceServer() {}
 
@@ -116,6 +144,42 @@ func _Service_QueryApplicationDeploy_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Service_DescribeApplicationDeploy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DescribeApplicationDeployRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).DescribeApplicationDeploy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/workflow.deploy.Service/DescribeApplicationDeploy",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).DescribeApplicationDeploy(ctx, req.(*DescribeApplicationDeployRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_DeleteApplicationDeploy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteApplicationDeployRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).DeleteApplicationDeploy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/workflow.deploy.Service/DeleteApplicationDeploy",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).DeleteApplicationDeploy(ctx, req.(*DeleteApplicationDeployRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Service_ServiceDesc is the grpc.ServiceDesc for Service service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -130,6 +194,14 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "QueryApplicationDeploy",
 			Handler:    _Service_QueryApplicationDeploy_Handler,
+		},
+		{
+			MethodName: "DescribeApplicationDeploy",
+			Handler:    _Service_DescribeApplicationDeploy_Handler,
+		},
+		{
+			MethodName: "DeleteApplicationDeploy",
+			Handler:    _Service_DeleteApplicationDeploy_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -26,6 +26,8 @@ func (h *handler) Registry(router router.SubRouter) {
 	r.BasePath("deploys")
 	r.Handle("POST", "/", h.CreateApplicationDeploy).AddLabel(label.Create)
 	r.Handle("GET", "/", h.QueryApplicationDeploy).AddLabel(label.List)
+	r.Handle("GET", "/:id", h.DescribeApplicationDeploy).AddLabel(label.Get)
+	r.Handle("DELETE", "/:id", h.DeleteApplicationDeploy).AddLabel(label.Delete)
 }
 
 func (h *handler) Config() error {
