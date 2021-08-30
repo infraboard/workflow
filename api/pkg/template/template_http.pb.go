@@ -23,8 +23,8 @@ func HttpEntry() *http.EntrySet {
 				FunctionName: "DescribeTemplate",
 			},
 			{
-				Path:         "/workflow.template.Service/UpdateAction",
-				FunctionName: "UpdateAction",
+				Path:         "/workflow.template.Service/UpdateTemplate",
+				FunctionName: "UpdateTemplate",
 			},
 			{
 				Path:         "/workflow.template.Service/DeleteTemplate",

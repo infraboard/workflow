@@ -76,6 +76,33 @@ func NewDefaultTemplate() *Template {
 	return &Template{}
 }
 
+func (t *Template) Update(updater string, req *UpdateTemplateData) {
+	t.UpdateAt = ftime.Now().Timestamp()
+	t.UpdateBy = updater
+	t.Name = req.Name
+	t.Tags = req.Tags
+	t.Description = req.Description
+	t.Pipelines = req.Pipelines
+}
+
+func (t *Template) Patch(updater string, req *UpdateTemplateData) {
+	t.UpdateAt = ftime.Now().Timestamp()
+	t.UpdateBy = updater
+
+	if req.Name != "" {
+		t.Name = req.Name
+	}
+	if req.Description != "" {
+		t.Description = req.Description
+	}
+	if len(req.Tags) > 0 {
+		t.Tags = req.Tags
+	}
+	if len(req.Pipelines) > 0 {
+		t.Pipelines = req.Pipelines
+	}
+}
+
 func (req *DescribeTemplateRequest) Validate() error {
 	return validate.Struct(req)
 }
@@ -98,5 +125,16 @@ func NewDescribeTemplateRequestWithID(id string) *DescribeTemplateRequest {
 func NewDeleteTemplateRequestWithID(id string) *DeleteTemplateRequest {
 	return &DeleteTemplateRequest{
 		Id: id,
+	}
+}
+
+func (req *UpdateTemplateRequest) Validate() error {
+	return validate.Struct(req)
+}
+
+func NewUpdateTemplateRequest(id string) *UpdateTemplateRequest {
+	return &UpdateTemplateRequest{
+		Id:   id,
+		Data: &UpdateTemplateData{},
 	}
 }

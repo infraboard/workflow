@@ -291,6 +291,10 @@ message Step {
 	int64 update_at = 20[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"update_at" json:"update_at"'}
         ];
+	// 关联的应用部署id, 关联部署过后可以通过变量传递当前部署的配置
+	string deploy_id = 21[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"deploy_id" json:"deploy_id"'}
+        ];
 	// 资源版本
 	int64 resource_version = 14[
         (google.protobuf.field_tag) = {struct_tag: 'bson:"resource_version" json:"resource_version,omitempty"'}

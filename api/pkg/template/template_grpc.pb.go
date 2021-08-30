@@ -21,7 +21,7 @@ type ServiceClient interface {
 	CreateTemplate(ctx context.Context, in *CreateTemplateRequest, opts ...grpc.CallOption) (*Template, error)
 	QueryTemplate(ctx context.Context, in *QueryTemplateRequest, opts ...grpc.CallOption) (*TemplateSet, error)
 	DescribeTemplate(ctx context.Context, in *DescribeTemplateRequest, opts ...grpc.CallOption) (*Template, error)
-	UpdateAction(ctx context.Context, in *UpdateTemplateRequest, opts ...grpc.CallOption) (*Template, error)
+	UpdateTemplate(ctx context.Context, in *UpdateTemplateRequest, opts ...grpc.CallOption) (*Template, error)
 	DeleteTemplate(ctx context.Context, in *DeleteTemplateRequest, opts ...grpc.CallOption) (*Template, error)
 }
 
@@ -60,9 +60,9 @@ func (c *serviceClient) DescribeTemplate(ctx context.Context, in *DescribeTempla
 	return out, nil
 }
 
-func (c *serviceClient) UpdateAction(ctx context.Context, in *UpdateTemplateRequest, opts ...grpc.CallOption) (*Template, error) {
+func (c *serviceClient) UpdateTemplate(ctx context.Context, in *UpdateTemplateRequest, opts ...grpc.CallOption) (*Template, error) {
 	out := new(Template)
-	err := c.cc.Invoke(ctx, "/workflow.template.Service/UpdateAction", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/workflow.template.Service/UpdateTemplate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ type ServiceServer interface {
 	CreateTemplate(context.Context, *CreateTemplateRequest) (*Template, error)
 	QueryTemplate(context.Context, *QueryTemplateRequest) (*TemplateSet, error)
 	DescribeTemplate(context.Context, *DescribeTemplateRequest) (*Template, error)
-	UpdateAction(context.Context, *UpdateTemplateRequest) (*Template, error)
+	UpdateTemplate(context.Context, *UpdateTemplateRequest) (*Template, error)
 	DeleteTemplate(context.Context, *DeleteTemplateRequest) (*Template, error)
 	mustEmbedUnimplementedServiceServer()
 }
@@ -103,8 +103,8 @@ func (UnimplementedServiceServer) QueryTemplate(context.Context, *QueryTemplateR
 func (UnimplementedServiceServer) DescribeTemplate(context.Context, *DescribeTemplateRequest) (*Template, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DescribeTemplate not implemented")
 }
-func (UnimplementedServiceServer) UpdateAction(context.Context, *UpdateTemplateRequest) (*Template, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateAction not implemented")
+func (UnimplementedServiceServer) UpdateTemplate(context.Context, *UpdateTemplateRequest) (*Template, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateTemplate not implemented")
 }
 func (UnimplementedServiceServer) DeleteTemplate(context.Context, *DeleteTemplateRequest) (*Template, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteTemplate not implemented")
@@ -176,20 +176,20 @@ func _Service_DescribeTemplate_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Service_UpdateAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Service_UpdateTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateTemplateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ServiceServer).UpdateAction(ctx, in)
+		return srv.(ServiceServer).UpdateTemplate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/workflow.template.Service/UpdateAction",
+		FullMethod: "/workflow.template.Service/UpdateTemplate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceServer).UpdateAction(ctx, req.(*UpdateTemplateRequest))
+		return srv.(ServiceServer).UpdateTemplate(ctx, req.(*UpdateTemplateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -232,8 +232,8 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Service_DescribeTemplate_Handler,
 		},
 		{
-			MethodName: "UpdateAction",
-			Handler:    _Service_UpdateAction_Handler,
+			MethodName: "UpdateTemplate",
+			Handler:    _Service_UpdateTemplate_Handler,
 		},
 		{
 			MethodName: "DeleteTemplate",

@@ -2,8 +2,10 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/infraboard/mcube/exception"
+	"github.com/infraboard/mcube/pb/request"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 
@@ -75,9 +77,30 @@ func (i *impl) DescribeTemplate(ctx context.Context, req *template.DescribeTempl
 	return ins, nil
 }
 
-func (i *impl) UpdateAction(context.Context, *template.UpdateTemplateRequest) (
+func (i *impl) UpdateTemplate(ctx context.Context, req *template.UpdateTemplateRequest) (
 	*template.Template, error) {
-	return nil, nil
+	if err := req.Validate(); err != nil {
+		return nil, exception.NewBadRequest("validate update template error, %s", err)
+	}
+
+	temp, err := i.DescribeTemplate(ctx, template.NewDescribeTemplateRequestWithID(req.Id))
+	if err != nil {
+		return nil, err
+	}
+
+	switch req.UpdateMode {
+	case request.UpdateMode_PUT:
+		temp.Update(req.UpdateBy, req.Data)
+	case request.UpdateMode_PATCH:
+		temp.Patch(req.UpdateBy, req.Data)
+	default:
+		return nil, fmt.Errorf("unknown update mode: %s", req.UpdateMode)
+	}
+
+	if err := i.update(ctx, temp); err != nil {
+		return nil, err
+	}
+	return temp, nil
 }
 
 func (i *impl) DeleteTemplate(ctx context.Context, req *template.DeleteTemplateRequest) (

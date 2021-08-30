@@ -28,6 +28,8 @@ func (h *handler) Registry(router router.SubRouter) {
 	r.Handle("POST", "/", h.CreateTemplate)
 	r.Handle("GET", "/", h.QueryTemplate)
 	r.Handle("GET", "/:id", h.DescribeTemplate)
+	r.Handle("PUT", "/:id", h.PutTemplate)
+	r.Handle("PATCH", "/:id", h.PatchTemplate)
 	r.Handle("DELETE", "/:id", h.DeleteTemplate)
 }
 
