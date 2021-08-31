@@ -105,6 +105,8 @@ func (s *Stage) LastStep() *Step {
 
 // 因为可能包含并行任务, 下一次执行的任务可能是多个
 func (s *Stage) NextStep() (nextSteps []*Step) {
+	isGroup := false
+
 	for i := range s.Steps {
 		step := s.Steps[i]
 
@@ -113,7 +115,18 @@ func (s *Stage) NextStep() (nextSteps []*Step) {
 			continue
 		}
 
-		// 遇到串行执行的step结束step
+		// 判断是一组并行任务，还是一个串行任务
+		if step.IsParallel {
+			isGroup = true
+		}
+
+		// 串行任务直接返回
+		if !isGroup {
+			nextSteps = append(nextSteps, step)
+			return
+		}
+
+		// 并行任务, 遇到串行时结束,返回这组并行任务
 		if !step.IsParallel {
 			return
 		}
