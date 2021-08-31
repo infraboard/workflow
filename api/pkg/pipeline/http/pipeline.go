@@ -27,11 +27,19 @@ func (h *handler) CreatePipeline(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	hc := context.GetContext(r)
+	tk, ok := hc.AuthInfo.(*token.Token)
+	if !ok {
+		response.Failed(w, fmt.Errorf("auth info is not an *token.Token"))
+		return
+	}
+
 	req := pipeline.NewCreatePipelineRequest()
 	if err := request.GetDataFromRequest(r, req); err != nil {
 		response.Failed(w, err)
 		return
 	}
+	req.UpdateOwner(tk)
 
 	var header, trailer metadata.MD
 	ins, err := h.service.CreatePipeline(
@@ -80,7 +88,14 @@ func (h *handler) DescribePipeline(w http.ResponseWriter, r *http.Request) {
 	}
 
 	hc := context.GetContext(r)
+	tk, ok := hc.AuthInfo.(*token.Token)
+	if !ok {
+		response.Failed(w, fmt.Errorf("auth info is not an *token.Token"))
+		return
+	}
+
 	req := pipeline.NewDescribePipelineRequestWithID(hc.PS.ByName("id"))
+	req.Namespace = tk.Namespace
 
 	var header, trailer metadata.MD
 	dommains, err := h.service.DescribePipeline(

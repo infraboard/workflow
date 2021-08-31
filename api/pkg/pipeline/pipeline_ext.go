@@ -36,6 +36,12 @@ func NewCreatePipelineRequest() *CreatePipelineRequest {
 	return &CreatePipelineRequest{}
 }
 
+func (req *CreatePipelineRequest) UpdateOwner(tk *token.Token) {
+	req.Domain = tk.Domain
+	req.Namespace = tk.Namespace
+	req.CreateBy = tk.Account
+}
+
 // NewQueryPipelineRequest 查询book列表
 func NewQueryPipelineRequest() *QueryPipelineRequest {
 	return &QueryPipelineRequest{
