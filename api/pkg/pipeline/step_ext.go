@@ -113,11 +113,11 @@ func (s *Stage) NextStep() (nextSteps []*Step) {
 			continue
 		}
 
-		nextSteps = append(nextSteps, step)
 		// 遇到串行执行的step结束step
 		if !step.IsParallel {
 			return
 		}
+		nextSteps = append(nextSteps, step)
 	}
 	return
 }
