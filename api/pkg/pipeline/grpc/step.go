@@ -20,18 +20,9 @@ func (i *impl) CreateStep(ctx context.Context, req *pipeline.CreateStepRequest) 
 	if err := req.Validate(); err != nil {
 		return nil, exception.NewBadRequest("validate create step request error, %s", err)
 	}
-	in, err := gcontext.GetGrpcInCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	tk := session.S().GetToken(in.GetAccessToKen())
-	if tk == nil {
-		return nil, exception.NewUnauthorized("token required")
-	}
 
 	step := pipeline.NewStep(pipeline.STEP_CREATE_BY_USER, req)
 	step.Key = xid.New().String()
-	step.UpdateOwner(tk)
 
 	if err := i.validateStep(ctx, step); err != nil {
 		return nil, exception.NewBadRequest("validate step error, %s", err)
@@ -79,19 +70,6 @@ func (i *impl) QueryStep(ctx context.Context, req *pipeline.QueryStepRequest) (
 
 func (i *impl) DescribeStep(ctx context.Context, req *pipeline.DescribeStepRequest) (
 	*pipeline.Step, error) {
-	in, err := gcontext.GetGrpcInCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	if req.Namespace == "" {
-		tk := session.S().GetToken(in.GetAccessToKen())
-		if tk == nil {
-			return nil, exception.NewUnauthorized("token required")
-		}
-		req.Namespace = tk.Namespace
-	}
-
 	descKey := pipeline.StepObjectKey(req.Key)
 	i.log.Infof("describe etcd step resource key: %s", descKey)
 	resp, err := i.client.Get(ctx, descKey)

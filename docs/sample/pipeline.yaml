@@ -1,0 +1,61 @@
+name: test44
+stages:
+  - name: stage1
+    steps:
+      - name: step1.1
+        action: action01@v1
+        with:
+          ENV1: env1
+          ENV2: env2
+        with_audit: false
+        is_parallel: true
+        webhooks:
+          - url: >-
+              https://open.feishu.cn/open-apis/bot/v2/hook/83bde95c-00b2-4df1-91e4-705f66102479
+            events:
+              - SUCCEEDED
+      - name: step1.2
+        action: action01@v1
+        with_audit: false
+        is_parallel: true
+        with:
+          ENV1: env1
+          ENV2: env2
+        webhooks:
+          - url: >-
+              https://open.feishu.cn/open-apis/bot/v2/hook/83bde95c-00b2-4df1-91e4-705f66102479
+            events:
+              - SUCCEEDED
+      - name: step1.3
+        action: action01@v1
+        with_audit: true
+        with:
+          ENV1: env1
+          ENV2: env2
+        webhooks:
+          - url: >-
+              https://open.feishu.cn/open-apis/bot/v2/hook/83bde95c-00b2-4df1-91e4-705f66102479
+            events:
+              - SUCCEEDED
+  - name: stage2
+    steps:
+      - name: step2.1
+        action: action01@v1
+        with:
+          ENV1: env3
+          ENV2: env4
+        webhooks:
+          - url: >-
+              https://open.feishu.cn/open-apis/bot/v2/hook/83bde95c-00b2-4df1-91e4-705f66102479
+            events:
+              - SUCCEEDED
+      - name: step2.2
+        action: action01@v1
+        with:
+          ENV1: env1
+          ENV2: env2
+        webhooks:
+          - url: >-
+              https://open.feishu.cn/open-apis/bot/v2/hook/83bde95c-00b2-4df1-91e4-705f66102479
+            events:
+              - SUCCEEDED

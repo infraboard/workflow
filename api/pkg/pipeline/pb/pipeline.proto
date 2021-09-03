@@ -264,6 +264,10 @@ message CreateStepRequest {
 	map<string, string> node_selector = 9[
         (google.protobuf.field_tag) = {struct_tag: 'json:"node_selector"'}
         ];
+	// 空间
+	string namespace = 10[
+        (google.protobuf.field_tag) = {struct_tag: 'json:"namespace"'}
+        ];
 }
 
 message Step {

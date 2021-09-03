@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/infraboard/keyauth/pkg/token"
 	"github.com/infraboard/mcube/http/request"
 	"github.com/infraboard/mcube/types/ftime"
 	"google.golang.org/protobuf/proto"
@@ -271,11 +270,6 @@ func (s *Step) parseAction() []string {
 
 func (s *Step) IsCreateByPipeline() bool {
 	return s.CreateType.Equal(STEP_CREATE_BY_PIPELINE)
-}
-
-// TODO: 更新step相关用户信息
-func (s *Step) UpdateOwner(tk *token.Token) {
-	s.Namespace = tk.Namespace
 }
 
 func (s *Step) Run() {

@@ -1,8 +1,10 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 
+	"github.com/infraboard/keyauth/pkg/token"
 	"github.com/infraboard/mcube/grpc/gcontext"
 	"github.com/infraboard/mcube/http/context"
 	"github.com/infraboard/mcube/http/request"
@@ -21,11 +23,19 @@ func (h *handler) CreateStep(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	hc := context.GetContext(r)
+	tk, ok := hc.AuthInfo.(*token.Token)
+	if !ok {
+		response.Failed(w, fmt.Errorf("auth info is not an *token.Token"))
+		return
+	}
+
 	req := pipeline.NewCreateStepRequest()
 	if err := request.GetDataFromRequest(r, req); err != nil {
 		response.Failed(w, err)
 		return
 	}
+	req.Namespace = tk.Namespace
 
 	var header, trailer metadata.MD
 	ins, err := h.service.CreateStep(
@@ -74,7 +84,14 @@ func (h *handler) DescribeStep(w http.ResponseWriter, r *http.Request) {
 	}
 
 	hc := context.GetContext(r)
+	tk, ok := hc.AuthInfo.(*token.Token)
+	if !ok {
+		response.Failed(w, fmt.Errorf("auth info is not an *token.Token"))
+		return
+	}
+
 	req := pipeline.NewDescribeStepRequestWithKey(hc.PS.ByName("id"))
+	req.Namespace = tk.Namespace
 
 	var header, trailer metadata.MD
 	dommains, err := h.service.DescribeStep(
