@@ -21,7 +21,7 @@ type ServiceClient interface {
 	CreatePipeline(ctx context.Context, in *CreatePipelineRequest, opts ...grpc.CallOption) (*Pipeline, error)
 	QueryPipeline(ctx context.Context, in *QueryPipelineRequest, opts ...grpc.CallOption) (*PipelineSet, error)
 	DescribePipeline(ctx context.Context, in *DescribePipelineRequest, opts ...grpc.CallOption) (*Pipeline, error)
-	WatchPipeline(ctx context.Context, in *WatchPipelineRequest, opts ...grpc.CallOption) (Service_WatchPipelineClient, error)
+	WatchPipeline(ctx context.Context, opts ...grpc.CallOption) (Service_WatchPipelineClient, error)
 	CreateStep(ctx context.Context, in *CreateStepRequest, opts ...grpc.CallOption) (*Step, error)
 	QueryStep(ctx context.Context, in *QueryStepRequest, opts ...grpc.CallOption) (*StepSet, error)
 	DescribeStep(ctx context.Context, in *DescribeStepRequest, opts ...grpc.CallOption) (*Step, error)
@@ -66,23 +66,18 @@ func (c *serviceClient) DescribePipeline(ctx context.Context, in *DescribePipeli
 	return out, nil
 }
 
-func (c *serviceClient) WatchPipeline(ctx context.Context, in *WatchPipelineRequest, opts ...grpc.CallOption) (Service_WatchPipelineClient, error) {
+func (c *serviceClient) WatchPipeline(ctx context.Context, opts ...grpc.CallOption) (Service_WatchPipelineClient, error) {
 	stream, err := c.cc.NewStream(ctx, &Service_ServiceDesc.Streams[0], "/workflow.pipeline.Service/WatchPipeline", opts...)
 	if err != nil {
 		return nil, err
 	}
 	x := &serviceWatchPipelineClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
 	return x, nil
 }
 
 type Service_WatchPipelineClient interface {
-	Recv() (*Pipeline, error)
+	Send(*WatchPipelineRequest) error
+	Recv() (*WatchPipelineResponse, error)
 	grpc.ClientStream
 }
 
@@ -90,8 +85,12 @@ type serviceWatchPipelineClient struct {
 	grpc.ClientStream
 }
 
-func (x *serviceWatchPipelineClient) Recv() (*Pipeline, error) {
-	m := new(Pipeline)
+func (x *serviceWatchPipelineClient) Send(m *WatchPipelineRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *serviceWatchPipelineClient) Recv() (*WatchPipelineResponse, error) {
+	m := new(WatchPipelineResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -168,7 +167,7 @@ type ServiceServer interface {
 	CreatePipeline(context.Context, *CreatePipelineRequest) (*Pipeline, error)
 	QueryPipeline(context.Context, *QueryPipelineRequest) (*PipelineSet, error)
 	DescribePipeline(context.Context, *DescribePipelineRequest) (*Pipeline, error)
-	WatchPipeline(*WatchPipelineRequest, Service_WatchPipelineServer) error
+	WatchPipeline(Service_WatchPipelineServer) error
 	CreateStep(context.Context, *CreateStepRequest) (*Step, error)
 	QueryStep(context.Context, *QueryStepRequest) (*StepSet, error)
 	DescribeStep(context.Context, *DescribeStepRequest) (*Step, error)
@@ -192,7 +191,7 @@ func (UnimplementedServiceServer) QueryPipeline(context.Context, *QueryPipelineR
 func (UnimplementedServiceServer) DescribePipeline(context.Context, *DescribePipelineRequest) (*Pipeline, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DescribePipeline not implemented")
 }
-func (UnimplementedServiceServer) WatchPipeline(*WatchPipelineRequest, Service_WatchPipelineServer) error {
+func (UnimplementedServiceServer) WatchPipeline(Service_WatchPipelineServer) error {
 	return status.Errorf(codes.Unimplemented, "method WatchPipeline not implemented")
 }
 func (UnimplementedServiceServer) CreateStep(context.Context, *CreateStepRequest) (*Step, error) {
@@ -284,15 +283,12 @@ func _Service_DescribePipeline_Handler(srv interface{}, ctx context.Context, dec
 }
 
 func _Service_WatchPipeline_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(WatchPipelineRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(ServiceServer).WatchPipeline(m, &serviceWatchPipelineServer{stream})
+	return srv.(ServiceServer).WatchPipeline(&serviceWatchPipelineServer{stream})
 }
 
 type Service_WatchPipelineServer interface {
-	Send(*Pipeline) error
+	Send(*WatchPipelineResponse) error
+	Recv() (*WatchPipelineRequest, error)
 	grpc.ServerStream
 }
 
@@ -300,8 +296,16 @@ type serviceWatchPipelineServer struct {
 	grpc.ServerStream
 }
 
-func (x *serviceWatchPipelineServer) Send(m *Pipeline) error {
+func (x *serviceWatchPipelineServer) Send(m *WatchPipelineResponse) error {
 	return x.ServerStream.SendMsg(m)
+}
+
+func (x *serviceWatchPipelineServer) Recv() (*WatchPipelineRequest, error) {
+	m := new(WatchPipelineRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func _Service_CreateStep_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -483,6 +487,7 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "WatchPipeline",
 			Handler:       _Service_WatchPipeline_Handler,
 			ServerStreams: true,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "api/pkg/pipeline/pb/pipeline.proto",

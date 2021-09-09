@@ -10,9 +10,8 @@ import (
 )
 
 func TestWebsocket(t *testing.T) {
-
 	// URL
-	target := "ws://127.0.0.1:9948/workflow/api/v1/websocket/pipelines/c4b81o6a0brnle7t6eu0/watch"
+	target := "ws://127.0.0.1:9948/workflow/api/v1/websocket/pipelines/c4s8iiea0brugin5hl30/watch"
 	t.Logf("connnect to: %s", target)
 
 	// Connect to the server

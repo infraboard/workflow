@@ -114,7 +114,7 @@ func (a *Action) ValidateRunParam(params map[string]string) error {
 		param := a.RunParams[i]
 		if param.Required {
 			if pv, ok := params[param.KeyName]; !ok || pv == "" {
-				msg = append(msg, "required param %s", pv)
+				msg = append(msg, "required param "+param.KeyName)
 			}
 		}
 	}

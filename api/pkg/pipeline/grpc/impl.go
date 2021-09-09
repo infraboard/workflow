@@ -1,7 +1,9 @@
 package grpc
 
 import (
+	"context"
 	"fmt"
+	"sync"
 
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
@@ -16,15 +18,10 @@ import (
 
 var (
 	// Service 服务实例
-	Service = &impl{}
+	Service = &impl{
+		watchCancel: make(map[int64]context.CancelFunc),
+	}
 )
-
-// NewEtcdRegister 初始化一个基于etcd的实例注册器
-func NewPipelineService() (pipeline.ServiceServer, error) {
-	etcdR := new(impl)
-
-	return etcdR, nil
-}
 
 type impl struct {
 	pipeline.UnimplementedServiceServer
@@ -32,6 +29,19 @@ type impl struct {
 	client *clientv3.Client
 	log    logger.Logger
 	action action.ServiceServer
+
+	watchCancel   map[int64]context.CancelFunc
+	currentNumber int64
+	l             sync.Mutex
+}
+
+func (i *impl) SetWatcherCancelFn(fn context.CancelFunc) int64 {
+	i.l.Lock()
+	defer i.l.Unlock()
+
+	i.currentNumber++
+	i.watchCancel[i.currentNumber] = fn
+	return i.currentNumber
 }
 
 func (s *impl) Config() error {

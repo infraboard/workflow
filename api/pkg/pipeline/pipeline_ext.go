@@ -388,22 +388,22 @@ func NewCancelStepRequestWithKey(key string) *CancelStepRequest {
 	}
 }
 
-func NewWatchPipelineRequestByID(namespace, id string) *WatchPipelineRequest {
-	return &WatchPipelineRequest{
+func NewWatchPipelineRequestByID(namespace, id string) *CreateWatchPipelineRequest {
+	return &CreateWatchPipelineRequest{
 		Namespace: namespace,
 		Id:        id,
 		Mod:       PIPELINE_WATCH_MOD_BY_ID,
 	}
 }
 
-func NewWatchPipelineRequestByNamespace(namespace string) *WatchPipelineRequest {
-	return &WatchPipelineRequest{
+func NewWatchPipelineRequestByNamespace(namespace string) *CreateWatchPipelineRequest {
+	return &CreateWatchPipelineRequest{
 		Namespace: namespace,
 		Mod:       PIPELINE_WATCH_MOD_BY_NAMESPACE,
 	}
 }
 
-func (req *WatchPipelineRequest) Validate() error {
+func (req *CreateWatchPipelineRequest) Validate() error {
 	switch req.Mod {
 	case PIPELINE_WATCH_MOD_BY_ID:
 		if req.Id != "" && req.Namespace == "" {

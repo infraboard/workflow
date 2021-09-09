@@ -11,7 +11,7 @@ service Service {
 	rpc CreatePipeline(CreatePipelineRequest) returns(Pipeline);
 	rpc QueryPipeline(QueryPipelineRequest) returns(PipelineSet);
 	rpc DescribePipeline(DescribePipelineRequest) returns(Pipeline);
-	rpc WatchPipeline(WatchPipelineRequest) returns(stream Pipeline);
+	rpc WatchPipeline(stream WatchPipelineRequest) returns(stream WatchPipelineResponse);
 	rpc CreateStep(CreateStepRequest) returns(Step);
 	rpc QueryStep(QueryStepRequest) returns(StepSet);
 	rpc DescribeStep(DescribeStepRequest) returns(Step);
@@ -628,6 +628,13 @@ message AuditStepRequest {
 }
 
 message WatchPipelineRequest {
+	oneof request_union {
+	  CreateWatchPipelineRequest create_request = 1;
+	  CancelWatchPipelineRequest cancel_request = 2;
+	}
+  }
+
+message CreateWatchPipelineRequest {
 	PIPELINE_WATCH_MOD mod = 1 [
 		(google.protobuf.field_tag) = {struct_tag: 'json:"mod"'}
 		];
@@ -643,4 +650,19 @@ message WatchPipelineRequest {
 	bool dry_run = 4[
 		(google.protobuf.field_tag) = {struct_tag: 'json:"dry_run"'}
 		];
+}
+
+message CancelWatchPipelineRequest {
+	int64 watch_id = 2[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"watch_id"'}
+		];
+}
+
+message WatchPipelineResponse {
+	int64 watch_id = 1[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"watch_id"'}
+		];	
+	Pipeline pipeline = 2[
+		(google.protobuf.field_tag) = {struct_tag: 'json:"pipeline"'}
+		];	
 }

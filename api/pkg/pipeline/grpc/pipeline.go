@@ -160,7 +160,32 @@ func (i *impl) DeletePipeline(ctx context.Context, req *pipeline.DeletePipelineR
 	return ins, nil
 }
 
-func (i *impl) WatchPipeline(req *pipeline.WatchPipelineRequest, stream pipeline.Service_WatchPipelineServer) error {
+func (i *impl) WatchPipeline(stream pipeline.Service_WatchPipelineServer) error {
+	for {
+		union, err := stream.Recv()
+		if err != nil {
+			return err
+		}
+
+		i.log.Debugf("get watch req: %s", union)
+
+		req := union.GetCreateRequest()
+		if req != nil {
+			i.watchPipeline(req, stream)
+			continue
+		}
+
+		cancel := union.GetCancelRequest()
+		if cancel != nil {
+			if fn, ok := i.watchCancel[cancel.WatchId]; ok {
+				fn()
+			}
+			return nil
+		}
+	}
+}
+
+func (i *impl) watchPipeline(req *pipeline.CreateWatchPipelineRequest, stream pipeline.Service_WatchPipelineServer) error {
 	if err := req.Validate(); err != nil {
 		return exception.NewBadRequest("validate watch pipeline request error, %s", err)
 	}
@@ -181,17 +206,31 @@ func (i *impl) WatchPipeline(req *pipeline.WatchPipelineRequest, stream pipeline
 	}
 
 	if req.DryRun {
+		i.log.Debug("dry run mode skip watch")
 		return nil
 	}
 
-	i.log.Infof("watch etcd step resource key: %s start ...", watchKey)
-	watchChan := i.client.Watch(context.Background(), watchKey, opts...)
-	i.dumpPipelineEvents(watchChan, stream)
-	i.log.Infof("watch etcd step resource key: %s end ...", watchKey)
+	ctx, cancel := context.WithCancel(context.Background())
+	watchChan := i.client.Watch(ctx, watchKey, opts...)
+	watchId := i.SetWatcherCancelFn(cancel)
+
+	i.log.Infof("watch etcd step resource key: %s, watch id %d start ...", watchKey, watchId)
+	go i.dumpPipelineEvents(watchChan, stream, watchId)
 	return nil
 }
 
-func (i *impl) dumpPipelineEvents(ch clientv3.WatchChan, stream pipeline.Service_WatchPipelineServer) {
+func (i *impl) dumpPipelineEvents(ch clientv3.WatchChan, stream pipeline.Service_WatchPipelineServer, watchId int64) {
+	defer func() {
+		i.log.Infof("watch : %d end ...", watchId)
+	}()
+
+	// 发送消息
+	resp := &pipeline.WatchPipelineResponse{WatchId: watchId}
+	if err := stream.Send(resp); err != nil {
+		i.log.Errorf("send pipeline watch id error, %s", watchId, err)
+		return
+	}
+
 	// 处理所有事件
 	for ppResp := range ch {
 		for index := range ppResp.Events {
@@ -206,7 +245,9 @@ func (i *impl) dumpPipelineEvents(ch clientv3.WatchChan, stream pipeline.Service
 			ins.ResourceVersion = ppResp.Header.Revision
 
 			// 发送消息
-			if err := stream.Send(ins); err != nil {
+			resp := &pipeline.WatchPipelineResponse{WatchId: watchId}
+			resp.Pipeline = ins
+			if err := stream.Send(resp); err != nil {
 				i.log.Errorf("send pipeline %s events error, %s", ins.ShortDescribe(), err)
 				return
 			}

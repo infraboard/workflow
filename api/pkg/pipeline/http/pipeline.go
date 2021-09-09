@@ -157,7 +157,6 @@ func (h *handler) WatchPipelineCheck(w http.ResponseWriter, r *http.Request) {
 	var header, trailer metadata.MD
 	stream, err := h.service.WatchPipeline(
 		ctx.Context(),
-		req,
 		grpc.Header(&header),
 		grpc.Trailer(&trailer),
 	)
@@ -204,18 +203,29 @@ func (h *handler) WatchPipeline(w http.ResponseWriter, r *http.Request) {
 
 	req := pipeline.NewWatchPipelineRequestByID("", hc.PS.ByName("id"))
 	req.Namespace = tk.Namespace
-	req.DryRun = true
 
 	var header, trailer metadata.MD
+	rpcCtx := ctx.Context()
 	stream, err := h.service.WatchPipeline(
-		ctx.Context(),
-		req,
+		rpcCtx,
 		grpc.Header(&header),
 		grpc.Trailer(&trailer),
 	)
+	defer func() {
+		rpcCtx.Done()
+	}()
 
 	if err != nil {
 		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		return
+	}
+
+	err = stream.Send(&pipeline.WatchPipelineRequest{
+		RequestUnion: &pipeline.WatchPipelineRequest_CreateRequest{CreateRequest: req},
+	})
+
+	if err != nil {
+		h.log.Errorf("stream send watch req error, %s", err)
 		return
 	}
 
@@ -237,6 +247,7 @@ func (h *handler) WatchPipeline(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 
 	dumpper := NewPipelineStreamDumpper(stream)
+	defer dumpper.Close()
 	h.proxy.Proxy(r.Context(), conn, dumpper)
 }
 
@@ -247,7 +258,8 @@ func NewPipelineStreamDumpper(stream pipeline.Service_WatchPipelineClient) *Pipe
 }
 
 type PipelineStreamDumpper struct {
-	stream pipeline.Service_WatchPipelineClient
+	stream  pipeline.Service_WatchPipelineClient
+	watchId int64
 }
 
 func (d *PipelineStreamDumpper) Read(buf []byte) (n int, err error) {
@@ -255,14 +267,20 @@ func (d *PipelineStreamDumpper) Read(buf []byte) (n int, err error) {
 	if err != nil {
 		return 0, err
 	}
+	d.watchId = pp.WatchId
 
-	data, err := json.Marshal(pp)
+	if pp.Pipeline == nil {
+		return 0, nil
+	}
+
+	data, err := json.Marshal(pp.Pipeline)
 	if err != nil {
 		return 0, err
 	}
 
 	buf = append(buf, data...)
-	return len(buf), nil
+	fmt.Println(string(buf), len(buf))
+	return len(data), nil
 }
 
 func (d *PipelineStreamDumpper) Write(buf []byte) (n int, err error) {
@@ -270,5 +288,11 @@ func (d *PipelineStreamDumpper) Write(buf []byte) (n int, err error) {
 }
 
 func (d *PipelineStreamDumpper) Close() error {
-	return d.stream.CloseSend()
+	cancelReq := &pipeline.CancelWatchPipelineRequest{WatchId: d.watchId}
+
+	req := &pipeline.WatchPipelineRequest{
+		RequestUnion: &pipeline.WatchPipelineRequest_CancelRequest{CancelRequest: cancelReq},
+	}
+
+	return d.stream.Send(req)
 }
