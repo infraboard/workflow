@@ -61,7 +61,7 @@ func (h *handler) GitLabHookHanler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		req := application.NewApplicationEvent(appID, event)
-		h.log.Debugf("application %d accept event: %s", appID, event)
+		h.log.Debugf("application %s accept event: %s", appID, event)
 
 		var header, trailer metadata.MD
 		_, err := h.service.HandleApplicationEvent(
