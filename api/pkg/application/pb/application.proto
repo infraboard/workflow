@@ -126,8 +126,8 @@ message PipelineCreateStatus {
         (google.protobuf.field_tag) = {struct_tag: 'bson:"create_error" json:"create_error"'}
         ];
     // 创建成功后的,pipline实例
-    workflow.pipeline.Pipeline pipeline = 3[
-        (google.protobuf.field_tag) = {struct_tag: 'bson:"pipeline" json:"pipeline"'}
+    string pipeline_id = 3[
+        (google.protobuf.field_tag) = {struct_tag: 'bson:"pipeline" json:"pipeline_id"'}
         ];
 }
 

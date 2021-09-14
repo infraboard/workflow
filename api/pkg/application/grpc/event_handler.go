@@ -42,7 +42,7 @@ func (s *service) HandleApplicationEvent(ctx context.Context, in *application.Ap
 		if err != nil {
 			status.CreateError = err.Error()
 		} else {
-			status.Pipeline = p
+			status.PipelineId = p.Id
 		}
 
 		app.UpdatePipelineStatus(status)

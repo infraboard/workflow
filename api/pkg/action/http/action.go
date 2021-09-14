@@ -53,6 +53,8 @@ func (h *handler) CreateAction(w http.ResponseWriter, r *http.Request) {
 		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
 		return
 	}
+
+	ins.InitNil()
 	response.Success(w, ins)
 }
 
@@ -84,6 +86,8 @@ func (h *handler) UpdateAction(w http.ResponseWriter, r *http.Request) {
 		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
 		return
 	}
+
+	ins.InitNil()
 	response.Success(w, ins)
 }
 
@@ -116,6 +120,9 @@ func (h *handler) QueryAction(w http.ResponseWriter, r *http.Request) {
 		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
 		return
 	}
+
+	// 避免前端处理null
+	actions.InitNil()
 	response.Success(w, actions)
 }
 
@@ -141,6 +148,8 @@ func (h *handler) DescribeAction(w http.ResponseWriter, r *http.Request) {
 		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
 		return
 	}
+
+	ins.InitNil()
 	response.Success(w, ins)
 }
 

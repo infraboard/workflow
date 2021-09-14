@@ -79,7 +79,7 @@ func (s *Stage) UpdateStep(item *Step) error {
 		return err
 	}
 
-	*step = *item
+	*step = *item.Clone()
 	return nil
 }
 
@@ -390,6 +390,18 @@ func (s *Step) IsScheduledFailed() bool {
 	}
 
 	return false
+}
+
+func (s *Step) IsStatusEqual(target *Step) bool {
+	if s.Status == nil && target.Status == nil {
+		return true
+	}
+
+	if s.Status == nil || target.Status == nil {
+		return false
+	}
+
+	return s.Status.Status.Equal(target.Status.Status)
 }
 
 func (s *Step) IsComplete() bool {

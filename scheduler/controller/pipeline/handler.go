@@ -203,12 +203,6 @@ func (c *Controller) UpdateStepCallback(old, new *pipeline.Step) {
 		return
 	}
 
-	// TODO: 避免重复更新, 这里由于修改了old的状态，导致最新和old状态一样，后面采用copy传达
-	// if !new.IsComplete() {
-	// 	c.log.Debugf("step status is %s, skip update to pipeline", new.Status.Status)
-	// 	return
-	// }
-
 	key := pipeline.PipeLineObjectKey(new.GetNamespace(), new.GetPipelineId())
 	obj, ok, err := c.informer.GetStore().GetByKey(key)
 	if err != nil {
@@ -224,6 +218,19 @@ func (c *Controller) UpdateStepCallback(old, new *pipeline.Step) {
 	p, isOK := obj.(*pipeline.Pipeline)
 	if !isOK {
 		c.log.Errorf("invalidate *pipeline.Pipeline obj")
+		return
+	}
+
+	current, err := p.GetStep(new.GetPipelineStageNumber(), new.Key)
+	if err != nil {
+		c.log.Errorf("get current step from pipeline error, %s", err)
+		return
+	}
+
+	// 判断状态是否变化, 只有状态变化才需要更新
+	if current.IsStatusEqual(new) {
+		c.log.Infof("status not changed, skip update, current: %s, target: %s",
+			current.Status, new.Status)
 		return
 	}
 

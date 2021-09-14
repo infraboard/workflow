@@ -138,6 +138,15 @@ func (p *Pipeline) Validate() error {
 	return validate.Struct(p)
 }
 
+func (p *Pipeline) GetStep(stageNumber int32, stepKey string) (*Step, error) {
+	stage, err := p.GetStageByNumber(stageNumber)
+	if err != nil {
+		return nil, fmt.Errorf("get stage error, %s", err)
+	}
+
+	return stage.GetStepByKey(stepKey)
+}
+
 func (p *Pipeline) UpdateStep(s *Step) error {
 	ns, id := s.GetNamespace(), s.GetPipelineId()
 	if ns != p.Namespace || id != p.Id {

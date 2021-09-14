@@ -86,6 +86,18 @@ func NewAction(req *CreateActionRequest) (*Action, error) {
 	return p, nil
 }
 
+func (a *Action) InitNil() {
+	if a.RunnerParams == nil {
+		a.RunnerParams = map[string]string{}
+	}
+	if a.RunParams == nil {
+		a.RunParams = []*RunParamDesc{}
+	}
+	if a.Tags == nil {
+		a.Tags = map[string]string{}
+	}
+}
+
 func (a *Action) DefaultRunParam() map[string]string {
 	ret := map[string]string{}
 	for i := range a.RunParams {
@@ -145,6 +157,12 @@ func (a *Action) Key() string {
 func NewActionSet() *ActionSet {
 	return &ActionSet{
 		Items: []*Action{},
+	}
+}
+
+func (s *ActionSet) InitNil() {
+	for i := range s.Items {
+		s.Items[i].InitNil()
 	}
 }
 
