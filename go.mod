@@ -11,8 +11,8 @@ require (
 	github.com/go-playground/validator/v10 v10.9.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
-	github.com/infraboard/keyauth v0.5.5
-	github.com/infraboard/mcube v1.4.1
+	github.com/infraboard/keyauth v0.6.4
+	github.com/infraboard/mcube v1.5.4
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/rs/xid v1.3.0
 	github.com/spf13/cobra v1.2.1

@@ -10,6 +10,7 @@ import (
 	"github.com/infraboard/mcube/bus/broker/nats"
 	"github.com/infraboard/mcube/cache/memory"
 	"github.com/infraboard/mcube/cache/redis"
+	"github.com/infraboard/mcube/logger/zap"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -252,15 +253,25 @@ func (e *Etcd) GetClient() *clientv3.Client {
 }
 
 func (e *Etcd) getClient() (*clientv3.Client, error) {
+	timeout := time.Duration(5) * time.Second
 	client, err := clientv3.New(clientv3.Config{
 		Endpoints:   e.Endpoints,
-		DialTimeout: time.Duration(5) * time.Second,
+		DialTimeout: timeout,
 		Username:    e.UserName,
 		Password:    e.Password,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("connect etcd error, %s", err)
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	ml, err := client.MemberList(ctx)
+	if err != nil {
+		return nil, err
+	}
+	zap.L().Debugf("etcd members: %s", ml.Members)
 
 	return client, nil
 }

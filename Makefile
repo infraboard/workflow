@@ -74,8 +74,14 @@ install: ## Install depence go package
 	@go install github.com/infraboard/protoc-gen-go-ext@v0.0.3
 	@go install github.com/infraboard/mcube/cmd/protoc-gen-go-http@latest
 
-codegen: ## Init Service
-	@protoc -I=.  -I${GO_MODDIR} --go-ext_out=. --go-ext_opt=module=${PKG} --go-grpc_out=. --go-grpc_opt=module=${PKG} --go-http_out=. --go-http_opt=module=${PKG} api/pkg/*/pb/*.proto
+gen: ## Init Service
+	@protoc -I=. --go_out=. --go_opt=module=${PKG} --go-grpc_out=. --go-grpc_opt=module=${PKG} api/app/*/pb/*.proto
+	@protoc-go-inject-tag -input=api/app/application/*.pb.go
+	@protoc-go-inject-tag -input=api/app/deploy/*.pb.go
+	@protoc-go-inject-tag -input=api/app/pipeline/*.pb.go
+	@protoc-go-inject-tag -input=api/app/action/*.pb.go
+	@protoc-go-inject-tag -input=api/app/scm/*.pb.go
+	@protoc-go-inject-tag -input=api/app/template/*.pb.go
 	@go generate ./...
 
 help: ## Display this help screen

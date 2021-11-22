@@ -1,0 +1,234 @@
+syntax = "proto3";
+
+package infraboard.workflow.application;
+option go_package = "github.com/infraboard/workflow/api/app/application";
+
+import "github.com/infraboard/mcube/pb/page/page.proto";
+import "github.com/infraboard/mcube/pb/request/request.proto";
+import "api/app/pipeline/pb/pipeline.proto";
+import "api/app/scm/pb/gitlab.proto";
+
+service Service {
+	rpc CreateApplication(CreateApplicationRequest) returns(Application);
+    rpc UpdateApplication(UpdateApplicationRequest) returns(Application);
+	rpc QueryApplication(QueryApplicationRequest) returns(ApplicationSet);
+    rpc DescribeApplication(DescribeApplicationRequest) returns(Application);
+    rpc DeleteApplication(DeleteApplicationRequest) returns(Application);
+    rpc HandleApplicationEvent(ApplicationEvent) returns(Application);
+}
+
+// SCM_TYPE 流水线状态
+enum SCM_TYPE {
+    // gitlab
+    GITLAB = 0;
+	// github
+	GITHUB = 1;
+	// coding.net
+	CODING = 2;
+}
+
+// Application todo
+message Application {
+    // 唯一ID
+    // @gotags: bson:"_id" json:"id"
+    string id = 1;
+    // 用于加密应用的铭感信息
+    // @gotags: bson:"key" json:"key"
+    string key = 19;
+    // 所属域
+    // @gotags: bson:"domain" json:"domain"
+    string domain = 2;
+    // 所属空间
+    // @gotags: bson:"namespace" json:"namespace"
+    string namespace = 3;
+    // 创建时间
+    // @gotags: bson:"create_at" json:"create_at"
+    int64 create_at = 4;
+    // 创建人
+    // @gotags: bson:"create_by" json:"create_by"
+    string create_by = 5;
+    // 更新时间
+    // @gotags: bson:"update_at" json:"update_at"
+    int64 update_at = 6;
+    // 更新人
+    // @gotags: bson:"update_by" json:"update_by"
+    string update_by = 7;
+    // 名称
+    // @gotags: bson:"name" json:"name"
+    string name = 8;
+    // 应用标签
+    // @gotags: bson:"tags" json:"tags"
+    map<string, string> tags = 9;
+    // 描述
+    // @gotags: bson:"description" json:"description"
+    string description = 10;
+    // 仓库ssh url地址
+    // @gotags: json:"repo_ssh_url"
+    string repo_ssh_url = 12;
+    // 仓库http url地址
+    // @gotags: json:"repo_http_url"
+    string repo_http_url = 13;
+    // 仓库来源类型
+    // @gotags: json:"scm_type"
+    SCM_TYPE scm_type = 14;
+    // 仓库来源类型
+    // @gotags: json:"scm_project_id"
+    string scm_project_id = 15;
+    // scm设置Hook后返回的id, 用于删除应用时，取消hook使用
+    // @gotags: json:"scm_hook_id"
+    string scm_hook_id = 16;
+    // 创建hook过程中的错误信息
+    // @gotags: json:"hook_error"
+    string hook_error = 17;
+    // 仓库的priviate token, 用于设置回调
+    // @gotags: json:"scm_private_token"
+    string scm_private_token = 18;
+    // 用于创建pipeline的请求参数
+    // @gotags: json:"pipelines"
+    repeated Pipeline pipelines = 11;
+}
+
+message Pipeline {
+    // pipeline 定义
+    // @gotags: bson:"define" json:"define"
+    infraboard.workflow.pipeline.CreatePipelineRequest define = 1;
+    // pipeline 状态
+    // @gotags: bson:"status" json:"status"
+    PipeLineStatus status = 2;
+}
+
+message PipeLineStatus {
+    // 触发时间
+    // @gotags: bson:"timestamp" json:"timestamp"
+    int64 timestamp = 1;
+    // 创建错误
+    // @gotags: bson:"create_error" json:"create_error"
+    string create_error = 2;
+    // 创建成功后的,pipline实例
+    // @gotags: bson:"pipeline" json:"pipeline_id"
+    string pipeline_id = 3;
+}
+
+// ApplicationSet todo
+message ApplicationSet {
+    // @gotags: bson:"total" json:"total"
+    int64 total = 1;
+    // @gotags: bson:"items" json:"items"
+    repeated Application items = 2;
+}
+
+// CreateApplicationRequest 创建Book请求
+message CreateApplicationRequest {
+    // 所属域
+    // @gotags: json:"domain" validate:"required"
+    string domain = 1;
+    // 所属空间
+    // @gotags: json:"namespace" validate:"required"
+    string namespace = 2;
+    // 创建人
+    // @gotags: json:"create_by" validate:"required"
+    string create_by = 3;
+    // 名称
+    // @gotags: json:"name" validate:"required"
+    string name = 4;
+    // 应用标签
+    // @gotags: json:"tags"
+    map<string, string> tags = 5;
+    // 描述
+    // @gotags: json:"description"
+    string description = 6;
+    // 仓库ssh url地址
+    // @gotags: json:"repo_ssh_url" validate:"required"
+    string repo_ssh_url = 8;
+    // 仓库http url地址
+    // @gotags: json:"repo_http_url"
+    string repo_http_url = 9;
+    // 仓库来源类型
+    // @gotags: json:"scm_type"
+    SCM_TYPE scm_type = 10;
+    // 仓库来源类型
+    // @gotags: json:"scm_project_id"
+    string scm_project_id = 11;
+    // 仓库的priviate token, 用于设置回调
+    // @gotags: json:"scm_private_token"
+    string scm_private_token = 12;
+    // 用于创建pipeline的请求参数
+    // @gotags: json:"pipelines"
+    repeated workflow.pipeline.CreatePipelineRequest pipelines = 7;
+}
+
+// QueryApplicationRequest 查询Book请求
+message QueryApplicationRequest {
+    // @gotags: json:"page"
+    infraboard.mcube.page.PageRequest page = 1;
+    // 所属域
+    // @gotags: json:"domain" validate:"required"
+    string domain = 2;
+    // 所属空间
+    // @gotags: json:"namespace" validate:"required"
+    string namespace = 3;
+    // 应用的名字
+    // @gotags: json:"name"
+    string name = 4;
+}
+
+message DeleteApplicationRequest {
+    // 所属空间
+    // @gotags: json:"namespace" validate:"required"
+    string namespace = 1; 
+    // 应用的名字
+    // @gotags: json:"name" validate:"required"
+    string name = 2;  
+}
+
+message DescribeApplicationRequest {
+    // 唯一ID
+    // @gotags: json:"id"
+    string id = 1;
+    // 所属空间
+    // @gotags: json:"namespace"
+    string namespace = 2; 
+    // 应用的名字
+    // @gotags: json:"name"
+    string name = 3; 
+}
+
+message ApplicationEvent {
+    // 应用ID
+    // @gotags: json:"app_id" validate:"required"
+    string app_id = 1;
+    // webhook事件
+    // @gotags: json:"webhook_event"
+    workflow.pipeline.scm.WebHookEvent webhook_event = 2;
+}
+
+
+message UpdateApplicationRequest {
+    // 更新模式
+    // @gotags: json:"update_mode"
+    mcube.request.UpdateMode update_mode = 1;
+    // 更新人
+    // @gotags: json:"update_by"
+    string update_by = 2;
+    // 应用ID
+    // @gotags: json:"id" validate:"required"
+    string id = 3;
+    // 需要更新的数据
+    // @gotags: json:"data" validate:"required"
+    UpdateApplicationData data = 4;
+}
+
+message UpdateApplicationData {
+    // 名称
+    // @gotags: json:"name"
+    string name = 1;
+    // 应用标签
+    // @gotags: json:"tags"
+    map<string, string> tags = 2;
+    // 描述
+    // @gotags: json:"description"
+    string description = 3;
+    // 用于创建pipeline的请求参数
+    // @gotags: json:"pipelines"
+    repeated workflow.pipeline.CreatePipelineRequest pipelines = 4;
+}
