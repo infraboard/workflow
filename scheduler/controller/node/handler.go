@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/infraboard/workflow/api/pkg/node"
+	"github.com/infraboard/workflow/api/app/node"
 )
 
 // syncHandler compares the actual state with the desired, and attempts to

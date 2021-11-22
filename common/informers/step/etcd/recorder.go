@@ -9,7 +9,7 @@ import (
 	"github.com/infraboard/mcube/types/ftime"
 	clientv3 "go.etcd.io/etcd/client/v3"
 
-	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/api/app/pipeline"
 )
 
 type recorder struct {

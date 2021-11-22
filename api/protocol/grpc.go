@@ -7,12 +7,12 @@ import (
 	"net"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/infraboard/keyauth/pkg/endpoint"
+	"github.com/infraboard/keyauth/app/endpoint"
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
 	"google.golang.org/grpc"
 
-	"github.com/infraboard/workflow/api/pkg"
+	"github.com/infraboard/workflow/api/app"
 	"github.com/infraboard/workflow/conf"
 	"github.com/infraboard/workflow/version"
 )

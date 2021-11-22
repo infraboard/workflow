@@ -6,11 +6,11 @@ import (
 	"github.com/infraboard/mcube/logger/zap"
 	"google.golang.org/grpc"
 
-	"github.com/infraboard/workflow/api/pkg/action"
-	"github.com/infraboard/workflow/api/pkg/application"
-	"github.com/infraboard/workflow/api/pkg/deploy"
-	"github.com/infraboard/workflow/api/pkg/pipeline"
-	"github.com/infraboard/workflow/api/pkg/template"
+	"github.com/infraboard/workflow/api/app/action"
+	"github.com/infraboard/workflow/api/app/application"
+	"github.com/infraboard/workflow/api/app/deploy"
+	"github.com/infraboard/workflow/api/app/pipeline"
+	"github.com/infraboard/workflow/api/app/template"
 )
 
 var (

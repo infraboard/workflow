@@ -10,15 +10,14 @@ import (
 	"github.com/infraboard/mcube/pb/http"
 	clientv3 "go.etcd.io/etcd/client/v3"
 
-	"github.com/infraboard/workflow/api/pkg"
-	"github.com/infraboard/workflow/api/pkg/action"
-	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/api/app/action"
+	"github.com/infraboard/workflow/api/app/pipeline"
 	"github.com/infraboard/workflow/conf"
 )
 
 var (
 	// Service 服务实例
-	Service = &impl{
+	svr = &impl{
 		watchCancel: make(map[int64]context.CancelFunc),
 	}
 )
@@ -45,25 +44,24 @@ func (i *impl) SetWatcherCancelFn(fn context.CancelFunc) int64 {
 }
 
 func (s *impl) Config() error {
-	s.client = conf.C().Etcd.GetClient()
 	s.log = zap.L().Named("Pipeline")
 
-	if pkg.Action == nil {
-		return fmt.Errorf("dependence action service is nil")
-	}
-	s.action = pkg.Action
+	s.action = nil
 	return nil
-}
-
-// HttpEntry todo
-func (s *impl) HTTPEntry() *http.EntrySet {
-	return pipeline.HttpEntry()
 }
 
 func (e *impl) Debug(log logger.Logger) {
 	e.log = log
 }
 
+func (s *service) Name() string {
+	return pipeline.AppName
+}
+
+func (s *service) Registry(server *grpc.Server) {
+	pipeline.RegisterServiceServer(server, svr)
+}
+
 func init() {
-	pkg.RegistryService("pipeline", Service)
+	app.RegistryGrpcApp(svr)
 }

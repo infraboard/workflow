@@ -18,7 +18,7 @@ import (
 
 var (
 	// Service 服务实例
-	Service = &service{}
+	svr = &service{}
 )
 
 type service struct {
@@ -64,11 +64,6 @@ func (s *service) Config() error {
 	return nil
 }
 
-// HttpEntry todo
-func (s *service) HTTPEntry() *http.EntrySet {
-	return application.HttpEntry()
-}
-
 func init() {
-	pkg.RegistryService("application", Service)
+	app.RegistryGrpcApp(svr)
 }

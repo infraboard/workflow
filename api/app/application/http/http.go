@@ -7,9 +7,8 @@ import (
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
 
+	"github.com/infraboard/workflow/api/app/application"
 	"github.com/infraboard/workflow/api/client"
-	"github.com/infraboard/workflow/api/pkg"
-	"github.com/infraboard/workflow/api/pkg/application"
 )
 
 var (
@@ -42,16 +41,15 @@ func (h *handler) Registry(router router.SubRouter) {
 }
 
 func (h *handler) Config() error {
-	client := client.C()
-	if client == nil {
-		return errors.New("grpc client not initial")
-	}
-
 	h.log = zap.L().Named("Application")
-	h.service = client.Application()
+	h.service = nil
 	return nil
 }
 
+func (h *handler) Name() string {
+	return application.AppName
+}
+
 func init() {
-	pkg.RegistryHTTPV1("application", api)
+	app.RegistryHttpApp(api)
 }

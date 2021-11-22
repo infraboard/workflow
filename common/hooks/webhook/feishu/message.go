@@ -1,6 +1,6 @@
 package feishu
 
-import "github.com/infraboard/workflow/api/pkg/pipeline"
+import "github.com/infraboard/workflow/api/app/pipeline"
 
 const (
 	URL_PREFIX = "https://open.feishu.cn/open-apis/bot"

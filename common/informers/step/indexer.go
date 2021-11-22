@@ -1,7 +1,7 @@
 package step
 
 import (
-	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/api/app/pipeline"
 	"github.com/infraboard/workflow/common/cache"
 )
 

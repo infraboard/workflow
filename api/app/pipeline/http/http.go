@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	API = &handler{log: zap.L().Named("Pipeline")}
+	api = &handler{}
 )
 
 type handler struct {
@@ -50,16 +50,13 @@ func (h *handler) Registry(router router.SubRouter) {
 }
 
 func (h *handler) Config() error {
-	client := client.C()
-	if client == nil {
-		return errors.New("grpc client not initial")
-	}
-
-	h.service = client.Pipeline()
+	h.service = nil
 	h.proxy = NewProxy()
+
+	h.log = zap.L().Named("Pipeline")
 	return nil
 }
 
 func init() {
-	pkg.RegistryHTTPV1("pipeline", API)
+	app.RegistryHttpApp(api)
 }

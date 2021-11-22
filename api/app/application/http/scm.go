@@ -12,9 +12,9 @@ import (
 	"github.com/infraboard/mcube/http/request"
 	"github.com/infraboard/mcube/http/response"
 
-	"github.com/infraboard/workflow/api/pkg/application"
-	"github.com/infraboard/workflow/api/pkg/scm"
-	"github.com/infraboard/workflow/api/pkg/scm/gitlab"
+	"github.com/infraboard/workflow/api/app/application"
+	"github.com/infraboard/workflow/api/app/scm"
+	"github.com/infraboard/workflow/api/app/scm/gitlab"
 )
 
 const (

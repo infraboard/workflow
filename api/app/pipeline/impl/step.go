@@ -12,7 +12,7 @@ import (
 	"github.com/rs/xid"
 	clientv3 "go.etcd.io/etcd/client/v3"
 
-	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/api/app/pipeline"
 )
 
 func (i *impl) CreateStep(ctx context.Context, req *pipeline.CreateStepRequest) (

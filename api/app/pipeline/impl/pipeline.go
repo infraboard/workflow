@@ -11,8 +11,8 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/infraboard/workflow/api/pkg/action"
-	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/api/app/action"
+	"github.com/infraboard/workflow/api/app/pipeline"
 )
 
 func (i *impl) CreatePipeline(ctx context.Context, req *pipeline.CreatePipelineRequest) (

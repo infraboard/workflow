@@ -17,7 +17,7 @@ import (
 
 var (
 	// Service 服务实例
-	Service = &service{}
+	svr = &service{}
 )
 
 type service struct {
@@ -52,10 +52,7 @@ func (s *service) Config() error {
 		return err
 	}
 
-	if pkg.Application == nil {
-		return fmt.Errorf("dependence application service is nil")
-	}
-	s.app = pkg.Application
+	s.app = nil
 
 	s.col = dc
 	s.log = zap.L().Named("Deploy")
@@ -63,5 +60,5 @@ func (s *service) Config() error {
 }
 
 func init() {
-	app.RegistryService("deploy", Service)
+	app.RegistryGrpcApp(svr)
 }

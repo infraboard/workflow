@@ -11,7 +11,7 @@ import (
 	"github.com/infraboard/mcube/logger/zap"
 	"k8s.io/client-go/util/workqueue"
 
-	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/api/app/pipeline"
 	"github.com/infraboard/workflow/common/cache"
 	"github.com/infraboard/workflow/common/hooks"
 	"github.com/infraboard/workflow/common/informers/step"

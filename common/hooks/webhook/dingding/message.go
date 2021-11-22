@@ -1,6 +1,6 @@
 package dingding
 
-import "github.com/infraboard/workflow/api/pkg/pipeline"
+import "github.com/infraboard/workflow/api/app/pipeline"
 
 const (
 	URL_PREFIX = "https://oapi.dingtalk.com/robot/send"

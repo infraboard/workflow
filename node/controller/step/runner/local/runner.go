@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/infraboard/workflow/api/pkg/action"
+	"github.com/infraboard/workflow/api/app/action"
 	"github.com/infraboard/workflow/node/controller/step/runner"
 )
 

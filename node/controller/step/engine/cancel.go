@@ -5,8 +5,8 @@ import (
 
 	"github.com/infraboard/mcube/grpc/gcontext"
 
-	"github.com/infraboard/workflow/api/pkg/action"
-	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/api/app/action"
+	"github.com/infraboard/workflow/api/app/pipeline"
 	"github.com/infraboard/workflow/node/controller/step/runner"
 )
 

@@ -3,7 +3,7 @@ package step
 import (
 	"fmt"
 
-	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/api/app/pipeline"
 )
 
 // syncHandler compares the actual state with the desired, and attempts to

@@ -3,7 +3,7 @@ package hooks
 import (
 	"context"
 
-	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/api/app/pipeline"
 	"github.com/infraboard/workflow/common/hooks/webhook"
 )
 

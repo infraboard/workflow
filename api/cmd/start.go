@@ -20,12 +20,12 @@ import (
 	"github.com/infraboard/mcube/logger/zap"
 	"github.com/spf13/cobra"
 
-	"github.com/infraboard/workflow/api/pkg"
+	"github.com/infraboard/workflow/api/app"
 	"github.com/infraboard/workflow/api/protocol"
 	"github.com/infraboard/workflow/conf"
 
 	// 加载所有服务
-	_ "github.com/infraboard/workflow/api/pkg/all"
+	_ "github.com/infraboard/workflow/api/app/all"
 )
 
 var (

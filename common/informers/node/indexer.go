@@ -1,7 +1,7 @@
 package node
 
 import (
-	"github.com/infraboard/workflow/api/pkg/node"
+	"github.com/infraboard/workflow/api/app/node"
 	"github.com/infraboard/workflow/common/cache"
 )
 

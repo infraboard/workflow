@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/infraboard/mcube/logger/zap"
-	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/api/app/pipeline"
 	"github.com/infraboard/workflow/node/controller/step/runner"
 	"github.com/infraboard/workflow/node/controller/step/runner/docker"
 )

@@ -6,7 +6,7 @@ import (
 	"github.com/infraboard/mcube/logger"
 	clientv3 "go.etcd.io/etcd/client/v3"
 
-	"github.com/infraboard/workflow/api/pkg/node"
+	"github.com/infraboard/workflow/api/app/node"
 )
 
 type lister struct {

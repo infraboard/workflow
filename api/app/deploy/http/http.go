@@ -3,7 +3,6 @@ package http
 import (
 	"errors"
 
-	"github.com/infraboard/keyauth/pkg"
 	"github.com/infraboard/mcube/http/label"
 	"github.com/infraboard/mcube/http/router"
 
@@ -31,15 +30,10 @@ func (h *handler) Registry(router router.SubRouter) {
 }
 
 func (h *handler) Config() error {
-	client := client.C()
-	if client == nil {
-		return errors.New("grpc client not initial")
-	}
-
-	h.service = client.Deploy()
+	h.service = nil
 	return nil
 }
 
 func init() {
-	pkg.RegistryHTTPV1("deploy", api)
+	app.RegistryHttpApp(api)
 }

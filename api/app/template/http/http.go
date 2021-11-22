@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	api = &handler{log: zap.L().Named("Action")}
+	api = &handler{}
 )
 
 type handler struct {
@@ -34,15 +34,12 @@ func (h *handler) Registry(router router.SubRouter) {
 }
 
 func (h *handler) Config() error {
-	client := client.C()
-	if client == nil {
-		return errors.New("grpc client not initial")
-	}
+	h.service = nil
 
-	h.service = client.Template()
+	h.log = zap.L().Named("Action")
 	return nil
 }
 
 func init() {
-	pkg.RegistryHTTPV1("template", api)
+	app.RegistryHttpApp(api)
 }

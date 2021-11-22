@@ -1,8 +1,8 @@
 package algorithm
 
 import (
-	"github.com/infraboard/workflow/api/pkg/node"
-	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/api/app/node"
+	"github.com/infraboard/workflow/api/app/pipeline"
 )
 
 // Picker 挑选一个合适的node 运行Step

@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/infraboard/keyauth/pkg/endpoint"
+	"github.com/infraboard/keyauth/app/endpoint"
 	"github.com/infraboard/mcube/http/middleware/accesslog"
 	"github.com/infraboard/mcube/http/middleware/cors"
 	"github.com/infraboard/mcube/http/middleware/recovery"
@@ -16,8 +16,8 @@ import (
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
 
+	"github.com/infraboard/workflow/api/app"
 	"github.com/infraboard/workflow/api/client"
-	"github.com/infraboard/workflow/api/pkg"
 	"github.com/infraboard/workflow/conf"
 	"github.com/infraboard/workflow/version"
 )

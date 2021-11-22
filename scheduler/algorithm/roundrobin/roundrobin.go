@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/infraboard/workflow/api/pkg/node"
-	"github.com/infraboard/workflow/api/pkg/pipeline"
+	"github.com/infraboard/workflow/api/app/node"
+	"github.com/infraboard/workflow/api/app/pipeline"
 	"github.com/infraboard/workflow/common/cache"
 	"github.com/infraboard/workflow/scheduler/algorithm"
 )

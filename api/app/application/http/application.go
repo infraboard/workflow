@@ -14,7 +14,7 @@ import (
 	"github.com/infraboard/mcube/http/response"
 	pb "github.com/infraboard/mcube/pb/request"
 
-	"github.com/infraboard/workflow/api/pkg/application"
+	"github.com/infraboard/workflow/api/app/application"
 )
 
 func (h *handler) CreateApplication(w http.ResponseWriter, r *http.Request) {
