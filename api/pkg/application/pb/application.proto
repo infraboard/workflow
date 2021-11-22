@@ -131,7 +131,6 @@ message PipelineCreateStatus {
         ];
 }
 
-
 // ApplicationSet todo
 message ApplicationSet {
     int64 total = 1[
