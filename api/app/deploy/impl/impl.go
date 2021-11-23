@@ -2,13 +2,14 @@ package impl
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/infraboard/mcube/app"
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
+	"google.golang.org/grpc"
 
 	"github.com/infraboard/workflow/api/app/application"
 	"github.com/infraboard/workflow/api/app/deploy"
@@ -57,6 +58,14 @@ func (s *service) Config() error {
 	s.col = dc
 	s.log = zap.L().Named("Deploy")
 	return nil
+}
+
+func (s *service) Name() string {
+	return deploy.AppName
+}
+
+func (s *service) Registry(server *grpc.Server) {
+	deploy.RegisterServiceServer(server, svr)
 }
 
 func init() {

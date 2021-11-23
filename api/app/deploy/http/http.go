@@ -1,13 +1,11 @@
 package http
 
 import (
-	"errors"
-
 	"github.com/infraboard/mcube/http/label"
 	"github.com/infraboard/mcube/http/router"
 
+	"github.com/infraboard/mcube/app"
 	"github.com/infraboard/workflow/api/app/deploy"
-	"github.com/infraboard/workflow/api/client"
 )
 
 var (
@@ -15,7 +13,7 @@ var (
 )
 
 type handler struct {
-	service deploy.ServiceClient
+	service deploy.ServiceServer
 }
 
 // Registry 注册HTTP服务路由
@@ -32,6 +30,10 @@ func (h *handler) Registry(router router.SubRouter) {
 func (h *handler) Config() error {
 	h.service = nil
 	return nil
+}
+
+func (h *handler) Name() string {
+	return deploy.AppName
 }
 
 func init() {

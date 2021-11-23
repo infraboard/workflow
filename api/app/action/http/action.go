@@ -1,17 +1,13 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/infraboard/keyauth/app/token"
-	"github.com/infraboard/mcube/grpc/gcontext"
 	"github.com/infraboard/mcube/http/context"
 	"github.com/infraboard/mcube/http/request"
 	"github.com/infraboard/mcube/http/response"
 	"github.com/infraboard/mcube/pb/resource"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 
 	"github.com/infraboard/workflow/api/app/action"
 	"github.com/infraboard/workflow/node/controller/step/runner/docker"
@@ -21,18 +17,8 @@ import (
 
 // Action
 func (h *handler) CreateAction(w http.ResponseWriter, r *http.Request) {
-	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
-	if err != nil {
-		response.Failed(w, err)
-		return
-	}
-
-	hc := context.GetContext(r)
-	tk, ok := hc.AuthInfo.(*token.Token)
-	if !ok {
-		response.Failed(w, fmt.Errorf("auth info is not an *token.Token"))
-		return
-	}
+	ctx := context.GetContext(r)
+	tk := ctx.AuthInfo.(*token.Token)
 
 	req := action.NewCreateActionRequest()
 	if err := request.GetDataFromRequest(r, req); err != nil {
@@ -42,15 +28,12 @@ func (h *handler) CreateAction(w http.ResponseWriter, r *http.Request) {
 	req.VisiableMode = resource.VisiableMode_NAMESPACE
 	req.UpdateOwner(tk)
 
-	var header, trailer metadata.MD
 	ins, err := h.service.CreateAction(
-		ctx.Context(),
+		r.Context(),
 		req,
-		grpc.Header(&header),
-		grpc.Trailer(&trailer),
 	)
 	if err != nil {
-		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		response.Failed(w, err)
 		return
 	}
 
@@ -59,14 +42,9 @@ func (h *handler) CreateAction(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) UpdateAction(w http.ResponseWriter, r *http.Request) {
-	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
-	if err != nil {
-		response.Failed(w, err)
-		return
-	}
+	ctx := context.GetContext(r)
 
-	hc := context.GetContext(r)
-	name, version := action.ParseActionKey(hc.PS.ByName("key"))
+	name, version := action.ParseActionKey(ctx.PS.ByName("key"))
 	req := action.NewUpdateActionRequest()
 	if err := request.GetDataFromRequest(r, req); err != nil {
 		response.Failed(w, err)
@@ -75,15 +53,12 @@ func (h *handler) UpdateAction(w http.ResponseWriter, r *http.Request) {
 	req.Name = name
 	req.Version = version
 
-	var header, trailer metadata.MD
 	ins, err := h.service.UpdateAction(
-		ctx.Context(),
+		r.Context(),
 		req,
-		grpc.Header(&header),
-		grpc.Trailer(&trailer),
 	)
 	if err != nil {
-		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		response.Failed(w, err)
 		return
 	}
 
@@ -92,32 +67,19 @@ func (h *handler) UpdateAction(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) QueryAction(w http.ResponseWriter, r *http.Request) {
-	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
-	if err != nil {
-		response.Failed(w, err)
-		return
-	}
-
-	hc := context.GetContext(r)
-	tk, ok := hc.AuthInfo.(*token.Token)
-	if !ok {
-		response.Failed(w, fmt.Errorf("auth info is not an *token.Token"))
-		return
-	}
+	ctx := context.GetContext(r)
+	tk := ctx.AuthInfo.(*token.Token)
 
 	page := request.NewPageRequestFromHTTP(r)
 	req := action.NewQueryActionRequest(page)
 	req.Namespace = tk.Namespace
 
-	var header, trailer metadata.MD
 	actions, err := h.service.QueryAction(
-		ctx.Context(),
+		r.Context(),
 		req,
-		grpc.Header(&header),
-		grpc.Trailer(&trailer),
 	)
 	if err != nil {
-		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		response.Failed(w, err)
 		return
 	}
 
@@ -127,25 +89,17 @@ func (h *handler) QueryAction(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) DescribeAction(w http.ResponseWriter, r *http.Request) {
-	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
-	if err != nil {
-		response.Failed(w, err)
-		return
-	}
+	ctx := context.GetContext(r)
 
-	hc := context.GetContext(r)
-	name, version := action.ParseActionKey(hc.PS.ByName("key"))
+	name, version := action.ParseActionKey(ctx.PS.ByName("key"))
 	req := action.NewDescribeActionRequest(name, version)
 
-	var header, trailer metadata.MD
 	ins, err := h.service.DescribeAction(
-		ctx.Context(),
+		r.Context(),
 		req,
-		grpc.Header(&header),
-		grpc.Trailer(&trailer),
 	)
 	if err != nil {
-		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		response.Failed(w, err)
 		return
 	}
 
@@ -154,32 +108,21 @@ func (h *handler) DescribeAction(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) DeleteAction(w http.ResponseWriter, r *http.Request) {
-	ctx, err := gcontext.NewGrpcOutCtxFromHTTPRequest(r)
-	if err != nil {
-		response.Failed(w, err)
-		return
-	}
+	ctx := context.GetContext(r)
+	tk := ctx.AuthInfo.(*token.Token)
 
 	hc := context.GetContext(r)
 	name, version := action.ParseActionKey(hc.PS.ByName("key"))
 	req := action.NewDeleteActionRequest(name, version)
 
-	tk, ok := hc.AuthInfo.(*token.Token)
-	if !ok {
-		response.Failed(w, fmt.Errorf("auth info is not an *token.Token"))
-		return
-	}
 	req.Namespace = tk.Namespace
 
-	var header, trailer metadata.MD
 	action, err := h.service.DeleteAction(
-		ctx.Context(),
+		r.Context(),
 		req,
-		grpc.Header(&header),
-		grpc.Trailer(&trailer),
 	)
 	if err != nil {
-		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		response.Failed(w, err)
 		return
 	}
 	response.Success(w, action)

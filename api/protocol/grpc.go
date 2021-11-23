@@ -1,20 +1,17 @@
 package protocol
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/infraboard/keyauth/app/endpoint"
+	"github.com/infraboard/mcube/app"
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
 	"google.golang.org/grpc"
 
-	"github.com/infraboard/workflow/api/app"
 	"github.com/infraboard/workflow/conf"
-	"github.com/infraboard/workflow/version"
 )
 
 // NewGRPCService todo
@@ -40,7 +37,7 @@ type GRPCService struct {
 // Start 启动GRPC服务
 func (s *GRPCService) Start() error {
 	// 装载所有GRPC服务
-	pkg.InitV1GRPCAPI(s.svr)
+	app.LoadGrpcApp(s.svr)
 
 	// 启动HTTP服务
 	s.l.Infof("GRPC 开始启动, 监听地址: %s", s.c.GRPC.Addr())
@@ -57,17 +54,6 @@ func (s *GRPCService) Start() error {
 	}
 
 	return nil
-}
-
-// RegistryEndpoints 注册条目
-func (s *GRPCService) RegistryEndpoints() error {
-	kc, err := s.c.Keyauth.Client()
-	if err != nil {
-		return err
-	}
-	req := endpoint.NewRegistryRequest(version.Short(), pkg.HTTPEntry().Items)
-	_, err = kc.Endpoint().Registry(context.Background(), req)
-	return err
 }
 
 // Stop 停止GRPC服务

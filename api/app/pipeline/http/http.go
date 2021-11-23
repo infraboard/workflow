@@ -1,16 +1,13 @@
 package http
 
 import (
-	"errors"
-
+	"github.com/infraboard/mcube/app"
 	"github.com/infraboard/mcube/http/label"
 	"github.com/infraboard/mcube/http/router"
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
 
-	"github.com/infraboard/workflow/api/app"
 	"github.com/infraboard/workflow/api/app/pipeline"
-	"github.com/infraboard/workflow/api/client"
 )
 
 var (
@@ -18,7 +15,7 @@ var (
 )
 
 type handler struct {
-	service pipeline.ServiceClient
+	service pipeline.ServiceServer
 	log     logger.Logger
 	proxy   *Proxy
 }
@@ -55,6 +52,10 @@ func (h *handler) Config() error {
 
 	h.log = zap.L().Named("Pipeline")
 	return nil
+}
+
+func (h *handler) Name() string {
+	return pipeline.AppName
 }
 
 func init() {

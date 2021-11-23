@@ -2,17 +2,16 @@ package impl
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
+	"github.com/infraboard/mcube/app"
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
-	"github.com/infraboard/mcube/pb/http"
 	clientv3 "go.etcd.io/etcd/client/v3"
+	"google.golang.org/grpc"
 
 	"github.com/infraboard/workflow/api/app/action"
 	"github.com/infraboard/workflow/api/app/pipeline"
-	"github.com/infraboard/workflow/conf"
 )
 
 var (
@@ -23,8 +22,6 @@ var (
 )
 
 type impl struct {
-	pipeline.UnimplementedServiceServer
-
 	client *clientv3.Client
 	log    logger.Logger
 	action action.ServiceServer
@@ -32,6 +29,8 @@ type impl struct {
 	watchCancel   map[int64]context.CancelFunc
 	currentNumber int64
 	l             sync.Mutex
+
+	pipeline.UnimplementedServiceServer
 }
 
 func (i *impl) SetWatcherCancelFn(fn context.CancelFunc) int64 {
@@ -54,11 +53,11 @@ func (e *impl) Debug(log logger.Logger) {
 	e.log = log
 }
 
-func (s *service) Name() string {
+func (s *impl) Name() string {
 	return pipeline.AppName
 }
 
-func (s *service) Registry(server *grpc.Server) {
+func (s *impl) Registry(server *grpc.Server) {
 	pipeline.RegisterServiceServer(server, svr)
 }
 

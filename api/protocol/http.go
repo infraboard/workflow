@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/infraboard/keyauth/app/endpoint"
+	"github.com/infraboard/keyauth/client/interceptor"
+	"github.com/infraboard/mcube/app"
 	"github.com/infraboard/mcube/http/middleware/accesslog"
 	"github.com/infraboard/mcube/http/middleware/cors"
 	"github.com/infraboard/mcube/http/middleware/recovery"
@@ -16,14 +18,18 @@ import (
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
 
-	"github.com/infraboard/workflow/api/app"
-	"github.com/infraboard/workflow/api/client"
 	"github.com/infraboard/workflow/conf"
 	"github.com/infraboard/workflow/version"
 )
 
 // NewHTTPService 构建函数
-func NewHTTPService(auther router.Auther) *HTTPService {
+func NewHTTPService() *HTTPService {
+	c, err := conf.C().Keyauth.Client()
+	if err != nil {
+		panic(err)
+	}
+	auther := interceptor.NewHTTPAuther(c)
+
 	r := httprouter.New()
 	r.Use(recovery.NewWithLogger(zap.L().Named("Recovery")))
 	r.Use(accesslog.NewWithLogger(zap.L().Named("AccessLog")))
@@ -45,10 +51,11 @@ func NewHTTPService(auther router.Auther) *HTTPService {
 		Handler:           r,
 	}
 	return &HTTPService{
-		r:      r,
-		server: server,
-		l:      zap.L().Named("HTTP Service"),
-		c:      conf.C(),
+		r:        r,
+		server:   server,
+		l:        zap.L().Named("HTTP Service"),
+		c:        conf.C(),
+		endpoint: c.Endpoint(),
 	}
 }
 
@@ -58,24 +65,23 @@ type HTTPService struct {
 	l      logger.Logger
 	c      *conf.Config
 	server *http.Server
+
+	endpoint endpoint.ServiceClient
+}
+
+func (s *HTTPService) PathPrefix() string {
+	return fmt.Sprintf("/%s/api/v1", s.c.App.Name)
 }
 
 // Start 启动服务
 func (s *HTTPService) Start() error {
 	hc := s.c.HTTP
 
-	// 初始化GRPC客户端
-	if err := s.initGRPCClient(); err != nil {
-		return err
-	}
-
 	// 装置子服务路由
-	if err := pkg.InitV1HTTPAPI(s.c.App.Name, s.r); err != nil {
-		return err
-	}
+	app.LoadHttpApp(s.PathPrefix(), s.r)
 
 	// 注册路由
-	s.registryEndpoints()
+	s.RegistryEndpoint()
 
 	// 启动HTTPS服务
 	if hc.EnableSSL {
@@ -132,35 +138,15 @@ func (s *HTTPService) Stop() error {
 }
 
 // registryEndpoints 注册条目
-func (s *HTTPService) registryEndpoints() error {
+func (s *HTTPService) RegistryEndpoint() {
 	// 注册服务权限条目
 	s.l.Info("start registry endpoints ...")
 
-	kc, err := s.c.Keyauth.Client()
-	if err != nil {
-		return err
-	}
-
 	req := endpoint.NewRegistryRequest(version.Short(), s.r.GetEndpoints().UniquePathEntry())
-
-	_, err = kc.Endpoint().Registry(context.Background(), req)
+	_, err := s.endpoint.RegistryEndpoint(context.Background(), req)
 	if err != nil {
 		s.l.Warnf("registry endpoints error, %s", err)
 	} else {
 		s.l.Debug("service endpoints registry success")
 	}
-	return err
-}
-
-// InitGRPCClient 初始化grpc客户端
-func (s *HTTPService) initGRPCClient() error {
-	cf := client.NewDefaultConfig()
-	cf.SetAddress(s.c.GRPC.Addr())
-	cf.SetClientCredentials(s.c.Keyauth.ClientID, s.c.Keyauth.ClientSecret)
-	cli, err := client.NewClient(cf)
-	if err != nil {
-		return err
-	}
-	client.SetGlobal(cli)
-	return err
 }

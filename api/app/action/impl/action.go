@@ -11,7 +11,7 @@ import (
 	"github.com/infraboard/workflow/api/app/action"
 )
 
-func (i *impl) CreateAction(ctx context.Context, req *action.CreateActionRequest) (
+func (i *service) CreateAction(ctx context.Context, req *action.CreateActionRequest) (
 	*action.Action, error) {
 	a, err := action.NewAction(req)
 	if err != nil {
@@ -27,7 +27,7 @@ func (i *impl) CreateAction(ctx context.Context, req *action.CreateActionRequest
 	return a, nil
 }
 
-func (i *impl) QueryAction(ctx context.Context, req *action.QueryActionRequest) (
+func (i *service) QueryAction(ctx context.Context, req *action.QueryActionRequest) (
 	*action.ActionSet, error) {
 	query := newQueryActionRequest(req)
 	resp, err := i.col.Find(context.TODO(), query.FindFilter(), query.FindOptions())
@@ -56,7 +56,7 @@ func (i *impl) QueryAction(ctx context.Context, req *action.QueryActionRequest) 
 	return set, nil
 }
 
-func (i *impl) DescribeAction(ctx context.Context, req *action.DescribeActionRequest) (
+func (i *service) DescribeAction(ctx context.Context, req *action.DescribeActionRequest) (
 	*action.Action, error) {
 	if err := req.Validate(); err != nil {
 		return nil, exception.NewBadRequest("validate DescribeActionRequest error, %s", err)
@@ -79,7 +79,7 @@ func (i *impl) DescribeAction(ctx context.Context, req *action.DescribeActionReq
 	return ins, nil
 }
 
-func (i *impl) UpdateAction(ctx context.Context, req *action.UpdateActionRequest) (*action.Action, error) {
+func (i *service) UpdateAction(ctx context.Context, req *action.UpdateActionRequest) (*action.Action, error) {
 	if err := req.Validate(); err != nil {
 		return nil, exception.NewBadRequest(err.Error())
 	}
@@ -99,7 +99,7 @@ func (i *impl) UpdateAction(ctx context.Context, req *action.UpdateActionRequest
 	return ins, nil
 }
 
-func (i *impl) DeleteAction(ctx context.Context, req *action.DeleteActionRequest) (
+func (i *service) DeleteAction(ctx context.Context, req *action.DeleteActionRequest) (
 	*action.Action, error) {
 	ins, err := i.DescribeAction(ctx, action.NewDescribeActionRequest(req.Name, req.Version))
 	if err != nil {

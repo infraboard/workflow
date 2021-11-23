@@ -1,15 +1,12 @@
 package http
 
 import (
-	"errors"
-
+	"github.com/infraboard/mcube/app"
 	"github.com/infraboard/mcube/http/router"
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
 
-	"github.com/infraboard/workflow/api/app"
 	"github.com/infraboard/workflow/api/app/template"
-	"github.com/infraboard/workflow/api/client"
 )
 
 var (
@@ -17,7 +14,7 @@ var (
 )
 
 type handler struct {
-	service template.ServiceClient
+	service template.ServiceServer
 	log     logger.Logger
 }
 
@@ -36,8 +33,12 @@ func (h *handler) Registry(router router.SubRouter) {
 func (h *handler) Config() error {
 	h.service = nil
 
-	h.log = zap.L().Named("Action")
+	h.log = zap.L().Named(template.AppName)
 	return nil
+}
+
+func (h *handler) Name() string {
+	return template.AppName
 }
 
 func init() {

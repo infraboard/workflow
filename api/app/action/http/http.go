@@ -1,15 +1,13 @@
 package http
 
 import (
-	"errors"
-
+	"github.com/infraboard/mcube/app"
 	"github.com/infraboard/mcube/http/label"
 	"github.com/infraboard/mcube/http/router"
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
 
 	"github.com/infraboard/workflow/api/app/action"
-	"github.com/infraboard/workflow/api/client"
 )
 
 var (
@@ -17,7 +15,7 @@ var (
 )
 
 type handler struct {
-	service action.ServiceClient
+	service action.ServiceServer
 	log     logger.Logger
 }
 

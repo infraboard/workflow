@@ -4,11 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
-	"github.com/infraboard/keyauth/client/session"
 	"github.com/infraboard/mcube/exception"
-	"github.com/infraboard/mcube/grpc/gcontext"
 	"github.com/rs/xid"
 	clientv3 "go.etcd.io/etcd/client/v3"
 
@@ -128,23 +125,13 @@ func (i *impl) DeleteStep(ctx context.Context, req *pipeline.DeleteStepRequest) 
 
 func (i *impl) CancelStep(ctx context.Context, req *pipeline.CancelStepRequest) (
 	*pipeline.Step, error) {
-	in, err := gcontext.GetGrpcInCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	message := ""
-	tk := session.S().GetToken(in.GetAccessToKen())
-	if tk == nil {
-		message = fmt.Sprintf("account %s cancled step at %s", tk.Account, time.Now())
-	}
 
 	s, err := i.DescribeStep(ctx, pipeline.NewDescribeStepRequestWithKey(req.Key))
 	if err != nil {
 		return nil, err
 	}
 
-	s.Cancel(message)
+	// s.Cancel(message)
 	if err := i.putStep(ctx, s); err != nil {
 		return nil, fmt.Errorf("update step error, %s", err)
 	}

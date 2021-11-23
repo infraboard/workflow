@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/infraboard/keyauth/client/session"
 	"github.com/infraboard/mcube/exception"
 	"github.com/infraboard/mcube/grpc/gcontext"
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -131,14 +130,6 @@ func (i *impl) DescribePipeline(ctx context.Context, req *pipeline.DescribePipel
 // DeletePipeline 删除时清除所有关联step
 func (i *impl) DeletePipeline(ctx context.Context, req *pipeline.DeletePipelineRequest) (
 	*pipeline.Pipeline, error) {
-	in, err := gcontext.GetGrpcInCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	tk := session.S().GetToken(in.GetAccessToKen())
-	if tk == nil {
-		return nil, exception.NewUnauthorized("token required")
-	}
 
 	ins, err := i.DescribePipeline(ctx, pipeline.NewDescribePipelineRequestWithID(req.Id))
 	if err != nil {

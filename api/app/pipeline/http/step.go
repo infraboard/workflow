@@ -9,8 +9,6 @@ import (
 	"github.com/infraboard/mcube/http/context"
 	"github.com/infraboard/mcube/http/request"
 	"github.com/infraboard/mcube/http/response"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 
 	"github.com/infraboard/workflow/api/app/pipeline"
 )
@@ -37,15 +35,12 @@ func (h *handler) CreateStep(w http.ResponseWriter, r *http.Request) {
 	}
 	req.Namespace = tk.Namespace
 
-	var header, trailer metadata.MD
 	ins, err := h.service.CreateStep(
 		ctx.Context(),
 		req,
-		grpc.Header(&header),
-		grpc.Trailer(&trailer),
 	)
 	if err != nil {
-		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		response.Failed(w, err)
 		return
 	}
 	response.Success(w, ins)
@@ -62,15 +57,12 @@ func (h *handler) QueryStep(w http.ResponseWriter, r *http.Request) {
 	req := pipeline.NewQueryStepRequest()
 	req.Page = &page.PageRequest
 
-	var header, trailer metadata.MD
 	dommains, err := h.service.QueryStep(
 		ctx.Context(),
 		req,
-		grpc.Header(&header),
-		grpc.Trailer(&trailer),
 	)
 	if err != nil {
-		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		response.Failed(w, err)
 		return
 	}
 	response.Success(w, dommains)
@@ -93,15 +85,12 @@ func (h *handler) DescribeStep(w http.ResponseWriter, r *http.Request) {
 	req := pipeline.NewDescribeStepRequestWithKey(hc.PS.ByName("id"))
 	req.Namespace = tk.Namespace
 
-	var header, trailer metadata.MD
 	dommains, err := h.service.DescribeStep(
 		ctx.Context(),
 		req,
-		grpc.Header(&header),
-		grpc.Trailer(&trailer),
 	)
 	if err != nil {
-		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		response.Failed(w, err)
 		return
 	}
 	response.Success(w, dommains)
@@ -117,15 +106,12 @@ func (h *handler) DeleteStep(w http.ResponseWriter, r *http.Request) {
 	hc := context.GetContext(r)
 	req := pipeline.NewDeleteStepRequestWithKey(hc.PS.ByName("id"))
 
-	var header, trailer metadata.MD
 	dommains, err := h.service.DeleteStep(
 		ctx.Context(),
 		req,
-		grpc.Header(&header),
-		grpc.Trailer(&trailer),
 	)
 	if err != nil {
-		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		response.Failed(w, err)
 		return
 	}
 	response.Success(w, dommains)
@@ -146,15 +132,12 @@ func (h *handler) AuditStep(w http.ResponseWriter, r *http.Request) {
 	}
 	req.Key = hc.PS.ByName("id")
 
-	var header, trailer metadata.MD
 	dommains, err := h.service.AuditStep(
 		ctx.Context(),
 		req,
-		grpc.Header(&header),
-		grpc.Trailer(&trailer),
 	)
 	if err != nil {
-		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		response.Failed(w, err)
 		return
 	}
 	response.Success(w, dommains)
@@ -170,15 +153,12 @@ func (h *handler) CancelStep(w http.ResponseWriter, r *http.Request) {
 	hc := context.GetContext(r)
 	req := pipeline.NewCancelStepRequestWithKey(hc.PS.ByName("id"))
 
-	var header, trailer metadata.MD
 	dommains, err := h.service.CancelStep(
 		ctx.Context(),
 		req,
-		grpc.Header(&header),
-		grpc.Trailer(&trailer),
 	)
 	if err != nil {
-		response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+		response.Failed(w, err)
 		return
 	}
 	response.Success(w, dommains)

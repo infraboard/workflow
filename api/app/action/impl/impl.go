@@ -3,31 +3,32 @@ package impl
 import (
 	"context"
 
+	"github.com/infraboard/mcube/app"
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
-	"github.com/infraboard/mcube/pb/http"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
+	"google.golang.org/grpc"
 
-	pkg "github.com/infraboard/workflow/api/app"
 	"github.com/infraboard/workflow/api/app/action"
 	"github.com/infraboard/workflow/conf"
 )
 
 var (
 	// Service 服务实例
-	svr = &impl{}
+	svr = &service{}
 )
 
-type impl struct {
+type service struct {
 	col *mongo.Collection
 	action.UnimplementedServiceServer
 
 	log logger.Logger
 }
 
-func (s *impl) Config() error {
+func (s *service) Config() error {
 	db := conf.C().Mongo.GetDB()
 	dc := db.Collection("actions")
 
@@ -53,6 +54,14 @@ func (s *impl) Config() error {
 	s.log = zap.L().Named("Action")
 
 	return nil
+}
+
+func (s *service) Name() string {
+	return action.AppName
+}
+
+func (s *service) Registry(server *grpc.Server) {
+	action.RegisterServiceServer(server, svr)
 }
 
 func init() {

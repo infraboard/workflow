@@ -2,14 +2,14 @@ package impl
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/infraboard/mcube/app"
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
-	"github.com/infraboard/mcube/pb/http"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
+	"google.golang.org/grpc"
 
 	"github.com/infraboard/workflow/api/app/application"
 	"github.com/infraboard/workflow/api/app/pipeline"
@@ -53,15 +53,20 @@ func (s *service) Config() error {
 		return err
 	}
 
-	if pkg.Pipeline == nil {
-		return fmt.Errorf("dependence service pipeline is nil")
-	}
-	s.pipeline = pkg.Pipeline
+	s.pipeline = app.GetGrpcApp(pipeline.AppName).(pipeline.ServiceServer)
 
 	s.platform = conf.C().App.Platform
 	s.col = dc
 	s.log = zap.L().Named("Application")
 	return nil
+}
+
+func (s *service) Name() string {
+	return application.AppName
+}
+
+func (s *service) Registry(server *grpc.Server) {
+	application.RegisterServiceServer(server, svr)
 }
 
 func init() {

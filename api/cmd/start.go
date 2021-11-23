@@ -9,8 +9,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/infraboard/keyauth/client"
-	"github.com/infraboard/keyauth/client/session"
+	"github.com/infraboard/mcube/app"
 	"github.com/infraboard/mcube/bus"
 	"github.com/infraboard/mcube/bus/broker/nats"
 	"github.com/infraboard/mcube/cache"
@@ -20,7 +19,6 @@ import (
 	"github.com/infraboard/mcube/logger/zap"
 	"github.com/spf13/cobra"
 
-	"github.com/infraboard/workflow/api/app"
 	"github.com/infraboard/workflow/api/protocol"
 	"github.com/infraboard/workflow/conf"
 
@@ -60,8 +58,8 @@ var serviceCmd = &cobra.Command{
 			return err
 		}
 
-		// 初始化服务层
-		if err := pkg.InitService(); err != nil {
+		// 初始化全局app
+		if err := app.InitAllApp(); err != nil {
 			return err
 		}
 
@@ -91,25 +89,8 @@ var serviceCmd = &cobra.Command{
 }
 
 func newService(cnf *conf.Config) (*service, error) {
-	cli, err := cnf.Keyauth.Client()
-	if err != nil {
-		return nil, err
-	}
-
-	cache := session.NewMemoryStore()
-	cache.Debug(zap.L().Named("Memory Session"))
-	session.SetStroe(cache)
-
-	// http开启权限检查, 校验权限合法性
-	httpAuther := client.NewHTTPAuther(cli)
-	httpAuther.SetLogger(zap.L().Named("HTTP Auther"))
-
-	// grpc开启权限检查, 校验凭证合法性
-	grpcAuther := client.NewGrpcKeyauthAuther(pkg.GetPathEntry, cli, cache)
-	grpcAuther.SetLogger(zap.L().Named("GRPC Auther"))
-
-	http := protocol.NewHTTPService(httpAuther)
-	grpc := protocol.NewGRPCService(grpcAuther.AuthUnaryServerInterceptor())
+	http := protocol.NewHTTPService()
+	grpc := protocol.NewGRPCService()
 
 	svr := &service{
 		grpc: grpc,
@@ -129,16 +110,9 @@ type service struct {
 }
 
 func (s *service) start() error {
-	s.log.Infof("loaded grpc service: %v", pkg.LoadedService())
-	s.log.Infof("loaded http service: %s", pkg.LoadedHTTP())
-
-	// 注册服务权限条目
-	s.log.Info("start registry endpoints ...")
-	if err := s.grpc.RegistryEndpoints(); err != nil {
-		s.log.Warnf("registry endpoints error, %s", err)
-	} else {
-		s.log.Debug("service endpoints registry success")
-	}
+	s.log.Infof("loaded grpc app: %s", app.LoadedGrpcApp())
+	s.log.Infof("loaded http app: %s", app.LoadedHttpApp())
+	s.log.Infof("loaded internal app: %s", app.LoadedInternalApp())
 
 	go s.grpc.Start()
 	return s.http.Start()

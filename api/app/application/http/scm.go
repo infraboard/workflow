@@ -4,11 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
-
 	"github.com/infraboard/mcube/exception"
-	"github.com/infraboard/mcube/grpc/gcontext"
 	"github.com/infraboard/mcube/http/request"
 	"github.com/infraboard/mcube/http/response"
 
@@ -63,15 +59,12 @@ func (h *handler) GitLabHookHanler(w http.ResponseWriter, r *http.Request) {
 		req := application.NewApplicationEvent(appID, event)
 		h.log.Debugf("application %s accept event: %s", appID, event)
 
-		var header, trailer metadata.MD
 		_, err := h.service.HandleApplicationEvent(
 			r.Context(),
 			req,
-			grpc.Header(&header),
-			grpc.Trailer(&trailer),
 		)
 		if err != nil {
-			response.Failed(w, gcontext.NewExceptionFromTrailer(trailer, err))
+			response.Failed(w, err)
 			return
 		}
 		response.Success(w, fmt.Sprintf("event %s has accept", event.ShortDesc()))

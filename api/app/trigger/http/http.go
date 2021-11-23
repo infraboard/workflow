@@ -1,15 +1,13 @@
 package http
 
 import (
-	"errors"
-
+	"github.com/infraboard/mcube/app"
 	"github.com/infraboard/mcube/http/router"
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
 
-	"github.com/infraboard/workflow/api/app"
 	"github.com/infraboard/workflow/api/app/pipeline"
-	"github.com/infraboard/workflow/api/client"
+	"github.com/infraboard/workflow/api/app/trigger"
 )
 
 var (
@@ -17,7 +15,7 @@ var (
 )
 
 type handler struct {
-	service pipeline.ServiceClient
+	service pipeline.ServiceServer
 	log     logger.Logger
 }
 
@@ -32,16 +30,15 @@ func (h *handler) Registry(router router.SubRouter) {
 }
 
 func (h *handler) Config() error {
-	client := client.C()
-	if client == nil {
-		return errors.New("grpc client not initial")
-	}
-
-	h.service = client.Pipeline()
+	h.service = app.GetGrpcApp(pipeline.AppName).(pipeline.ServiceServer)
 	h.log = zap.L().Named("Trigger")
 	return nil
 }
 
+func (h *handler) Name() string {
+	return trigger.AppName
+}
+
 func init() {
-	pkg.RegistryHTTPV1("trigger", api)
+	app.RegistryHttpApp(api)
 }
