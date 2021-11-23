@@ -75,8 +75,6 @@ func (req *CreateApplicationRequest) Validate() error {
 	return validate.Struct(req)
 }
 
-func NewPipelineFromRequest()
-
 // NewApplication todo
 func NewApplication(req *CreateApplicationRequest) (*Application, error) {
 	if err := req.Validate(); err != nil {

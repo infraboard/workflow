@@ -7,7 +7,12 @@ NODE_MAIN_FILE_PAHT := "node/main.go"
 PKG := "github.com/infraboard/workflow"
 IMAGE_PREFIX := "github.com/infraboard/workflow"
 
-GO_MODDIR := $(shell go env GOMODCACHE)
+BUILD_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+BUILD_COMMIT := ${shell git rev-parse HEAD}
+BUILD_TIME := ${shell date '+%Y-%m-%d %H:%M:%S'}
+BUILD_GO_VERSION := $(shell go version | grep -o  'go[0-9].[0-9].*')
+VERSION_PATH := "${PKG}/version"
+
 PKG_LIST := $(shell go list ${PKG}/... | grep -v /vendor/ | grep -v redis)
 GO_FILES := $(shell find . -name '*.go' | grep -v /vendor/ | grep -v _test.go)
 
@@ -32,37 +37,32 @@ test-coverage: ## Run tests with coverage
 	@cat cover.out >> coverage.txt
 
 build: dep ## Build the binary file
-	@go fmt ./...
-	@sh ./script/build.sh local dist/${API_PROJECT_NAME} ${API_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
-	@sh ./script/build.sh local dist/${SCH_PROJECT_NAME} ${SCH_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
-	@sh ./script/build.sh local dist/${NODE_PROJECT_NAME} ${NODE_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
+	@go build -a -o dist/${API_PROJECT_NAME} -ldflags "-s -w" -ldflags "-X '${VERSION_PATH}.GIT_BRANCH=${BUILD_BRANCH}' -X '${VERSION_PATH}.GIT_COMMIT=${BUILD_COMMIT}' -X '${VERSION_PATH}.BUILD_TIME=${BUILD_TIME}' -X '${VERSION_PATH}.GO_VERSION=${BUILD_GO_VERSION}'" ${API_MAIN_FILE_PAHT}
+	@go build -a -o dist/${SCH_PROJECT_NAME} -ldflags "-s -w" -ldflags "-X '${VERSION_PATH}.GIT_BRANCH=${BUILD_BRANCH}' -X '${VERSION_PATH}.GIT_COMMIT=${BUILD_COMMIT}' -X '${VERSION_PATH}.BUILD_TIME=${BUILD_TIME}' -X '${VERSION_PATH}.GO_VERSION=${BUILD_GO_VERSION}'" ${SCH_MAIN_FILE_PAHT}
+	@go build -a -o dist/${NODE_PROJECT_NAME} -ldflags "-s -w" -ldflags "-X '${VERSION_PATH}.GIT_BRANCH=${BUILD_BRANCH}' -X '${VERSION_PATH}.GIT_COMMIT=${BUILD_COMMIT}' -X '${VERSION_PATH}.BUILD_TIME=${BUILD_TIME}' -X '${VERSION_PATH}.GO_VERSION=${BUILD_GO_VERSION}'" ${NODE_MAIN_FILE_PAHT}
 
 linux: ## Linux build
-	@sh ./script/build.sh linux dist/${API_PROJECT_NAME} ${API_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
-	@sh ./script/build.sh linux dist/${SCH_PROJECT_NAME} ${SCH_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
-	@sh ./script/build.sh linux dist/${NODE_PROJECT_NAME} ${NODE_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
+	@GOOS=linux GOARCH=amd64 go build -a -o dist/${API_PROJECT_NAME} -ldflags "-s -w" -ldflags "-X '${VERSION_PATH}.GIT_BRANCH=${BUILD_BRANCH}' -X '${VERSION_PATH}.GIT_COMMIT=${BUILD_COMMIT}' -X '${VERSION_PATH}.BUILD_TIME=${BUILD_TIME}' -X '${VERSION_PATH}.GO_VERSION=${BUILD_GO_VERSION}'" ${API_MAIN_FILE_PAHT}
+	@GOOS=linux GOARCH=amd64 go build -a -o dist/${SCH_PROJECT_NAME} -ldflags "-s -w" -ldflags "-X '${VERSION_PATH}.GIT_BRANCH=${BUILD_BRANCH}' -X '${VERSION_PATH}.GIT_COMMIT=${BUILD_COMMIT}' -X '${VERSION_PATH}.BUILD_TIME=${BUILD_TIME}' -X '${VERSION_PATH}.GO_VERSION=${BUILD_GO_VERSION}'" ${SCH_MAIN_FILE_PAHT}
+	@GOOS=linux GOARCH=amd64 go build -a -o dist/${NODE_PROJECT_NAME} -ldflags "-s -w" -ldflags "-X '${VERSION_PATH}.GIT_BRANCH=${BUILD_BRANCH}' -X '${VERSION_PATH}.GIT_COMMIT=${BUILD_COMMIT}' -X '${VERSION_PATH}.BUILD_TIME=${BUILD_TIME}' -X '${VERSION_PATH}.GO_VERSION=${BUILD_GO_VERSION}'" ${NODE_MAIN_FILE_PAHT}
 	
 run-api: dep ## Run Server
-	@sh ./script/build.sh local dist/${API_PROJECT_NAME} ${API_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
-	@./dist/${API_PROJECT_NAME} start
+	@go run ${API_MAIN_FILE_PAHT} start
 
-build-sch: dep ## Build the binary file
-	@go fmt ./...
-	@sh ./script/build.sh local dist/${SCH_PROJECT_NAME} ${SCH_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
-
-linux-sch: ## Linux build
-	@sh ./script/build.sh linux dist/${SCH_PROJECT_NAME} ${SCH_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
+build-api: dep ## Build the binary file
+	@GOOS=linux GOARCH=amd64 go build -a -o dist/${API_PROJECT_NAME} -ldflags "-s -w" -ldflags "-X '${VERSION_PATH}.GIT_BRANCH=${BUILD_BRANCH}' -X '${VERSION_PATH}.GIT_COMMIT=${BUILD_COMMIT}' -X '${VERSION_PATH}.BUILD_TIME=${BUILD_TIME}' -X '${VERSION_PATH}.GO_VERSION=${BUILD_GO_VERSION}'" ${API_MAIN_FILE_PAHT}
 	
 run-sch: dep build-sch ## Run schedule
-	@./dist/${SCH_PROJECT_NAME} start
+	@go run ${SCH_MAIN_FILE_PAHT} start
 
-build-node: dep ## Build the binary file
-	@go fmt ./...
-	@sh ./script/build.sh local dist/${NODE_PROJECT_NAME} ${NODE_MAIN_FILE_PAHT} ${IMAGE_PREFIX} ${PKG}
+build-sch: dep ## Build the binary file
+	@GOOS=linux GOARCH=amd64 go build -a -o dist/${SCH_PROJECT_NAME} -ldflags "-s -w" -ldflags "-X '${VERSION_PATH}.GIT_BRANCH=${BUILD_BRANCH}' -X '${VERSION_PATH}.GIT_COMMIT=${BUILD_COMMIT}' -X '${VERSION_PATH}.BUILD_TIME=${BUILD_TIME}' -X '${VERSION_PATH}.GO_VERSION=${BUILD_GO_VERSION}'" ${SCH_MAIN_FILE_PAHT}
 
 run-node: dep build-node ## Run node
-	@./dist/${NODE_PROJECT_NAME} start
+	@go run ${NODE_MAIN_FILE_PAHT} start
 
+build-node: dep ## Build the binary file
+	@GOOS=linux GOARCH=amd64 go build -a -o dist/${NODE_PROJECT_NAME} -ldflags "-s -w" -ldflags "-X '${VERSION_PATH}.GIT_BRANCH=${BUILD_BRANCH}' -X '${VERSION_PATH}.GIT_COMMIT=${BUILD_COMMIT}' -X '${VERSION_PATH}.BUILD_TIME=${BUILD_TIME}' -X '${VERSION_PATH}.GO_VERSION=${BUILD_GO_VERSION}'" ${NODE_MAIN_FILE_PAHT}
 
 clean: ## Remove previous build
 	@go clean .

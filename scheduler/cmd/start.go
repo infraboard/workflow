@@ -175,7 +175,6 @@ func MakeRegistryNode(cfg *conf.Config) *node.Node {
 		ServiceName:  version.ServiceName,
 		Type:         node.SchedulerType,
 		Address:      cfg.HTTP.Host,
-		Version:      version.GIT_TAG,
 		GitBranch:    version.GIT_BRANCH,
 		GitCommit:    version.GIT_COMMIT,
 		BuildEnv:     version.GO_VERSION,
