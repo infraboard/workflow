@@ -23,6 +23,7 @@ type handler struct {
 // Registry 注册HTTP服务路由
 func (h *handler) Registry(router router.SubRouter) {
 	r := router.ResourceRouter("pipeline")
+	r.Permission(true)
 	r.BasePath("pipelines")
 	r.Handle("POST", "/", h.CreatePipeline).AddLabel(label.Create)
 	r.Handle("GET", "/", h.QueryPipeline).AddLabel(label.List)

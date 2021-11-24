@@ -3,6 +3,25 @@
 
 ## 单机部署
 
+不带数据卷
+```
+docker run -d \
+  -p 2379:2379 \
+  -p 2380:2380 \
+  --name exam-etcd \
+   quay.io/coreos/etcd:latest \
+  /usr/local/bin/etcd \
+  --name s1 \
+  --listen-client-urls http://0.0.0.0:2379 \
+  --advertise-client-urls http://0.0.0.0:2379 \
+  --listen-peer-urls http://0.0.0.0:2380 \
+  --initial-advertise-peer-urls http://0.0.0.0:2380 \
+  --initial-cluster s1=http://0.0.0.0:2380 \
+  --initial-cluster-token tkn \
+  --initial-cluster-state new
+```
+
+带数据卷
 ```sh
 mkdir /data/etcd -p
 docker run -d \

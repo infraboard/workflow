@@ -22,6 +22,7 @@ type handler struct {
 // Registry 注册HTTP服务路由
 func (h *handler) Registry(router router.SubRouter) {
 	r := router.ResourceRouter("actions")
+	r.Permission(true)
 	r.BasePath("actions")
 	r.Handle("POST", "/", h.CreateAction).AddLabel(label.Create)
 	r.Handle("GET", "/", h.QueryAction).AddLabel(label.List)

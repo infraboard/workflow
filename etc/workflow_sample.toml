@@ -17,10 +17,17 @@ cert_file = ""
 key_file = "" 
 
 [mongodb]
-endpoints = ["10.40.44.101:27017"]
-username = "admin"
-password = "admin"
-database = "admin"
+endpoints = ["127.0.0.1:27017"]
+username = "workflow"
+password = "workflow"
+database = "workflow"
+
+[etcd]
+endpoints = ["127.0.0.1:2379"]
+username = "workflow"
+password = "workflow"
+prefix = "inforboard"
+instance_ttl = 300
 
 
 [log]
@@ -36,13 +43,6 @@ client_id = ""
 client_secret = ""
 
 [cache]
-
-[etcd]
-endpoints = ["10.40.33.68:2379","10.40.33.69:2379","10.40.33.70:2379"]
-username = "devops"
-password = "devops#123"
-prefix = ""
-instance_ttl = 60
 
 [nats]
 
