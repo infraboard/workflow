@@ -17,8 +17,8 @@ require (
 	github.com/rs/xid v1.3.0
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
-	go.etcd.io/etcd/api/v3 v3.5.0
-	go.etcd.io/etcd/client/v3 v3.5.0
+	go.etcd.io/etcd/api/v3 v3.5.1
+	go.etcd.io/etcd/client/v3 v3.5.1
 	go.mongodb.org/mongo-driver v1.7.1
 	google.golang.org/grpc v1.38.0
 	google.golang.org/protobuf v1.27.1

@@ -12,6 +12,7 @@ import (
 
 	"github.com/infraboard/workflow/api/app/action"
 	"github.com/infraboard/workflow/api/app/pipeline"
+	"github.com/infraboard/workflow/conf"
 )
 
 var (
@@ -44,7 +45,7 @@ func (i *impl) SetWatcherCancelFn(fn context.CancelFunc) int64 {
 
 func (s *impl) Config() error {
 	s.log = zap.L().Named("Pipeline")
-
+	s.client = conf.C().Etcd.GetClient()
 	s.action = nil
 	return nil
 }

@@ -7,17 +7,19 @@ import "github.com/infraboard/mcube/pb/page/page.proto";
 import "api/app/scm/pb/gitlab.proto";
 
 service Service {
+	// pipeline管理
 	rpc CreatePipeline(CreatePipelineRequest) returns(Pipeline);
 	rpc QueryPipeline(QueryPipelineRequest) returns(PipelineSet);
 	rpc DescribePipeline(DescribePipelineRequest) returns(Pipeline);
 	rpc WatchPipeline(stream WatchPipelineRequest) returns(stream WatchPipelineResponse);
+	rpc DeletePipeline(DeletePipelineRequest) returns(Pipeline);
+	// step管理
 	rpc CreateStep(CreateStepRequest) returns(Step);
 	rpc QueryStep(QueryStepRequest) returns(StepSet);
 	rpc DescribeStep(DescribeStepRequest) returns(Step);
 	rpc DeleteStep(DeleteStepRequest) returns(Step);
 	rpc CancelStep(CancelStepRequest) returns(Step);
 	rpc AuditStep(AuditStepRequest) returns(Step);
-	rpc DeletePipeline(DeletePipelineRequest) returns(Pipeline);
 }
 
 // STEP_STATUS Step任务状态

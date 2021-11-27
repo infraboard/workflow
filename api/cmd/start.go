@@ -50,7 +50,7 @@ var serviceCmd = &cobra.Command{
 
 		// 加载总线
 		if err := loadGlobalBus(); err != nil {
-			return err
+			zap.L().Warnf("load global bus error, %s", err)
 		}
 
 		// 加载缓存
@@ -66,7 +66,7 @@ var serviceCmd = &cobra.Command{
 		conf := conf.C()
 		// 启动服务
 		ch := make(chan os.Signal, 1)
-		signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGKILL, syscall.SIGHUP, syscall.SIGQUIT)
+		signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGHUP, syscall.SIGQUIT)
 
 		// 初始化服务
 		svr, err := newService(conf)

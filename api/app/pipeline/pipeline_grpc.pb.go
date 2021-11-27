@@ -18,17 +18,19 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ServiceClient interface {
+	// pipeline管理
 	CreatePipeline(ctx context.Context, in *CreatePipelineRequest, opts ...grpc.CallOption) (*Pipeline, error)
 	QueryPipeline(ctx context.Context, in *QueryPipelineRequest, opts ...grpc.CallOption) (*PipelineSet, error)
 	DescribePipeline(ctx context.Context, in *DescribePipelineRequest, opts ...grpc.CallOption) (*Pipeline, error)
 	WatchPipeline(ctx context.Context, opts ...grpc.CallOption) (Service_WatchPipelineClient, error)
+	DeletePipeline(ctx context.Context, in *DeletePipelineRequest, opts ...grpc.CallOption) (*Pipeline, error)
+	// step管理
 	CreateStep(ctx context.Context, in *CreateStepRequest, opts ...grpc.CallOption) (*Step, error)
 	QueryStep(ctx context.Context, in *QueryStepRequest, opts ...grpc.CallOption) (*StepSet, error)
 	DescribeStep(ctx context.Context, in *DescribeStepRequest, opts ...grpc.CallOption) (*Step, error)
 	DeleteStep(ctx context.Context, in *DeleteStepRequest, opts ...grpc.CallOption) (*Step, error)
 	CancelStep(ctx context.Context, in *CancelStepRequest, opts ...grpc.CallOption) (*Step, error)
 	AuditStep(ctx context.Context, in *AuditStepRequest, opts ...grpc.CallOption) (*Step, error)
-	DeletePipeline(ctx context.Context, in *DeletePipelineRequest, opts ...grpc.CallOption) (*Pipeline, error)
 }
 
 type serviceClient struct {
@@ -97,6 +99,15 @@ func (x *serviceWatchPipelineClient) Recv() (*WatchPipelineResponse, error) {
 	return m, nil
 }
 
+func (c *serviceClient) DeletePipeline(ctx context.Context, in *DeletePipelineRequest, opts ...grpc.CallOption) (*Pipeline, error) {
+	out := new(Pipeline)
+	err := c.cc.Invoke(ctx, "/infraboard.workflow.pipeline.Service/DeletePipeline", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *serviceClient) CreateStep(ctx context.Context, in *CreateStepRequest, opts ...grpc.CallOption) (*Step, error) {
 	out := new(Step)
 	err := c.cc.Invoke(ctx, "/infraboard.workflow.pipeline.Service/CreateStep", in, out, opts...)
@@ -151,30 +162,23 @@ func (c *serviceClient) AuditStep(ctx context.Context, in *AuditStepRequest, opt
 	return out, nil
 }
 
-func (c *serviceClient) DeletePipeline(ctx context.Context, in *DeletePipelineRequest, opts ...grpc.CallOption) (*Pipeline, error) {
-	out := new(Pipeline)
-	err := c.cc.Invoke(ctx, "/infraboard.workflow.pipeline.Service/DeletePipeline", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // ServiceServer is the server API for Service service.
 // All implementations must embed UnimplementedServiceServer
 // for forward compatibility
 type ServiceServer interface {
+	// pipeline管理
 	CreatePipeline(context.Context, *CreatePipelineRequest) (*Pipeline, error)
 	QueryPipeline(context.Context, *QueryPipelineRequest) (*PipelineSet, error)
 	DescribePipeline(context.Context, *DescribePipelineRequest) (*Pipeline, error)
 	WatchPipeline(Service_WatchPipelineServer) error
+	DeletePipeline(context.Context, *DeletePipelineRequest) (*Pipeline, error)
+	// step管理
 	CreateStep(context.Context, *CreateStepRequest) (*Step, error)
 	QueryStep(context.Context, *QueryStepRequest) (*StepSet, error)
 	DescribeStep(context.Context, *DescribeStepRequest) (*Step, error)
 	DeleteStep(context.Context, *DeleteStepRequest) (*Step, error)
 	CancelStep(context.Context, *CancelStepRequest) (*Step, error)
 	AuditStep(context.Context, *AuditStepRequest) (*Step, error)
-	DeletePipeline(context.Context, *DeletePipelineRequest) (*Pipeline, error)
 	mustEmbedUnimplementedServiceServer()
 }
 
@@ -194,6 +198,9 @@ func (UnimplementedServiceServer) DescribePipeline(context.Context, *DescribePip
 func (UnimplementedServiceServer) WatchPipeline(Service_WatchPipelineServer) error {
 	return status.Errorf(codes.Unimplemented, "method WatchPipeline not implemented")
 }
+func (UnimplementedServiceServer) DeletePipeline(context.Context, *DeletePipelineRequest) (*Pipeline, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePipeline not implemented")
+}
 func (UnimplementedServiceServer) CreateStep(context.Context, *CreateStepRequest) (*Step, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateStep not implemented")
 }
@@ -211,9 +218,6 @@ func (UnimplementedServiceServer) CancelStep(context.Context, *CancelStepRequest
 }
 func (UnimplementedServiceServer) AuditStep(context.Context, *AuditStepRequest) (*Step, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuditStep not implemented")
-}
-func (UnimplementedServiceServer) DeletePipeline(context.Context, *DeletePipelineRequest) (*Pipeline, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeletePipeline not implemented")
 }
 func (UnimplementedServiceServer) mustEmbedUnimplementedServiceServer() {}
 
@@ -306,6 +310,24 @@ func (x *serviceWatchPipelineServer) Recv() (*WatchPipelineRequest, error) {
 		return nil, err
 	}
 	return m, nil
+}
+
+func _Service_DeletePipeline_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePipelineRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).DeletePipeline(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/infraboard.workflow.pipeline.Service/DeletePipeline",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).DeletePipeline(ctx, req.(*DeletePipelineRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Service_CreateStep_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -416,24 +438,6 @@ func _Service_AuditStep_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Service_DeletePipeline_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeletePipelineRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ServiceServer).DeletePipeline(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/infraboard.workflow.pipeline.Service/DeletePipeline",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceServer).DeletePipeline(ctx, req.(*DeletePipelineRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Service_ServiceDesc is the grpc.ServiceDesc for Service service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -452,6 +456,10 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DescribePipeline",
 			Handler:    _Service_DescribePipeline_Handler,
+		},
+		{
+			MethodName: "DeletePipeline",
+			Handler:    _Service_DeletePipeline_Handler,
 		},
 		{
 			MethodName: "CreateStep",
@@ -476,10 +484,6 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AuditStep",
 			Handler:    _Service_AuditStep_Handler,
-		},
-		{
-			MethodName: "DeletePipeline",
-			Handler:    _Service_DeletePipeline_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
