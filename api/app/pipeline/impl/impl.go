@@ -46,7 +46,7 @@ func (i *impl) SetWatcherCancelFn(fn context.CancelFunc) int64 {
 func (s *impl) Config() error {
 	s.log = zap.L().Named("Pipeline")
 	s.client = conf.C().Etcd.GetClient()
-	s.action = nil
+	s.action = app.GetGrpcApp(action.AppName).(action.ServiceServer)
 	return nil
 }
 

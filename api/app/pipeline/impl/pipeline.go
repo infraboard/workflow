@@ -21,7 +21,7 @@ func (i *impl) CreatePipeline(ctx context.Context, req *pipeline.CreatePipelineR
 		return nil, err
 	}
 
-	if err := i.validatePipeline(ctx, p); err != nil {
+	if err := i.validatePipelineStage(ctx, p); err != nil {
 		return nil, err
 	}
 
@@ -40,7 +40,7 @@ func (i *impl) CreatePipeline(ctx context.Context, req *pipeline.CreatePipelineR
 	return p, nil
 }
 
-func (i *impl) validatePipeline(ctx context.Context, p *pipeline.Pipeline) error {
+func (i *impl) validatePipelineStage(ctx context.Context, p *pipeline.Pipeline) error {
 	for index := range p.Stages {
 		stage := p.Stages[index]
 		if err := i.validateStage(ctx, stage); err != nil {
@@ -130,8 +130,9 @@ func (i *impl) DescribePipeline(ctx context.Context, req *pipeline.DescribePipel
 // DeletePipeline 删除时清除所有关联step
 func (i *impl) DeletePipeline(ctx context.Context, req *pipeline.DeletePipelineRequest) (
 	*pipeline.Pipeline, error) {
-
-	ins, err := i.DescribePipeline(ctx, pipeline.NewDescribePipelineRequestWithID(req.Id))
+	descReq := pipeline.NewDescribePipelineRequestWithID(req.Id)
+	descReq.Namespace = req.Namespace
+	ins, err := i.DescribePipeline(ctx, descReq)
 	if err != nil {
 		return nil, err
 	}

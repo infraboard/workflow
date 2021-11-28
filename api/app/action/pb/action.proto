@@ -32,7 +32,7 @@ message Action {
 	// 图片
 	// @gotags: bson:"logo" json:"logo"
 	string logo = 20;
-	// 展示名称
+	// 展示名称 
 	// @gotags: bson:"display_name" json:"display_name"
 	string display_name = 21;
 	// 是否是最新版本, 最新版本只有一个

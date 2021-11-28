@@ -42,7 +42,7 @@ func (h *handler) QueryPipeline(w http.ResponseWriter, r *http.Request) {
 	req := pipeline.NewQueryPipelineRequest()
 	req.Page = &page.PageRequest
 
-	dommains, err := h.service.QueryPipeline(
+	set, err := h.service.QueryPipeline(
 		r.Context(),
 		req,
 	)
@@ -50,7 +50,7 @@ func (h *handler) QueryPipeline(w http.ResponseWriter, r *http.Request) {
 		response.Failed(w, err)
 		return
 	}
-	response.Success(w, dommains)
+	response.Success(w, set)
 }
 
 func (h *handler) DescribePipeline(w http.ResponseWriter, r *http.Request) {
@@ -74,7 +74,10 @@ func (h *handler) DescribePipeline(w http.ResponseWriter, r *http.Request) {
 // pipeline删除时,除了删除pipeline对象本身而外，还需要删除该pipeline下的所有step
 func (h *handler) DeletePipeline(w http.ResponseWriter, r *http.Request) {
 	ctx := context.GetContext(r)
+	tk := ctx.AuthInfo.(*token.Token)
+
 	req := pipeline.NewDeletePipelineRequestWithID(ctx.PS.ByName("id"))
+	req.Namespace = tk.Namespace
 
 	dommains, err := h.service.DeletePipeline(
 		r.Context(),

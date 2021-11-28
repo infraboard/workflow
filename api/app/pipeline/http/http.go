@@ -48,7 +48,7 @@ func (h *handler) Registry(router router.SubRouter) {
 }
 
 func (h *handler) Config() error {
-	h.service = nil
+	h.service = app.GetGrpcApp(pipeline.AppName).(pipeline.ServiceServer)
 	h.proxy = NewProxy()
 
 	h.log = zap.L().Named("Pipeline")

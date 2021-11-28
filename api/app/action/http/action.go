@@ -37,7 +37,6 @@ func (h *handler) CreateAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ins.InitNil()
 	response.Success(w, ins)
 }
 
@@ -62,7 +61,6 @@ func (h *handler) UpdateAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ins.InitNil()
 	response.Success(w, ins)
 }
 
@@ -103,7 +101,6 @@ func (h *handler) DescribeAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ins.InitNil()
 	response.Success(w, ins)
 }
 

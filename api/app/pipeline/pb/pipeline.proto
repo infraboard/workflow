@@ -483,13 +483,16 @@ message DeletePipelineRequest {
 	// 唯一ID
 	// @gotags: json:"id"
 	string id = 1;
+	// 只有所在在的空间
+	// @gotags: json:"namespace"
+	string namespace = 2;
 }
 
 message DescribePipelineRequest {
 	// 唯一ID
 	// @gotags: json:"id"
 	string id = 1;
-	// 唯一name
+	// 只有所在在的空间
 	// @gotags: json:"namespace"
 	string namespace = 2;
 }
