@@ -125,25 +125,28 @@ func (s *service) start() error {
 	s.stop = cancel
 	defer cancel()
 
-	// 启动 node controller
+	// node informer
 	if err := s.ni.Watcher().Run(ctx); err != nil {
 		return err
 	}
-	// 启动 pipeline controller
+	// pipeline informaer
 	if err := s.pi.Watcher().Run(ctx); err != nil {
 		return err
 	}
-	// 启动 step controller
+	// step informer
 	if err := s.si.Watcher().Run(ctx); err != nil {
 		return err
 	}
 
+	// 启动 node controller
 	if err := s.nc.AsyncRun(ctx); err != nil {
 		return err
 	}
+	// 启动 pipeline controller
 	if err := s.pc.AsyncRun(ctx); err != nil {
 		return err
 	}
+	// 启动 step controller
 	if err := s.sc.Run(ctx); err != nil {
 		return err
 	}

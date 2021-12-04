@@ -39,12 +39,23 @@ func (p *stepPicker) Pick(step *pipeline.Step) (*node.Node, error) {
 		return nil, fmt.Errorf("has no available nodes")
 	}
 
-	n := nodes[p.next]
+	ns := []*node.Node{}
+	for i := range nodes {
+		n := nodes[i].(*node.Node)
+		if n.Type == node.NodeType {
+			ns = append(ns, n)
+		}
+	}
 
+	if len(ns) == 0 {
+		return nil, fmt.Errorf("has no available node nodes")
+	}
+
+	n := ns[p.next]
 	// 修改状态
-	p.next = (p.next + 1) % p.store.Len()
+	p.next = (p.next + 1) % len(ns)
 
-	return n.(*node.Node), nil
+	return n, nil
 }
 
 // NewPipelinePicker 实现分调度
@@ -70,10 +81,21 @@ func (p *pipelinePicker) Pick(step *pipeline.Pipeline) (*node.Node, error) {
 		return nil, fmt.Errorf("has no available nodes")
 	}
 
-	n := nodes[p.next]
+	schs := []*node.Node{}
+	for i := range nodes {
+		n := nodes[i].(*node.Node)
+		if n.Type == node.SchedulerType {
+			schs = append(schs, n)
+		}
+	}
 
+	if len(schs) == 0 {
+		return nil, fmt.Errorf("has no available sch nodes")
+	}
+
+	n := schs[p.next]
 	// 修改状态
-	p.next = (p.next + 1) % p.store.Len()
+	p.next = (p.next + 1) % len(schs)
 
-	return n.(*node.Node), nil
+	return n, nil
 }

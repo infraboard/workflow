@@ -291,6 +291,7 @@ func (p *Pipeline) GetNextFlow() *Flow {
 // 注意: 多个并行的任务是不能跨stage同时执行的
 //      也就是说stage一定是串行的
 func (p *Pipeline) NextStep() (steps []*Step, isComplete bool) {
+	// 判断当前Flow是否运行完成
 	if f := p.GetCurrentFlow(); f != nil {
 		// 如果有flow中断, pipeline 提前结束
 		if f.IsBreak() {
@@ -305,11 +306,14 @@ func (p *Pipeline) NextStep() (steps []*Step, isComplete bool) {
 	}
 
 	f := p.GetNextFlow()
+
+	// 判断是不是最后一个Flow了
 	if f == nil {
 		isComplete = true
 		return
 	}
 
+	// 如果不是则获取flow中的step
 	steps = f.items
 	return
 }

@@ -83,7 +83,7 @@ func (c *Controller) run(ctx context.Context, async bool) error {
 
 	// 调用Lister 获得所有的cronjob 并添加cron
 	c.log.Info("starting sync(List) all nodes")
-	nodes, err := c.informer.Lister().List(ctx, node.NodeType)
+	nodes, err := c.informer.Lister().ListAll(ctx)
 	if err != nil {
 		return err
 	}

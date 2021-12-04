@@ -81,7 +81,7 @@ func (c *Controller) runPipeline(p *pipeline.Pipeline) error {
 }
 
 func (c *Controller) nextStep(p *pipeline.Pipeline) []*pipeline.Step {
-	// 取消 pipeline 下次执行需要的step
+	// 找出 pipeline 下次执行需要的step
 	steps, isComplete := p.NextStep()
 	if isComplete {
 		p.Complete()
@@ -193,7 +193,7 @@ func (c *Controller) updatePipelineStatus(p *pipeline.Pipeline) {
 	}
 }
 
-// step 如果完成后, 将状态记录到Pipeline上, 并删除step
+// step 如果完成后, 将状态记录到Pipeline上, 并删除step
 func (c *Controller) UpdateStepCallback(old, new *pipeline.Step) {
 	c.log.Debugf("receive step update event, start update step status to pipeline ...")
 	c.log.Debugf("old[%s]: %s, new[%s]: %s", old.Key, old.Status, new.Key, new.Status)

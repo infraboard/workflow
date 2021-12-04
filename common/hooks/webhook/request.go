@@ -50,7 +50,7 @@ func (r *request) Push() {
 	var messageObj interface{}
 	switch r.BotType() {
 	case feishuBot:
-		messageObj = feishu.NewStepCardMessage(r.step)
+		messageObj = r.NewFeishuMessage()
 		r.matchRes = `"StatusCode":0,`
 	case dingdingBot:
 		messageObj = dingding.NewStepCardMessage(r.step)
@@ -124,4 +124,16 @@ func (r *request) BotType() string {
 	}
 
 	return ""
+}
+
+func (r *request) NewFeishuMessage() *feishu.Message {
+	s := r.step
+	msg := &feishu.NotifyMessage{
+		Title:    s.ShowTitle(),
+		Content:  s.String(),
+		RobotURL: r.hook.Url,
+		Note:     []string{"💡 该消息由极乐研发云[研发交付系统]提供"},
+		Color:    feishu.COLOR_PURPLE,
+	}
+	return feishu.NewCardMessage(msg)
 }

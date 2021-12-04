@@ -45,7 +45,8 @@ func (c *Controller) addStep(s *pipeline.Step) error {
 		return fmt.Errorf("step %s has schedule to node %s, skip add", s.Key, s.ScheduledNodeName())
 	}
 
-	// 已经调度的任务不处理
+	// 已经调度的任务不处理, 为了防止不断重复调度形成死循环
+	// 有用户自己通过API 进行Step的重新调度(重置)
 	if s.IsScheduledFailed() {
 		return fmt.Errorf("step %s schedule failed, skip add", s.Key)
 	}
