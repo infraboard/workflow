@@ -125,6 +125,8 @@ func (r *Runner) Run(ctx context.Context, in *runner.RunRequest, out *runner.Run
 	out.UpdateReponseMap(CONTAINER_WARN_KEY, strings.Join(resp.Warnings, ","))
 	out.UpdateResponse(in.Step)
 
+	// TODO: 如果镜像不存在, 要提前拉去
+
 	// 启动容器
 	err = r.cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
 	if err != nil {

@@ -91,7 +91,6 @@ func (e *Engine) run(req *runner.RunRequest, resp *runner.RunResponse) {
 		resp.Failed("unknown runner type: %s", actionIns.RunnerType)
 		return
 	}
-
 }
 
 // 如果step执行完成

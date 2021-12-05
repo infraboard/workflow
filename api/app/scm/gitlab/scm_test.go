@@ -2,6 +2,7 @@ package gitlab_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/infraboard/workflow/api/app/scm/gitlab"
@@ -50,4 +51,8 @@ func TestDeleteProjectHook(t *testing.T) {
 	req := gitlab.NewDeleteProjectReqeust(ProjectID, 8439846)
 	err := repo.DeleteProjectHook(req)
 	should.NoError(err)
+}
+
+func init() {
+	PraviateToken = os.Getenv("GITLAB_PRIVATE_TOkEN")
 }

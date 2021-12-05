@@ -24,7 +24,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// SCM_TYPE 流水线状态
+// SCM_TYPE 源码仓库类型
 type SCM_TYPE int32
 
 const (

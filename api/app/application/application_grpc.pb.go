@@ -18,11 +18,13 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ServiceClient interface {
+	// 应用管理
 	CreateApplication(ctx context.Context, in *CreateApplicationRequest, opts ...grpc.CallOption) (*Application, error)
 	UpdateApplication(ctx context.Context, in *UpdateApplicationRequest, opts ...grpc.CallOption) (*Application, error)
 	QueryApplication(ctx context.Context, in *QueryApplicationRequest, opts ...grpc.CallOption) (*ApplicationSet, error)
 	DescribeApplication(ctx context.Context, in *DescribeApplicationRequest, opts ...grpc.CallOption) (*Application, error)
 	DeleteApplication(ctx context.Context, in *DeleteApplicationRequest, opts ...grpc.CallOption) (*Application, error)
+	// 应用事件处理
 	HandleApplicationEvent(ctx context.Context, in *ApplicationEvent, opts ...grpc.CallOption) (*Application, error)
 }
 
@@ -92,11 +94,13 @@ func (c *serviceClient) HandleApplicationEvent(ctx context.Context, in *Applicat
 // All implementations must embed UnimplementedServiceServer
 // for forward compatibility
 type ServiceServer interface {
+	// 应用管理
 	CreateApplication(context.Context, *CreateApplicationRequest) (*Application, error)
 	UpdateApplication(context.Context, *UpdateApplicationRequest) (*Application, error)
 	QueryApplication(context.Context, *QueryApplicationRequest) (*ApplicationSet, error)
 	DescribeApplication(context.Context, *DescribeApplicationRequest) (*Application, error)
 	DeleteApplication(context.Context, *DeleteApplicationRequest) (*Application, error)
+	// 应用事件处理
 	HandleApplicationEvent(context.Context, *ApplicationEvent) (*Application, error)
 	mustEmbedUnimplementedServiceServer()
 }
