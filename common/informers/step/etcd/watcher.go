@@ -128,6 +128,9 @@ func (i *shared) handleDelete(event *clientv3.Event) error {
 	if !ok {
 		i.log.Warnf("key %s found in store", key)
 	}
+	if obj == nil {
+		return nil
+	}
 
 	// 清除缓存
 	if err := i.indexer.Delete(obj); err != nil {

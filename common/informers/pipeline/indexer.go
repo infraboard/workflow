@@ -32,5 +32,11 @@ func MetaNamespaceKeyFunc(obj interface{}) (string, error) {
 	if key, ok := obj.(ExplicitKey); ok {
 		return string(key), nil
 	}
-	return obj.(*pipeline.Pipeline).MakeObjectKey(), nil
+
+	pl, ok := obj.(*pipeline.Pipeline)
+	if ok {
+		return pl.MakeObjectKey(), nil
+	}
+
+	return "", nil
 }

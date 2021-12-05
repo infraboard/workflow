@@ -28,8 +28,6 @@ func TestFeishuWebHook(t *testing.T) {
 		testPipelineStep(),
 	)
 	should.NoError(err)
-
-	
 	t.Log(hooks[0])
 }
 

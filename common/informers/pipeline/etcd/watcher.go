@@ -135,6 +135,10 @@ func (i *shared) handleDelete(event *clientv3.Event) error {
 		i.log.Errorf("delete indexer cache error, %s", err)
 	}
 
-	i.handler.OnDelete(obj.(*pipeline.Pipeline))
+	pl, ok := obj.(*pipeline.Pipeline)
+	if ok {
+		i.handler.OnDelete(pl)
+	}
+
 	return nil
 }

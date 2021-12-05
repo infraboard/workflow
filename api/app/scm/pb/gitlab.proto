@@ -25,7 +25,7 @@ message WebHookEvent {
     // 用户头像
     // @gotags: bson:"project" json:"project"
     Project project = 7;
-    // 用户头像
+    // Commit信息
     // @gotags: bson:"commits" json:"commits"
     repeated Commit commits = 8;
 }

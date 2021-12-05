@@ -114,6 +114,7 @@ func (r *Runner) Run(ctx context.Context, in *runner.RunRequest, out *runner.Run
 		out.Failed("create container error, %s", err)
 		return
 	}
+
 	// 退出时销毁容器
 	defer r.removeContainer(resp.ID)
 

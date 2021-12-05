@@ -32,7 +32,7 @@ func (h *handler) Registry(router router.SubRouter) {
 	r.Handle("DELETE", "/:name", h.DeleteApplication)
 
 	r.BasePath("repo/projects")
-	r.Handle("GET", "/", h.QuerySCMProject)
+	r.Handle("GET", "/", h.QuerySCMProject).DisableAuth()
 
 	r.BasePath("triggers/scm/gitlab")
 	r.Handle("POST", "/", h.GitLabHookHanler).DisableAuth()
@@ -40,7 +40,7 @@ func (h *handler) Registry(router router.SubRouter) {
 
 func (h *handler) Config() error {
 	h.log = zap.L().Named("Application")
-	h.service = nil
+	h.service = app.GetGrpcApp(application.AppName).(application.ServiceServer)
 	return nil
 }
 
