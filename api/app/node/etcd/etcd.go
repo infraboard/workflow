@@ -88,6 +88,7 @@ func (e *etcd) addOnce() error {
 		return fmt.Errorf("get etcd lease id error, %s", err)
 	}
 	e.leaseID = resp.ID
+
 	// 写入key
 	if _, err := e.client.Put(context.Background(), e.instanceKey, e.instanceValue, clientv3.WithLease(e.leaseID)); err != nil {
 		return fmt.Errorf("registe service '%s' with ttl to etcd3 failed: %s", e.instanceKey, err.Error())

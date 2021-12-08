@@ -36,7 +36,7 @@ func NewPipelineController(
 		workqueue:      wq,
 		workerNums:     4,
 		log:            zap.L().Named("Pipeline"),
-		runningWorkers: make(map[string]bool, 4),
+		runningWorkers: make(map[string]struct{}, 4),
 	}
 
 	pi.Watcher().AddPipelineTaskEventHandler(informer.PipelineTaskEventHandlerFuncs{
@@ -65,7 +65,7 @@ type Controller struct {
 	step           step.Informer
 	log            logger.Logger
 	workerNums     int
-	runningWorkers map[string]bool
+	runningWorkers map[string]struct{}
 	wLock          sync.Mutex
 	picker         algorithm.PipelinePicker
 	schedulerName  string
@@ -173,18 +173,18 @@ func (c *Controller) sync(ctx context.Context) error {
 // processNextWorkItem function in order to read and process a message on the
 // workqueue.
 func (c *Controller) runWorker(name string) {
-	isRunning, ok := c.runningWorkers[name]
-	if ok && isRunning {
+	_, ok := c.runningWorkers[name]
+	if ok {
 		c.log.Warnf("worker %s has running", name)
 		return
 	}
 	c.wLock.Lock()
-	c.runningWorkers[name] = true
+	c.runningWorkers[name] = struct{}{}
 	c.log.Infof("start worker %s", name)
 	c.wLock.Unlock()
 	for c.processNextWorkItem() {
 	}
-	if isRunning, ok = c.runningWorkers[name]; ok {
+	if _, ok = c.runningWorkers[name]; ok {
 		c.wLock.Lock()
 		delete(c.runningWorkers, name)
 		c.wLock.Unlock()
