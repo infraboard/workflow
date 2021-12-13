@@ -5,7 +5,6 @@ import (
 	"log"
 	"net"
 
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/infraboard/mcube/app"
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
@@ -16,9 +15,9 @@ import (
 
 // NewGRPCService todo
 func NewGRPCService(interceptors ...grpc.UnaryServerInterceptor) *GRPCService {
-	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
 		interceptors...,
-	)))
+	))
 
 	return &GRPCService{
 		svr: grpcServer,
