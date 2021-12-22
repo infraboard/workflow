@@ -46,7 +46,7 @@ type WebHookEvent struct {
 	// 用户头像
 	// @gotags: bson:"project" json:"project"
 	Project *Project `protobuf:"bytes,7,opt,name=project,proto3" json:"project" bson:"project"`
-	// 用户头像
+	// Commit信息
 	// @gotags: bson:"commits" json:"commits"
 	Commits []*Commit `protobuf:"bytes,8,rep,name=commits,proto3" json:"commits" bson:"commits"`
 }

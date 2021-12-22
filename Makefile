@@ -69,19 +69,12 @@ clean: ## Remove previous build
 	@rm -f dist/*
 
 install: ## Install depence go package
-	@go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.26
-	@go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.1.0
-	@go install github.com/infraboard/protoc-gen-go-ext@v0.0.3
-	@go install github.com/infraboard/mcube/cmd/protoc-gen-go-http@latest
+	@go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+	@go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
 gen: ## Init Service
 	@protoc -I=. -I=/usr/local/include --go_out=. --go_opt=module=${PKG} --go-grpc_out=. --go-grpc_opt=module=${PKG} api/app/*/pb/*.proto
-	@protoc-go-inject-tag -input=api/app/application/*.pb.go
-	@protoc-go-inject-tag -input=api/app/deploy/*.pb.go
-	@protoc-go-inject-tag -input=api/app/pipeline/*.pb.go
-	@protoc-go-inject-tag -input=api/app/action/*.pb.go
-	@protoc-go-inject-tag -input=api/app/scm/*.pb.go
-	@protoc-go-inject-tag -input=api/app/template/*.pb.go
+	@protoc-go-inject-tag -input=api/app/*/*.pb.go
 	@go generate ./...
 
 help: ## Display this help screen
