@@ -110,7 +110,7 @@ func (req *DescribeTemplateRequest) Validate() error {
 // NewQueryTemplateRequest 查询book列表
 func NewQueryTemplateRequest(page *request.PageRequest) *QueryTemplateRequest {
 	return &QueryTemplateRequest{
-		Page: &page.PageRequest,
+		Page: page,
 	}
 }
 

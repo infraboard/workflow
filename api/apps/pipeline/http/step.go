@@ -55,7 +55,7 @@ func (h *handler) QueryStep(w http.ResponseWriter, r *http.Request) {
 
 	page := request.NewPageRequestFromHTTP(r)
 	req := pipeline.NewQueryStepRequest()
-	req.Page = &page.PageRequest
+	req.Page = page
 
 	dommains, err := h.service.QueryStep(
 		ctx.Context(),

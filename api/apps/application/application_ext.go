@@ -192,7 +192,7 @@ func (s *ApplicationSet) Add(item *Application) {
 // NewQueryApplicationRequest 查询book列表
 func NewQueryApplicationRequest(page *request.PageRequest) *QueryApplicationRequest {
 	return &QueryApplicationRequest{
-		Page: &page.PageRequest,
+		Page: page,
 	}
 }
 

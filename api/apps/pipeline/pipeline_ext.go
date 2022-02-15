@@ -45,7 +45,7 @@ func (req *CreatePipelineRequest) UpdateOwner(tk *token.Token) {
 // NewQueryPipelineRequest 查询book列表
 func NewQueryPipelineRequest() *QueryPipelineRequest {
 	return &QueryPipelineRequest{
-		Page: &request.NewDefaultPageRequest().PageRequest,
+		Page: request.NewDefaultPageRequest(),
 	}
 }
 

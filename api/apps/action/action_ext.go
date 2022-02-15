@@ -24,7 +24,7 @@ func NewCreateActionRequest() *CreateActionRequest {
 // NewQueryActionRequest 查询book列表
 func NewQueryActionRequest(page *request.PageRequest) *QueryActionRequest {
 	return &QueryActionRequest{
-		Page: &page.PageRequest,
+		Page: page,
 	}
 }
 

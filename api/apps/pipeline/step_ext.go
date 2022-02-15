@@ -534,7 +534,7 @@ func NewDefaultStepStatus() *StepStatus {
 // NewQueryStepRequest 查询book列表
 func NewQueryStepRequest() *QueryStepRequest {
 	return &QueryStepRequest{
-		Page: &request.NewDefaultPageRequest().PageRequest,
+		Page: request.NewDefaultPageRequest(),
 	}
 }
 

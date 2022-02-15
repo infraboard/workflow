@@ -91,7 +91,7 @@ func (req *CreateApplicationDeployRequest) UpdateOwner(tk *token.Token) {
 // NewQueryApplicationDeployRequest 查询book列表
 func NewQueryApplicationDeployRequest(page *request.PageRequest) *QueryApplicationDeployRequest {
 	return &QueryApplicationDeployRequest{
-		Page: &page.PageRequest,
+		Page: page,
 	}
 }
 

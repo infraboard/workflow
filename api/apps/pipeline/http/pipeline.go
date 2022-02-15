@@ -40,7 +40,7 @@ func (h *handler) CreatePipeline(w http.ResponseWriter, r *http.Request) {
 func (h *handler) QueryPipeline(w http.ResponseWriter, r *http.Request) {
 	page := request.NewPageRequestFromHTTP(r)
 	req := pipeline.NewQueryPipelineRequest()
-	req.Page = &page.PageRequest
+	req.Page = page
 
 	set, err := h.service.QueryPipeline(
 		r.Context(),
