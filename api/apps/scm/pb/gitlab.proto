@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+package infraboard.workflow.pipeline.scm;
+option go_package = "github.com/infraboard/workflow/api/apps/scm";
+
+message WebHookEvent {
+    // 事件类型
+    // @gotags: bson:"object_kind" json:"object_kind" validate:"required"
+    string object_kind = 1;
+    // 事件名称
+    // @gotags: bson:"event_name" json:"event_name" validate:"required"
+    string event_name = 2;
+    // 关联分支
+    // @gotags: bson:"ref" json:"ref" validate:"required"
+    string ref = 3;
+    // 触发者用户ID
+    // @gotags: bson:"user_id" json:"user_id"
+    int64 user_id = 4;
+    // 触发者用户名称
+    // @gotags: bson:"user_name" json:"user_name"
+    string user_name = 5; 
+    // 用户头像
+    // @gotags: bson:"user_avatar" json:"user_avatar"
+    string user_avatar = 6;
+    // 用户头像
+    // @gotags: bson:"project" json:"project"
+    Project project = 7;
+    // Commit信息
+    // @gotags: bson:"commits" json:"commits"
+    repeated Commit commits = 8;
+}
+
+message Commit {
+    // id
+    // @gotags: bson:"id" json:"id"
+    string id = 1;
+    // commit message
+    // @gotags: bson:"message" json:"message"
+    string message = 2; 
+    // title
+    // @gotags: bson:"title" json:"title"
+    string title = 3; 
+    // 文本格式时间
+    // @gotags: bson:"timestamp" json:"timestamp"
+    string timestamp = 4;
+    // commit对应的url
+    // @gotags: bson:"url" json:"url"
+    string url = 5; 
+    // 作者
+    // @gotags: bson:"author" json:"author"
+    Author author = 6;  
+    // 新加的文件
+    // @gotags: bson:"added" json:"added"
+    repeated string added = 7; 
+    // 修改的文件
+    // @gotags: bson:"modified" json:"modified"
+    repeated string modified = 8; 
+    // 删除的文件
+    // @gotags: bson:"removed" json:"removed"
+    repeated string removed = 9; 
+}
+
+message Author {
+    // 作者名称
+    // @gotags: bson:"name" json:"name"
+    string name = 1;
+    // 作者邮箱
+    // @gotags: bson:"email" json:"email"
+    string email = 2;
+}
+
+message Project {
+    // 项目id
+    // @gotags: bson:"id" json:"id"
+    int64 id = 1;
+    // 描述
+    // @gotags: bson:"description" json:"description"
+    string description = 2;
+    // 名称
+    // @gotags: bson:"name" json:"name"
+    string name = 3;
+    // ssh 地址
+    // @gotags: bson:"ssh_url_to_repo" json:"ssh_url_to_repo"
+    string git_ssh_url = 4;
+    // http 地址
+    // @gotags: bson:"http_url_to_repo" json:"http_url_to_repo"
+    string git_http_url = 5;
+    // namespace
+    // @gotags: bson:"path_with_namespace" json:"path_with_namespace"
+    string namespace_path = 6;
+    // 是否已经同步
+    // @gotags: bson:"has_synced" json:"has_synced"
+    bool has_synced = 7;
+}
+
+message ProjectSet {
+    // @gotags: json:"items"
+    repeated Project items = 9; 
+}

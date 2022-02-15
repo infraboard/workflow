@@ -14,8 +14,8 @@ import (
 	"github.com/infraboard/mcube/types/ftime"
 	"github.com/spf13/cobra"
 
-	"github.com/infraboard/workflow/api/app/node"
-	etcd_register "github.com/infraboard/workflow/api/app/node/etcd"
+	"github.com/infraboard/workflow/api/apps/node"
+	etcd_register "github.com/infraboard/workflow/api/apps/node/etcd"
 	"github.com/infraboard/workflow/conf"
 	node_controller "github.com/infraboard/workflow/scheduler/controller/node"
 	"github.com/infraboard/workflow/scheduler/controller/pipeline"

@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/infraboard/mcube/logger/zap"
-	"github.com/infraboard/workflow/api/app/pipeline"
+	"github.com/infraboard/workflow/api/apps/pipeline"
 	"github.com/infraboard/workflow/common/hooks/webhook"
 )
 

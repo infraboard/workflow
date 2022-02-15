@@ -1,0 +1,206 @@
+syntax = "proto3";
+
+package infraboard.workflow.deploy;
+option go_package = "github.com/infraboard/workflow/api/apps/deploy";
+
+import "github.com/infraboard/mcube/pb/page/page.proto";
+
+service Service {
+	rpc CreateApplicationDeploy(CreateApplicationDeployRequest) returns(ApplicationDeploy);
+    rpc QueryApplicationDeploy(QueryApplicationDeployRequest) returns(ApplicationDeploySet);
+    rpc DescribeApplicationDeploy(DescribeApplicationDeployRequest) returns(ApplicationDeploy);
+    rpc DeleteApplicationDeploy(DeleteApplicationDeployRequest) returns(ApplicationDeploy);
+}
+
+// Mode 部署的形式
+enum Mode {
+    // 主机模式部署
+    Host = 0;
+	// k8s模式部署
+	K8s = 1;
+}
+
+// 应用部署配置类型
+enum AppConfigType {
+    // 配置文件形式
+    File = 0;
+    // 环境变量
+    EnvVar = 1;
+    // ConfigMap k8s模式下才支持
+    ConfigMap = 2;
+}
+
+// ApplicationDeploy 应用部署
+message ApplicationDeploy {
+    // 唯一ID
+    // @gotags: bson:"_id" json:"id"
+    string id = 1;
+    // 所属域
+    // @gotags: bson:"domain" json:"domain"
+    string domain = 2;
+    // 所属空间
+    // @gotags: bson:"namespace" json:"namespace"
+    string namespace = 3;
+    // 创建时间
+    // @gotags: bson:"create_at" json:"create_at"
+    int64 create_at = 4;
+    // 创建人
+    // @gotags: bson:"create_by" json:"create_by"
+    string create_by = 5;
+    // 创建时间
+    // @gotags: bson:"update_at" json:"update_at"
+    int64 update_at = 6;
+    // 创建人
+    // @gotags: bson:"update_by" json:"update_by"
+    string update_by = 7;
+    // 关联的应用
+    // @gotags: bson:"app_id" json:"app_id"
+    string app_id = 9;
+    // 所属环境
+    // @gotags: bson:"environment" json:"environment"
+    string environment = 10;
+    // 部署的名称
+    // @gotags: bson:"name" json:"name"
+    string name = 11;
+    // 应用配置
+    // @gotags: bson:"application_conf" json:"application_conf"
+    ApplicationConfig application_conf = 12;
+    // 部署模式
+    // @gotags: bson:"deploy_mode" json:"deploy_mode"
+    Mode deploy_mode = 13;
+    // 主机模式的部署配置
+    // @gotags: bson:"host_deploy_config" json:"host_deploy_config"
+    HostModeConfig host_deploy_config = 14;
+    // k8s模式下的部署配置
+    // @gotags: bson:"k8s_deploy_config" json:"k8s_deploy_config"
+    K8sModeConfig k8s_deploy_config = 15;
+	// 标签
+    // @gotags: bson:"tags" json:"tags"
+	map<string, string> tags = 16;
+	// 描述
+    // @gotags: bson:"description" json:"description"
+	string description = 17;
+}
+
+message HostModeConfig {
+    // 关联的主机列表, 这里是关联id, 来源于cmdb系统
+    // @gotags: bson:"hosts_ref" json:"hosts_ref" validate:"required"
+    repeated string hosts_ref = 1;
+}
+
+// ApplicationConfig 应用部署时的配置
+message ApplicationConfig {
+    // 配置方式
+    // @gotags: bson:"type" json:"type"
+    AppConfigType type = 1;
+    // 配置文件
+    // @gotags: bson:"files" json:"files"
+    repeated FileConfig files = 2;
+    // 环境变量
+    // @gotags: bson:"envs" json:"envs"
+    map<string, string> envs = 3;
+    // ConfigMap配置
+    // @gotags: bson:"config_map" json:"config_map"
+    string config_map = 4;
+}
+
+// FileConfig 应用的配置文件
+message FileConfig {
+    // 配置文件描述
+    // @gotags: bson:"desc" json:"desc"
+    string desc = 1;
+    // 配置文件放置路径
+    // @gotags: bson:"path" json:"path" validate:"required"
+    string path = 2;
+    // 配置文件的内容
+    // @gotags: bson:"content" json:"content" validate:"required"
+    string content = 3;
+}
+
+// K8sModeConfig yaml文本格式的k8s部署相关配置文件
+message K8sModeConfig {
+    // k8s 认证配置
+    // @gotags: bson:"kube_config" json:"kube_config" validate:"required"
+    string kube_config = 1;
+    // Deployment配置
+    // @gotags: bson:"deployment" json:"deployment" validate:"required"
+    string deployment = 2;
+    // Service配置
+    // @gotags: bson:"service" json:"service" validate:"required"
+    string service =3;
+}
+
+// CreateApplicationDeployRequest 应用部署
+message CreateApplicationDeployRequest {
+    // 所属域
+    // @gotags: json:"domain" validate:"required"
+    string domain = 1;
+    // 所属空间
+    // @gotags: json:"namespace" validate:"required"
+    string namespace = 2;
+    // 创建人
+    // @gotags: json:"create_by" validate:"required"
+    string create_by = 3;
+    // 关联的应用
+    // @gotags: json:"app_id" validate:"required"
+    string app_id = 4;
+    // 所属环境
+    // @gotags: json:"environment" validate:"required"
+    string environment = 5;
+    // 部署的名称
+    // @gotags: json:"name" validate:"required"
+    string name = 6;
+    // 应用配置
+    // @gotags: json:"application_conf"
+    ApplicationConfig application_conf = 7;
+    // 部署模式
+    // @gotags: json:"deploy_mode"
+    Mode deploy_mode = 8;
+    // 主机模式的部署配置
+    // @gotags: json:"host_deploy_config"
+    HostModeConfig host_deploy_config = 9;
+    // k8s模式下的部署配置
+    // @gotags: json:"k8s_deploy_config"
+    K8sModeConfig k8s_deploy_config = 10;
+	// 标签
+    // @gotags: json:"tags"
+	map<string, string> tags = 11;
+	// 描述
+    // @gotags: json:"description"
+	string description = 12;
+}
+
+// ApplicationDeploySet todo
+message ApplicationDeploySet {
+    // @gotags: json:"total"
+    int64 total = 1;
+    // @gotags: json:"items"
+    repeated ApplicationDeploy items = 2;
+}
+
+message QueryApplicationDeployRequest {
+    // @gotags: json:"page"
+    infraboard.mcube.page.PageRequest page = 1;
+    // @gotags: json:"domain"
+    string domain = 2;
+    // @gotags: json:"namespace"
+    string namespace = 3;
+    // @gotags: json:"app_id"
+    string app_id = 4;
+    // @gotags: json:"environment"
+    string environment = 5;    
+}
+
+message DeleteApplicationDeployRequest {
+    // @gotags: json:"namespace"
+    string namespace = 1;
+    // @gotags: json:"id"
+    string id = 2;
+}
+
+message DescribeApplicationDeployRequest {
+    // @gotags: json:"namespace"
+    string namespace = 1;
+    // @gotags: json:"id" validate:"required"
+    string id = 2;
+}

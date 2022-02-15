@@ -73,8 +73,8 @@ install: ## Install depence go package
 	@go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
 gen: ## Init Service
-	@protoc -I=. -I=/usr/local/include --go_out=. --go_opt=module=${PKG} --go-grpc_out=. --go-grpc_opt=module=${PKG} api/app/*/pb/*.proto
-	@protoc-go-inject-tag -input=api/app/*/*.pb.go
+	@protoc -I=. -I=/usr/local/include --go_out=. --go_opt=module=${PKG} --go-grpc_out=. --go-grpc_opt=module=${PKG} api/apps/*/pb/*.proto
+	@protoc-go-inject-tag -input=api/apps/*/*.pb.go
 	@go generate ./...
 
 help: ## Display this help screen

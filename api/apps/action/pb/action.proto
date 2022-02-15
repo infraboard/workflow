@@ -1,0 +1,222 @@
+syntax = "proto3";
+
+package infraboard.workflow.action;
+option go_package = "github.com/infraboard/workflow/api/apps/action";
+
+import "github.com/infraboard/mcube/pb/page/page.proto";
+import "github.com/infraboard/mcube/pb/resource/base.proto";
+
+service Service {
+	rpc CreateAction(CreateActionRequest) returns(Action);
+	rpc QueryAction(QueryActionRequest) returns(ActionSet);
+	rpc DescribeAction(DescribeActionRequest) returns(Action);
+	rpc UpdateAction(UpdateActionRequest) returns(Action);
+	rpc DeleteAction(DeleteActionRequest) returns(Action);
+}
+
+// STEP_RUNNER step执行类型
+enum RUNNER_TYPE {
+	// 使用Node节点本地安装的Docker执行
+	DOCKER = 0;
+	// 使用K8s执行
+	K8s = 1;
+	// 本地执行, 用于在Node节点本地执行
+	LOCAL = 2;
+}
+
+// Action 动作定义
+message Action {
+    // 名称
+	// @gotags: bson:"_id" json:"id" validate:"required"
+    string id = 19;
+	// 图片
+	// @gotags: bson:"logo" json:"logo"
+	string logo = 20;
+	// 展示名称 
+	// @gotags: bson:"display_name" json:"display_name"
+	string display_name = 21;
+	// 是否是最新版本, 最新版本只有一个
+	// @gotags: bson:"is_latest" json:"is_latest"
+	bool is_latest = 22;
+    // 名称
+	// @gotags: bson:"name" json:"name" validate:"required"
+    string name = 8;
+	// Action对应的版本, 推荐默认v1
+	// @gotags: json:"version" validate:"required"
+	string version = 18;
+	// 资源版本
+	// @gotags: bson:"resource_version" json:"resource_version,omitempty"
+	int64 resource_version = 16;
+	// 所属域
+	// @gotags: bson:"domain" json:"domain"
+	string domain = 1;
+	// 所属空间
+	// @gotags: bson:"namespace" json:"namespace"
+	string namespace = 2;
+	// 创建时间
+	// @gotags: bson:"create_at" json:"create_at"
+	int64 create_at = 3;
+	// 创建人
+	// @gotags: bson:"create_by" json:"create_by"
+	string create_by = 4;
+	// 更新时间
+	// @gotags: bson:"update_at" json:"update_at"
+	int64 update_at = 5;
+	// 更新人
+	// @gotags: bson:"update_by" json:"update_by"
+	string update_by = 6;
+	// 可见模式
+	// @gotags: bson:"visiable_mode" json:"visiable_mode"
+	mcube.resource.VisiableMode visiable_mode = 15;
+	// 执行器类型, 默认采用Node节点本地Docker执行
+	// @gotags: bson:"runner_type" json:"runner_type"
+	RUNNER_TYPE runner_type = 13;
+	// runner运行时参数
+	// @gotags: bson:"runner_params" json:"runner_params"
+	map<string, string> runner_params = 17;
+	// step运行时的参数说明
+	// @gotags: bson:"run_params" json:"run_params"
+	repeated RunParamDesc run_params = 14;
+	// 标签
+	// @gotags: bson:"tags" json:"tags"
+	map<string, string> tags = 11;
+	// 描述
+	// @gotags: bson:"description" json:"description"
+	string description = 12;	
+}
+
+message RunnerParam {
+	// 参数的值
+	// @gotags: bson:"value" json:"value"
+	string value = 1;
+	// 值描述
+	// @gotags: bson:"describe" json:"describe"
+	string describe = 2;
+}
+
+
+message RunParamDesc {
+	// 可选/必传
+	// @gotags: bson:"required" json:"required"
+	bool required = 1;
+	// 建的名称
+	// @gotags: bson:"key_name" json:"key_name" validate:"required"
+	string key_name = 4;
+	// 建的描述
+	// @gotags: bson:"key_desc" json:"key_desc"
+	string key_desc = 5;
+	// 默认值, action运行时如果未传人，会填充默认值
+	// @gotags: bson:"default_value" json:"default_value"
+	string default_value = 2;
+	// 值描述
+	// @gotags: bson:"value_desc" json:"value_desc"
+	string value_desc = 3;
+}
+
+// ActionSet todo
+message ActionSet {
+	// @gotags: bson:"total" json:"total"
+    int64 total = 1;
+	// @gotags: bson:"items" json:"items"
+    repeated Action items = 2;
+}
+
+message CreateActionRequest {
+	// 执行器类型, 默认采用Node节点本地Docker执行
+	// @gotags: json:"runner_type"
+	RUNNER_TYPE runner_type = 7;
+	// 所属域
+	// @gotags: json:"domain" validate:"required"
+	string domain = 9;
+	// 所属空间
+	// @gotags: json:"namespace" validate:"required"
+	string namespace = 10;
+	// 创建人
+	// @gotags: json:"create_by" validate:"required"
+	string create_by = 11;
+	// 图片
+	// @gotags: json:"logo"
+	string logo = 12;
+	// 名称
+	// @gotags: json:"name" validate:"required"
+	string name = 1;
+	// Action对应的版本, 推荐默认v1
+	// @gotags: json:"version" validate:"required"
+	string version = 8;
+	// 展示名称
+	// @gotags: json:"display_name"
+	string display_name = 13;
+	// 可见模式
+	// @gotags: json:"visiable_mode"
+	mcube.resource.VisiableMode visiable_mode = 6;
+	// 运行时 Runner传人参数, 创建完成后不能修改, 要修改请新建版本
+	// @gotags: bson:"runner_params" json:"runner_params"
+	map<string, string> runner_params = 2;
+	// 运行时 用户传人的参数说明
+	// @gotags: bson:"run_params" json:"run_params"
+	repeated RunParamDesc run_params = 3;
+	// 标签
+	// @gotags: json:"tags"
+	map<string, string> tags = 4;
+	// 描述
+	// @gotags: json:"description"
+	string description = 5;
+}
+
+// UpdateActionRequest, 不能修改ActionRunner运行参数, 如果需要修改，请新建一个版本
+message UpdateActionRequest {
+	// 指定名称
+	// @gotags: json:"name" validate:"required"
+	string name = 5;
+	// 指定版本
+	// @gotags: json:"version" validate:"required"
+	string version = 6;
+	// 可见模式
+	// @gotags: json:"visiable_mode"
+	mcube.resource.VisiableMode visiable_mode = 1;
+	// 运行时的参数说明
+	// @gotags: bson:"run_params" json:"run_params"
+	repeated RunParamDesc run_params = 2;
+	// 标签
+	// @gotags: json:"tags"
+	map<string, string> tags = 3;
+	// 描述
+	// @gotags: json:"description"
+	string description = 4;
+}
+
+message DescribeActionRequest {
+	// id
+	// @gotags: json:"id"
+	string id = 4;
+	// 名称
+	// @gotags: json:"name"
+	string name = 1;
+	// 对应的版本
+	// @gotags: json:"version"
+	string version = 3;
+}
+
+message DeleteActionRequest {
+	// 指定名称
+	// @gotags: json:"name" validate:"required"
+	string name = 1;
+	// 指定版本
+	// @gotags: json:"version" validate:"required"
+	string version = 3;
+	// 唯一空间
+	// @gotags: json:"namespace" validate:"required"
+	string namespace = 2;
+}
+
+// QueryPipelineRequest 查询Book请求
+message QueryActionRequest {
+	// @gotags: json:"page"
+    infraboard.mcube.page.PageRequest page = 1;
+	// @gotags: json:"namespace"
+	string namespace = 4;
+	// @gotags: json:"name"
+    string name = 2;
+	// @gotags: json:"version"
+	string version = 3;
+}

@@ -13,7 +13,7 @@ import (
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
 
-	"github.com/infraboard/workflow/api/app/action"
+	"github.com/infraboard/workflow/api/apps/action"
 	"github.com/infraboard/workflow/node/controller/step/runner"
 	"github.com/infraboard/workflow/node/controller/step/store"
 )

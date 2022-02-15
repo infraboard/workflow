@@ -8,7 +8,7 @@ import (
 	"go.etcd.io/etcd/api/v3/mvccpb"
 	clientv3 "go.etcd.io/etcd/client/v3"
 
-	"github.com/infraboard/workflow/api/app/pipeline"
+	"github.com/infraboard/workflow/api/apps/pipeline"
 	"github.com/infraboard/workflow/common/cache"
 	informer "github.com/infraboard/workflow/common/informers/pipeline"
 )

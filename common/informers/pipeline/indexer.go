@@ -1,7 +1,7 @@
 package pipeline
 
 import (
-	"github.com/infraboard/workflow/api/app/pipeline"
+	"github.com/infraboard/workflow/api/apps/pipeline"
 	"github.com/infraboard/workflow/common/cache"
 )
 

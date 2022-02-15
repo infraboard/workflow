@@ -7,7 +7,7 @@ import (
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
 
-	"github.com/infraboard/workflow/api/app/pipeline"
+	"github.com/infraboard/workflow/api/apps/pipeline"
 )
 
 func NewWebHook() *WebHook {

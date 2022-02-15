@@ -23,7 +23,7 @@ import (
 	"github.com/infraboard/workflow/conf"
 
 	// 加载所有服务
-	_ "github.com/infraboard/workflow/api/app/all"
+	_ "github.com/infraboard/workflow/api/apps/all"
 )
 
 var (

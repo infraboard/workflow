@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/infraboard/workflow/api/app/pipeline"
+	"github.com/infraboard/workflow/api/apps/pipeline"
 )
 
 type Runner interface {

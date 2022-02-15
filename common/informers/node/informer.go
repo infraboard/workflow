@@ -3,7 +3,7 @@ package node
 import (
 	"context"
 
-	"github.com/infraboard/workflow/api/app/node"
+	"github.com/infraboard/workflow/api/apps/node"
 	"github.com/infraboard/workflow/common/cache"
 )
 

@@ -1,6 +1,6 @@
 package wechat
 
-import "github.com/infraboard/workflow/api/app/pipeline"
+import "github.com/infraboard/workflow/api/apps/pipeline"
 
 const (
 	URL_PREFIX = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send"

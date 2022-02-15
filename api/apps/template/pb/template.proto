@@ -1,0 +1,151 @@
+syntax = "proto3";
+
+package infraboard.workflow.template;
+option go_package = "github.com/infraboard/workflow/api/apps/template";
+
+import "api/app/pipeline/pb/pipeline.proto";
+import "github.com/infraboard/mcube/pb/page/page.proto";
+import "github.com/infraboard/mcube/pb/resource/base.proto";
+import "github.com/infraboard/mcube/pb/request/request.proto";
+
+
+service Service {
+	rpc CreateTemplate(CreateTemplateRequest) returns(Template);
+	rpc QueryTemplate(QueryTemplateRequest) returns(TemplateSet);
+	rpc DescribeTemplate(DescribeTemplateRequest) returns(Template);
+	rpc UpdateTemplate(UpdateTemplateRequest) returns(Template);
+	rpc DeleteTemplate(DeleteTemplateRequest) returns(Template);
+}
+
+// Template Pipeline参数模版
+message Template {
+        // 唯一ID
+        // @gotags: bson:"_id" json:"id"
+        string id = 1;
+        // 所属域
+        // @gotags: bson:"domain" json:"domain"
+        string domain = 2;
+        // 所属空间
+        // @gotags: bson:"namespace" json:"namespace"
+        string namespace = 3;
+        // 创建时间
+        // @gotags: bson:"create_at" json:"create_at"
+        int64 create_at = 4;
+        // 创建人
+        // @gotags: bson:"create_by" json:"create_by"
+        string create_by = 5;
+        // 创建时间
+        // @gotags: bson:"update_at" json:"update_at"
+        int64 update_at = 6;
+        // 创建人
+        // @gotags: bson:"update_by" json:"update_by"
+        string update_by = 7;
+        // 用于创建pipeline的请求参数
+        // @gotags: bson:"pipelines" json:"pipelines"
+        repeated infraboard.workflow.pipeline.CreatePipelineRequest pipelines = 8;
+        // 可见模式
+        // @gotags: bson:"visiable_mode" json:"visiable_mode"
+        infraboard.mcube.resource.VisiableMode visiable_mode = 9;
+        // 模版的名字
+        // @gotags: bson:"name" json:"name"
+        string name = 10;
+        // 标签
+        // @gotags: bson:"tags" json:"tags"
+        map<string, string> tags = 11;
+        // 描述
+        // @gotags: bson:"description" json:"description"
+        string description = 12;
+}
+
+
+// TemplateSet todo
+message TemplateSet {
+        // @gotags: json:"total"
+        int64 total = 1;
+        // @gotags: json:"items"
+        repeated Template items = 2;
+}
+
+// CreateTemplateRequest todo
+message CreateTemplateRequest {
+        // 所属域
+        // @gotags: json:"domain" validate:"required"
+        string domain = 1;
+        // 所属空间
+        // @gotags: json:"namespace" validate:"required"
+        string namespace = 2;
+        // 创建人
+        // @gotags: json:"create_by" validate:"required"
+        string create_by = 3;
+        // 用于创建pipeline的请求参数
+        // @gotags: json:"pipelines"
+        repeated workflow.pipeline.CreatePipelineRequest pipelines = 4;
+        // 可见模式
+        // @gotags: json:"visiable_mode"
+        infraboard.mcube.resource.VisiableMode visiable_mode = 5;
+        // 模版的名字
+        // @gotags: json:"name" validate:"required"
+        string name = 6;
+        // 标签
+        // @gotags: json:"tags"
+        map<string, string> tags = 7;
+        // 描述
+        // @gotags: json:"description"
+        string description = 8;
+}
+
+// UpdateTemplateRequest todo
+message UpdateTemplateRequest {
+        // 更新模式
+        // @gotags: json:"update_mode"
+        infraboard.mcube.request.UpdateMode update_mode = 1;
+        // 更新人
+        // @gotags: json:"update_by" validate:"required"
+        string update_by = 2;
+        // 模版id
+        // @gotags: json:"id" validate:"required"
+        string id = 3;
+        // 具体需要更新的数据
+        // @gotags: json:"data"
+        UpdateTemplateData data = 4;
+}
+
+message UpdateTemplateData {
+        // 用于创建pipeline的请求参数
+        // @gotags: json:"pipelines"
+        repeated workflow.pipeline.CreatePipelineRequest pipelines = 1;
+        // 可见模式
+        // @gotags: json:"visiable_mode"
+        infraboard.mcube.resource.VisiableMode visiable_mode = 2;
+        // 模版的名字
+        // @gotags: json:"name"
+        string name = 3;
+        // 标签
+        // @gotags: json:"tags"
+        map<string, string> tags = 4;
+        // 描述
+        // @gotags: json:"description"
+        string description = 5;
+}
+
+// QueryTemplateRequest 查询Book请求
+message QueryTemplateRequest {
+        infraboard.mcube.page.PageRequest page = 1;
+        string namespace = 4;
+        string name = 2;
+        string version = 3;
+}
+
+// DescribeTemplateRequest todo
+message DescribeTemplateRequest {
+	// id
+        // @gotags: json:"id" validate:"required"
+	string id = 1;
+}
+
+// DeleteTemplateRequest todo
+message DeleteTemplateRequest {
+	// id
+        // @gotags: json:"id" validate:"required"
+	string id = 1;
+}

@@ -1,0 +1,556 @@
+syntax = "proto3";
+
+package infraboard.workflow.pipeline;
+option go_package = "github.com/infraboard/workflow/api/apps/pipeline";
+
+import "github.com/infraboard/mcube/pb/page/page.proto";
+import "api/app/scm/pb/gitlab.proto";
+
+service Service {
+	// pipeline管理
+	rpc CreatePipeline(CreatePipelineRequest) returns(Pipeline);
+	rpc QueryPipeline(QueryPipelineRequest) returns(PipelineSet);
+	rpc DescribePipeline(DescribePipelineRequest) returns(Pipeline);
+	rpc WatchPipeline(stream WatchPipelineRequest) returns(stream WatchPipelineResponse);
+	rpc DeletePipeline(DeletePipelineRequest) returns(Pipeline);
+	// step管理
+	rpc CreateStep(CreateStepRequest) returns(Step);
+	rpc QueryStep(QueryStepRequest) returns(StepSet);
+	rpc DescribeStep(DescribeStepRequest) returns(Step);
+	rpc DeleteStep(DeleteStepRequest) returns(Step);
+	rpc CancelStep(CancelStepRequest) returns(Step);
+	rpc AuditStep(AuditStepRequest) returns(Step);
+}
+
+// STEP_STATUS Step任务状态
+enum STEP_STATUS {
+    // 任务等待被执行
+    PENDDING = 0;
+	// 任务调度失败
+	SCHEDULE_FAILED = 10;
+	// 正在执行
+	RUNNING = 1;
+    // 执行成功
+    SUCCEEDED = 3;
+	// 执行失败
+	FAILED = 4;
+    // 取消中
+    CANCELING = 5;
+    // 取消完成
+    CANCELED = 6;
+	// 忽略执行
+	SKIP = 7;
+	// 审批中, 确认过后才能继续执行
+	AUDITING = 8;
+	// 审批拒绝
+	REFUSE = 9;
+}
+
+// PIPELINE_STATUS 流水线状态
+enum PIPELINE_STATUS {
+    // 已经调度完成, 等待执行
+    WAITTING = 0;
+	// 执行中
+	EXECUTING = 1;
+	// 执行结束
+	COMPLETE = 2;
+}
+
+// PARAM_VALUE_TYPE 参数值类型
+enum PARAM_VALUE_TYPE {
+	// 明文文本信息
+	PLAIN = 0;
+    // 应用变量
+    APP_VAR = 1;
+	// secret 引用
+	SECRET_REF = 2;
+	// 明文敏感信息, 需要后端加密
+	PASSWORD = 3;
+	// 密文信息, 由PASSWORD类型加密后得到
+	CRYPTO = 4;
+}
+
+// AUDIT_RESPONSE 审核结果
+enum AUDIT_RESPONSE {
+	// 未处理
+	UOD = 0;
+	// 允许执行
+	ALLOW = 1;
+	// 不允许执行
+	DENY = 2;
+}
+
+// STEP_CREATE_BY step任务类型
+enum STEP_CREATE_BY {
+	// 由pipeline控制器创建
+	PIPELINE = 0;
+	// 由cronjob控制器创建
+	CRONJOB = 1;
+	// 由用户自己创建, 用于单次任务执行，比如调试
+	USER = 2;
+}
+
+enum PIPELINE_WATCH_MOD {
+	// watch sigle pipeline 
+	BY_ID = 0;
+	// watch namespace pipeline
+	BY_NAMESPACE = 1;
+}
+
+// Pipeline todo
+message Pipeline {
+    // 唯一ID
+	// @gotags: bson:"_id" json:"id"
+    string id = 1;
+	// 资源版本
+	// @gotags: bson:"resource_version" json:"resource_version,omitempty"
+	int64 resource_version = 2;
+	// 所属域
+	// @gotags: bson:"domain" json:"domain"
+	string domain = 3;
+	// 所属空间
+	// @gotags: bson:"namespace" json:"namespace"
+	string namespace = 4;
+	// 创建时间
+	// @gotags: bson:"create_at" json:"create_at"
+	int64 create_at = 5;
+	// 创建人
+	// @gotags: bson:"create_by" json:"create_by"
+	string create_by = 6;
+	// 模版id
+	// @gotags: bson:"template_id" json:"template_id"
+	string template_id = 16;
+    // 名称
+	// @gotags: bson:"name" json:"name"
+    string name = 7;
+	// 全局参数, step执行时合并处理
+	// @gotags: bson:"with" json:"with"
+	map<string, string> with = 13;
+	// 需要挂载的文件
+	// @gotags: bson:"mount" json:"mount"
+	MountData mount = 14;
+	// 标签
+	// @gotags: bson:"tags" json:"tags"
+	map<string, string> tags = 8;
+	// 描述
+	// @gotags: bson:"description" json:"description"
+	string description = 9;
+	// 触发条件
+	// @gotags: bson:"on" json:"on"
+	Trigger on = 10;
+	// 触发事件
+	// @gotags: bson:"hook_event" json:"hook_event"
+	infraboard.workflow.pipeline.scm.WebHookEvent hook_event = 15;
+	// 当前状态
+	// @gotags: bson:"status" json:"status"
+	PipelineStatus status = 11;
+	// 具体编排阶段
+	// @gotags: bson:"stages" json:"stages"
+	repeated Stage stages = 12;
+}
+
+// Trigger Pipeline触发执行的条件
+message Trigger {
+	// 事件名称,那些事件可以触发
+	// @gotags: bson:"events" json:"events"
+	repeated string events = 1;
+	// 分支名称, 那些分支可以触发
+	// @gotags: bson:"branches" json:"branches"
+	repeated string branches = 2;
+}
+
+// 挂载信息, 用于流水线执行过程中 数据共享
+message MountData {
+	// 挂载的根节点位置, 默认挂载点: workflow
+	// @gotags: bson:"root" json:"root"
+	string root = 1;
+	// 需要挂载的文件列表
+	// @gotags: bson:"files" json:"files"
+	repeated MountFile files = 2;
+}
+
+message MountFile {
+	// 文件名称, 默认就是下载文件的名称
+	// @gotags: bson:"name" json:"name"
+	string name = 1;
+	// 文件下载地址
+	// @gotags: bson:"download_url" json:"download_url"
+	string download_url = 2;
+	// 是否解压
+	// @gotags: bson:"unpack" json:"unpack"
+	bool unpack = 3;
+	// 解压目录
+	// @gotags: bson:"unpack_dir" json:"unpack_dir"
+	string unpack_dir = 4;
+}
+
+// Stage todo
+message Stage {
+	// 阶段ID
+	// @gotags: bson:"id" json:"id"
+	int32 id = 1;
+    // 名称
+	// @gotags: bson:"name" json:"name" validate:"required"
+    string name = 2;
+	// 依赖其他stage执行成功
+	// @gotags: bson:"needs" json:"needs"
+	repeated string needs = 3;
+	// 具体步骤
+	// @gotags: bson:"steps" json:"steps"
+	repeated Step steps = 4;
+}
+
+message CreateStepRequest {
+    // 名称
+	// @gotags: json:"name" validate:"required"
+    string name = 1;
+	// 具体动作
+	// @gotags: json:"action" validate:"required"
+	string action = 2;
+	// 是否需要审批, 审批通过后才能执行
+	// @gotags: json:"with_audit"
+	bool with_audit =3;
+	// 审批参数, 有审批模块做具体实现
+	// @gotags: json:"audit_params"
+	map<string, string> audit_params = 4;
+	// 参数
+	// @gotags: json:"with"
+	map<string, string> with = 5;	
+	// step执行完成后, 是否需要通知
+	// @gotags: json:"with_notify"
+	bool with_notify = 6;
+	// 通知参数, 由通知模块做具体实现
+	// @gotags: json:"notify_params"
+	map<string, string> notify_params = 7;
+	// WebHook配置, 用于和其他系统联动, 比如各种机器人
+	// @gotags: json:"webhooks"
+	repeated WebHook webhooks = 8;
+	// 调度标签
+	// @gotags: json:"node_selector"
+	map<string, string> node_selector = 9;
+	// 空间
+	// @gotags: json:"namespace"
+	string namespace = 10;
+}
+
+message Step {
+	// Key 运行时标识符
+	// @gotags: bson:"key" json:"key,omitempty"
+	string key = 9;
+	// step由那种控制器创建的, 也就是step类型
+	// @gotags: bson:"create_type" json:"create_type"
+	STEP_CREATE_BY create_type = 16;
+	// 所属空间
+	// @gotags: bson:"namespace" json:"namespace"
+	string namespace = 17;
+	// 所属空间
+	// @gotags: bson:"pipeline_id" json:"pipeline_id,omitempty"
+	string pipeline_id = 18;
+	// 创建时间
+	// @gotags: bson:"create_at" json:"create_at"
+	int64 create_at = 19;
+	// 状态更新时间
+	// @gotags: bson:"update_at" json:"update_at"
+	int64 update_at = 20;
+	// 关联的应用部署id, 关联部署过后可以通过变量传递当前部署的配置
+	// @gotags: bson:"deploy_id" json:"deploy_id"
+	string deploy_id = 21;
+	// 资源版本
+	// @gotags: bson:"resource_version" json:"resource_version,omitempty"
+	int64 resource_version = 14;
+	// 步骤ID
+	// @gotags: bson:"id" json:"id"
+	int32 id = 1;
+    // 名称
+	// @gotags: bson:"name" json:"name" validate:"required"
+    string name = 2;
+	// 具体动作
+	// @gotags: bson:"action" json:"action" validate:"required"
+	string action = 3;
+	// 参数
+	// @gotags: bson:"with" json:"with"
+	map<string, string> with = 4;
+	// 是否并行
+	// @gotags: bson:"is_parallel" json:"is_parallel"
+	bool is_parallel = 5;
+	// 忽略失败
+	// @gotags: bson:"ignore_failed" json:"ignore_failed"
+	bool ignore_failed = 6;
+	// 是否需要审批, 审批通过后才能执行
+	// @gotags: bson:"with_audit" json:"with_audit"
+	bool with_audit =10;
+	// 审批参数, 有审批模块做具体实现
+	// @gotags: bson:"audit_params" json:"audit_params"
+	map<string, string> audit_params = 13;
+	// step执行完成后, 是否需要通知
+	// @gotags: bson:"with_notify" json:"with_notify"
+	bool with_notify = 11;
+	// 通知参数, 由通知模块做具体实现
+	// @gotags: bson:"notify_params" json:"notify_params"
+	map<string, string> notify_params = 12;
+	// WebHook配置, 用于和其他系统联动, 比如各种机器人
+	// @gotags: bson:"webhooks" json:"webhooks"
+	repeated WebHook webhooks = 15;
+	// 调度标签
+	// @gotags: bson:"node_selector" json:"node_selector"
+	map<string, string> node_selector = 8;
+	// 当前步骤的状态
+	// @gotags: bson:"status" json:"status,omitempty"
+	StepStatus status = 7;
+}
+
+message WebHook {
+	// POST URL
+	// @gotags: bson:"url" json:"url" validate:"required,url"
+	string url = 1;
+	// 需要自定义添加的头, 用于身份认证
+	// @gotags: bson:"header" json:"header"
+	map<string, string> header = 2;
+	// 那些状态下触发
+	// @gotags: bson:"events" json:"events"
+	repeated STEP_STATUS events = 3;
+	// 简单的描述信息
+	// @gotags: bson:"description" json:"description"
+	string description = 4;
+	// 推送结果
+	// @gotags: bson:"status" json:"status"
+	WebHookStatus status = 5;
+}
+
+message WebHookStatus {
+	// 开始时间
+	// @gotags: bson:"start_at" json:"start_at"
+	int64 start_at = 1;
+	// 耗时多久，单位毫秒
+	// @gotags: bson:"cost" json:"cost"
+	int64 cost = 2;
+	// 是否推送成功
+	// @gotags: bson:"success" json:"success"
+	bool success = 3;
+	// 异常时的错误信息
+	// @gotags: bson:"message" json:"message"
+	string message = 4;
+}
+
+message StepStatus {
+	// 当前该step的flow编号
+	// @gotags: bson:"flow_number" json:"flow_number"
+	int64 flow_number = 1;
+	// 开始时间
+	// @gotags: bson:"start_at" json:"start_at"
+	int64 start_at = 2;
+	// 结束时间
+	// @gotags: bson:"end_at" json:"end_at"
+	int64 end_at = 3;
+	// 当前状态
+	// @gotags: bson:"status" json:"status"
+	STEP_STATUS status = 4;
+	// 被调度到的节点
+	// @gotags: bson:"scheduled_node" json:"scheduled_node"
+	string scheduled_node = 5;
+	// 审批时间
+	// @gotags: bson:"audit_at" json:"audit_at"
+	int64 audit_at = 9;
+	// 审批结果
+	// @gotags: bson:"audit_response" json:"audit_response"
+	AUDIT_RESPONSE audit_response = 12;
+	// 审批时的反馈信息
+	// @gotags: bson:"audit_message" json:"audit_message"
+	string audit_message = 8;
+	// 通知发送时间
+	// @gotags: bson:"notify_at" json:"notify_at"
+	int64 notify_at = 10;
+	// 通知失败信息, 如果没有表示成功
+	// @gotags: bson:"notify_error" json:"notify_error"
+	string notify_error = 11;
+    // 执行结果
+	// @gotags: bson:"message" json:"message"
+    string message = 6;
+	// 执行完后的一些额外数据, 都以URL的方式返回
+	// @gotags: bson:"response" json:"response"
+	map<string, string> response = 7;
+	// 执行过程中的一些上下文信息
+	// @gotags: bson:"context_map" json:"context_map,omitempty"
+	map<string, string> context_map = 14;	
+}
+
+// StepSet todo
+message StepSet {
+	// @gotags: bson:"total" json:"total"
+    int64 total = 1;
+	// @gotags: bson:"items" json:"items"
+    repeated Step items = 2;
+}
+
+// QueryStepRequest 查询Book请求
+message QueryStepRequest {
+	// @gotags: json:"page"
+    infraboard.mcube.page.PageRequest page = 1;
+	// @gotags: json:"key"
+    string key = 2;
+}
+
+// DescribeStepRequest todo
+message DescribeStepRequest {
+	// 唯一ID
+	// @gotags: json:"key"
+	string key = 1;
+	// 唯一name
+	// @gotags: json:"namespace"
+	string namespace = 2;	
+}
+
+
+// PipelineStatus 当前状态
+message PipelineStatus {
+	// 当前正在执行step的flow number
+	// @gotags: bson:"current_flow" json:"current_flow"
+	int64 current_flow = 1;
+	// 开始时间
+	// @gotags: bson:"start_at" json:"start_at"
+	int64 start_at = 2;
+	// 结束时间
+	// @gotags: bson:"end_at" json:"end_at"
+	int64 end_at = 3;
+	// 当前状态
+	// @gotags: bson:"status" json:"status"
+	PIPELINE_STATUS status = 4;
+	// 由哪个调度器实例负责进行调度运行
+	// @gotags: bson:"scheduler_node" json:"scheduler_node"
+	string scheduler_node = 5;
+    // 执行结果
+	// @gotags: bson:"message" json:"message"
+    string message = 6;
+}
+
+// PipelineSet todo
+message PipelineSet {
+	// @gotags: bson:"total" json:"total"
+    int64 total = 1;
+	// @gotags: bson:"items" json:"items"
+    repeated Pipeline items = 2;
+}
+
+// CreatePipelineRequest 创建Book请求
+message CreatePipelineRequest {
+	// 模版id
+	// @gotags: bson:"template_id" json:"template_id"
+	string template_id = 8;
+	// 触发事件
+	// @gotags: bson:"hook_event" json:"hook_event"
+	infraboard.workflow.pipeline.scm.WebHookEvent hook_event = 9;
+	// 所属域
+	// @gotags: bson:"domain" json:"domain" validate:"required"
+	string domain = 10;
+	// 所属空间
+	// @gotags: bson:"namespace" json:"namespace" validate:"required"
+	string namespace = 11;
+	// 创建人
+	// @gotags: bson:"create_by" json:"create_by" validate:"required"
+	string create_by = 12;
+    // 名称
+	// @gotags: bson:"name" json:"name" validate:"required"
+    string name = 1;
+	// 全局参数, Step执行时合并处理
+	// @gotags: bson:"with" json:"with"
+	map<string, string> with = 6;
+	// 挂载文件
+	// @gotags: bson:"mount" json:"mount"
+	MountData mount = 7;
+	// 标签
+	// @gotags: bson:"tags" json:"tags"
+	map<string, string> tags = 2;
+	// 描述
+	// @gotags: bson:"description" json:"description"
+	string description = 3;
+	// 触发条件
+	// @gotags: bson:"on" json:"on"
+	Trigger on = 4;
+	// 具体编排阶段
+	// @gotags: bson:"stages" json:"stages"
+	repeated Stage stages = 5;
+}
+
+// QueryPipelineRequest 查询Book请求
+message QueryPipelineRequest {
+	// @gotags: json:"page"
+    infraboard.mcube.page.PageRequest page = 1;
+	// @gotags: json:"name"
+    string name = 2;
+}
+
+message DeletePipelineRequest {
+	// 唯一ID
+	// @gotags: json:"id"
+	string id = 1;
+	// 只有所在在的空间
+	// @gotags: json:"namespace"
+	string namespace = 2;
+}
+
+message DescribePipelineRequest {
+	// 唯一ID
+	// @gotags: json:"id"
+	string id = 1;
+	// 只有所在在的空间
+	// @gotags: json:"namespace"
+	string namespace = 2;
+}
+
+message DeleteStepRequest {
+	// 唯一ID
+	// @gotags: json:"key" validate:"required"
+	string key = 1;
+}
+
+
+message CancelStepRequest {
+	// 取消step对应的key
+	// @gotags: json:"id"
+	string key = 1;
+}
+
+message AuditStepRequest {
+	// 取消step对应的key
+	// @gotags: json:"key"
+	string key = 1;
+	// 审核的结果
+	// @gotags: json:"audit_reponse"
+	AUDIT_RESPONSE audit_reponse = 2;
+	// 审批时的反馈信息
+	// @gotags: json:"audit_message"
+	string audit_message = 3;
+}
+
+message WatchPipelineRequest {
+	oneof request_union {
+	  CreateWatchPipelineRequest create_request = 1;
+	  CancelWatchPipelineRequest cancel_request = 2;
+	}
+  }
+
+message CreateWatchPipelineRequest {
+	// @gotags: json:"mod"
+	PIPELINE_WATCH_MOD mod = 1;
+	// 需要watch的pipeline id
+	// @gotags: json:"id"
+	string id = 2;
+	// watch整个namespace piplein 状态变化, 用于做namespace实时状态大屏
+	// @gotags: json:"namespace"
+	string namespace = 3;
+	// 并不执行真正的watch, 尝试运行, 主要用于链接前的检查工作
+	// @gotags: json:"dry_run"
+	bool dry_run = 4;
+}
+
+message CancelWatchPipelineRequest {
+	// @gotags: json:"watch_id"
+	int64 watch_id = 2;
+}
+
+message WatchPipelineResponse {
+	// @gotags: json:"watch_id"
+	int64 watch_id = 1;	
+	// @gotags: json:"pipeline"
+	Pipeline pipeline = 2;	
+}

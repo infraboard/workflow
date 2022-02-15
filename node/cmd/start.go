@@ -15,12 +15,12 @@ import (
 	"github.com/infraboard/mcube/types/ftime"
 	"github.com/spf13/cobra"
 
-	"github.com/infraboard/workflow/api/app/node"
+	"github.com/infraboard/workflow/api/apps/node"
 	"github.com/infraboard/workflow/api/client"
 	"github.com/infraboard/workflow/conf"
 	"github.com/infraboard/workflow/version"
 
-	etcd_register "github.com/infraboard/workflow/api/app/node/etcd"
+	etcd_register "github.com/infraboard/workflow/api/apps/node/etcd"
 	informer "github.com/infraboard/workflow/common/informers/step"
 	si_impl "github.com/infraboard/workflow/common/informers/step/etcd"
 	"github.com/infraboard/workflow/node/controller/step"
