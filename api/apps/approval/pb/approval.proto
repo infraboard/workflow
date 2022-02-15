@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package infraboard.workorder.approval;
+option go_package = "github.com/infraboard/workorder/apps/approval";
+
+import "github.com/infraboard/mcube/pb/page/page.proto";
+import "github.com/infraboard/mcube/pb/request/request.proto";
+
+service Service {
+    rpc CreateBook(CreateApprovalRequest) returns(Approval);
+    rpc QueryBook(QueryApprovalRequest) returns(ApprovalSet);
+    rpc DescribeBook(DescribeApprovalRequest) returns(Approval);
+    rpc UpdateBook(UpdateApprovalRequest) returns(Approval);
+    rpc DeleteBook(DeleteApprovalRequest) returns(Approval);
+}
+
+message Approval {
+
+}
+
+message ApprovalSet {
+    // 分页时，返回总数量
+    // @gotags: json:"total"
+    int64 total = 1;
+    // 一页的数据
+    // @gotags: json:"items"
+    repeated Approval items = 2;    
+}
+
+enum Provider {
+    DEVCLOUD = 0;
+    FEISHU = 1;
+}
+
+message CreateApprovalRequest {
+    // 工单对接的第三方系统
+    // @gotags: json:"provider" bson:"provider"
+    Provider provider = 1;
+    // 工单模版编号, 用于对接
+    // @gotags: json:"approval_code" bson:"approval_code"
+    string approval_code = 2;
+    // 工单状态
+    // @gotags: json:"status" bson:"status"
+    string status = 3;
+}
+
+message QueryApprovalRequest {
+    // 分页参数
+    // @gotags: json:"page" 
+    infraboard.mcube.page.PageRequest page = 1;
+}
+
+message DescribeApprovalRequest {
+
+}
+
+message UpdateApprovalRequest {
+
+}
+
+message DeleteApprovalRequest {
+
+}
