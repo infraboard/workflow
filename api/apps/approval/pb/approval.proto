@@ -1,17 +1,17 @@
 syntax = "proto3";
 
 package infraboard.workorder.approval;
-option go_package = "github.com/infraboard/workflow/apps/approval";
+option go_package = "github.com/infraboard/workflow/api/apps/approval";
 
 import "github.com/infraboard/mcube/pb/page/page.proto";
 import "github.com/infraboard/mcube/pb/request/request.proto";
 
 service Service {
-    rpc CreateBook(CreateApprovalRequest) returns(Approval);
-    rpc QueryBook(QueryApprovalRequest) returns(ApprovalSet);
-    rpc DescribeBook(DescribeApprovalRequest) returns(Approval);
-    rpc UpdateBook(UpdateApprovalRequest) returns(Approval);
-    rpc DeleteBook(DeleteApprovalRequest) returns(Approval);
+    rpc CreateApproval(CreateApprovalRequest) returns(Approval);
+    rpc QueryApproval(QueryApprovalRequest) returns(ApprovalSet);
+    rpc DescribeApproval(DescribeApprovalRequest) returns(Approval);
+    rpc UpdateApproval(UpdateApprovalRequest) returns(Approval);
+    rpc DeleteApproval(DeleteApprovalRequest) returns(Approval);
 }
 
 message Approval {

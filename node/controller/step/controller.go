@@ -21,7 +21,7 @@ import (
 func NewController(
 	nodeName string,
 	inform step.Informer,
-	wc *client.Client,
+	wc *client.ClientSet,
 ) *Controller {
 	wq := workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Step Controller")
 	controller := &Controller{
@@ -56,7 +56,7 @@ type Controller struct {
 	runningWorkers map[string]bool
 	wLock          sync.Mutex
 	nodeName       string
-	wc             *client.Client
+	wc             *client.ClientSet
 }
 
 func (c *Controller) Debug(log logger.Logger) {

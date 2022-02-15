@@ -32,7 +32,7 @@ func CancelStep(s *pipeline.Step) {
 	engine.CancelStep(s)
 }
 
-func Init(wc *client.Client, recorder step.Recorder) (err error) {
+func Init(wc *client.ClientSet, recorder step.Recorder) (err error) {
 	if wc == nil {
 		return fmt.Errorf("init runner error, workflow client is nil")
 	}
@@ -54,7 +54,7 @@ func Init(wc *client.Client, recorder step.Recorder) (err error) {
 
 type Engine struct {
 	recorder step.Recorder
-	wc       *client.Client
+	wc       *client.ClientSet
 	docker   runner.Runner
 	k8s      runner.Runner
 	local    runner.Runner

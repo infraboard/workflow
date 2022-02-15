@@ -14,21 +14,21 @@ import (
 )
 
 var (
-	client *Client
+	client *ClientSet
 )
 
 // SetGlobal todo
-func SetGlobal(cli *Client) {
+func SetGlobal(cli *ClientSet) {
 	client = cli
 }
 
 // C Global
-func C() *Client {
+func C() *ClientSet {
 	return client
 }
 
 // NewClient todo
-func NewClient(conf *kc.Config) (*Client, error) {
+func NewClient(conf *kc.Config) (*ClientSet, error) {
 	zap.DevelopmentSetup()
 	log := zap.L()
 
@@ -37,39 +37,39 @@ func NewClient(conf *kc.Config) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{
+	return &ClientSet{
 		conn: conn,
 		log:  log,
 	}, nil
 }
 
 // Client 客户端
-type Client struct {
+type ClientSet struct {
 	conn *grpc.ClientConn
 	log  logger.Logger
 }
 
 // Example todo
-func (c *Client) Application() application.ServiceClient {
+func (c *ClientSet) Application() application.ServiceClient {
 	return application.NewServiceClient(c.conn)
 }
 
 // Example todo
-func (c *Client) Pipeline() pipeline.ServiceClient {
+func (c *ClientSet) Pipeline() pipeline.ServiceClient {
 	return pipeline.NewServiceClient(c.conn)
 }
 
 // Example todo
-func (c *Client) Action() action.ServiceClient {
+func (c *ClientSet) Action() action.ServiceClient {
 	return action.NewServiceClient(c.conn)
 }
 
 // Example todo
-func (c *Client) Template() template.ServiceClient {
+func (c *ClientSet) Template() template.ServiceClient {
 	return template.NewServiceClient(c.conn)
 }
 
 // Example todo
-func (c *Client) Deploy() deploy.ServiceClient {
+func (c *ClientSet) Deploy() deploy.ServiceClient {
 	return deploy.NewServiceClient(c.conn)
 }
