@@ -3,7 +3,7 @@ syntax = "proto3";
 package infraboard.workflow.template;
 option go_package = "github.com/infraboard/workflow/api/apps/template";
 
-import "api/app/pipeline/pb/pipeline.proto";
+import "api/apps/pipeline/pb/pipeline.proto";
 import "github.com/infraboard/mcube/pb/page/page.proto";
 import "github.com/infraboard/mcube/pb/resource/base.proto";
 import "github.com/infraboard/mcube/pb/request/request.proto";

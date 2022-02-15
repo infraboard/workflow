@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package infraboard.workorder.approval;
-option go_package = "github.com/infraboard/workorder/apps/approval";
+option go_package = "github.com/infraboard/workflow/apps/approval";
 
 import "github.com/infraboard/mcube/pb/page/page.proto";
 import "github.com/infraboard/mcube/pb/request/request.proto";
@@ -55,7 +55,9 @@ message DescribeApprovalRequest {
 }
 
 message UpdateApprovalRequest {
-
+    // 更新模式
+    // @gotags: json:"update_mode"
+    mcube.request.UpdateMode update_mode = 1;
 }
 
 message DeleteApprovalRequest {

@@ -5,8 +5,8 @@ option go_package = "github.com/infraboard/workflow/api/apps/application";
 
 import "github.com/infraboard/mcube/pb/page/page.proto";
 import "github.com/infraboard/mcube/pb/request/request.proto";
-import "api/app/pipeline/pb/pipeline.proto";
-import "api/app/scm/pb/gitlab.proto";
+import "api/apps/pipeline/pb/pipeline.proto";
+import "api/apps/scm/pb/gitlab.proto";
 
 service Service {
     // 应用管理

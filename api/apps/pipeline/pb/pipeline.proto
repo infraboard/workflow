@@ -4,7 +4,7 @@ package infraboard.workflow.pipeline;
 option go_package = "github.com/infraboard/workflow/api/apps/pipeline";
 
 import "github.com/infraboard/mcube/pb/page/page.proto";
-import "api/app/scm/pb/gitlab.proto";
+import "api/apps/scm/pb/gitlab.proto";
 
 service Service {
 	// pipeline管理
