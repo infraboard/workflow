@@ -82,6 +82,9 @@ message ApplicationDeploy {
 	string description = 17;
 }
 
+// deployA -->   a, b, c, d  
+// service -->    LB<> 域名
+// 升级流程:  d -->0,   d--> upgrade,   test--> ok, online--> 25%
 message HostModeConfig {
     // 关联的主机列表, 这里是关联id, 来源于cmdb系统
     // @gotags: bson:"hosts_ref" json:"hosts_ref" validate:"required"
