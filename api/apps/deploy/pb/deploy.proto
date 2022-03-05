@@ -35,51 +35,15 @@ message ApplicationDeploy {
     // 唯一ID
     // @gotags: bson:"_id" json:"id"
     string id = 1;
-    // 所属域
-    // @gotags: bson:"domain" json:"domain"
-    string domain = 2;
-    // 所属空间
-    // @gotags: bson:"namespace" json:"namespace"
-    string namespace = 3;
     // 创建时间
     // @gotags: bson:"create_at" json:"create_at"
-    int64 create_at = 4;
-    // 创建人
-    // @gotags: bson:"create_by" json:"create_by"
-    string create_by = 5;
+    int64 create_at = 2;
     // 创建时间
     // @gotags: bson:"update_at" json:"update_at"
-    int64 update_at = 6;
-    // 创建人
-    // @gotags: bson:"update_by" json:"update_by"
-    string update_by = 7;
-    // 关联的应用
-    // @gotags: bson:"app_id" json:"app_id"
-    string app_id = 9;
-    // 所属环境
-    // @gotags: bson:"environment" json:"environment"
-    string environment = 10;
-    // 部署的名称
-    // @gotags: bson:"name" json:"name"
-    string name = 11;
-    // 应用配置
-    // @gotags: bson:"application_conf" json:"application_conf"
-    ApplicationConfig application_conf = 12;
-    // 部署模式
-    // @gotags: bson:"deploy_mode" json:"deploy_mode"
-    Mode deploy_mode = 13;
-    // 主机模式的部署配置
-    // @gotags: bson:"host_deploy_config" json:"host_deploy_config"
-    HostModeConfig host_deploy_config = 14;
-    // k8s模式下的部署配置
-    // @gotags: bson:"k8s_deploy_config" json:"k8s_deploy_config"
-    K8sModeConfig k8s_deploy_config = 15;
-	// 标签
-    // @gotags: bson:"tags" json:"tags"
-	map<string, string> tags = 16;
-	// 描述
-    // @gotags: bson:"description" json:"description"
-	string description = 17;
+    int64 update_at = 3;
+    // 创建数据
+    // @gotags: bson:"data" json:"data"
+    CreateApplicationDeployRequest data = 4;
 }
 
 // deployA -->   a, b, c, d  
@@ -123,12 +87,12 @@ message FileConfig {
 // K8sModeConfig yaml文本格式的k8s部署相关配置文件
 message K8sModeConfig {
     // k8s 认证配置
-    // @gotags: bson:"kube_config" json:"kube_config" validate:"required"
-    string kube_config = 1;
-    // Deployment配置
-    // @gotags: bson:"deployment" json:"deployment" validate:"required"
-    string deployment = 2;
-    // Service配置
+    // @gotags: bson:"cluster_name" json:"cluster_name" validate:"required"
+    string cluster_name = 1;
+    // k8s yaml配置, 支持deploy/statfulset/daemonset/job/cronjob
+    // @gotags: bson:"workload" json:"workload" validate:"required"
+    string workload = 2;
+    // k8s service配置
     // @gotags: bson:"service" json:"service" validate:"required"
     string service =3;
 }
@@ -136,41 +100,44 @@ message K8sModeConfig {
 // CreateApplicationDeployRequest 应用部署
 message CreateApplicationDeployRequest {
     // 所属域
-    // @gotags: json:"domain" validate:"required"
+    // @gotags: json:"domain" bson:"domain" validate:"required"
     string domain = 1;
     // 所属空间
-    // @gotags: json:"namespace" validate:"required"
+    // @gotags: json:"namespace" bson:"namespace" validate:"required"
     string namespace = 2;
     // 创建人
-    // @gotags: json:"create_by" validate:"required"
+    // @gotags: json:"create_by" bson:"create_by" validate:"required"
     string create_by = 3;
+    // 部署所处厂商
+    // @gotags: json:"name" bson:"vendor" validate:"required"
+    string vendor = 4;
+    // 部署所处地域
+    // @gotags: json:"region" bson:"region" validate:"required"
+    string region = 5;
     // 关联的应用
-    // @gotags: json:"app_id" validate:"required"
-    string app_id = 4;
+    // @gotags: json:"app_id" bson:"app_id" validate:"required"
+    string app_id = 6;
     // 所属环境
-    // @gotags: json:"environment" validate:"required"
-    string environment = 5;
+    // @gotags: json:"environment" bson:"environment" validate:"required"
+    string environment = 7;
     // 部署的名称
-    // @gotags: json:"name" validate:"required"
-    string name = 6;
-    // 应用配置
-    // @gotags: json:"application_conf"
-    ApplicationConfig application_conf = 7;
+    // @gotags: json:"name" bson:"name" validate:"required"
+    string name = 8;
     // 部署模式
-    // @gotags: json:"deploy_mode"
-    Mode deploy_mode = 8;
+    // @gotags: json:"deploy_mode" bson:"deploy_mode"
+    Mode deploy_mode = 9;
     // 主机模式的部署配置
-    // @gotags: json:"host_deploy_config"
-    HostModeConfig host_deploy_config = 9;
+    // @gotags: json:"host_deploy_config" bson:"host_deploy_config"
+    HostModeConfig host_deploy_config = 10;
     // k8s模式下的部署配置
-    // @gotags: json:"k8s_deploy_config"
-    K8sModeConfig k8s_deploy_config = 10;
+    // @gotags: json:"k8s_deploy_config" bson:"k8s_deploy_config"
+    K8sModeConfig k8s_deploy_config = 11;
 	// 标签
-    // @gotags: json:"tags"
-	map<string, string> tags = 11;
+    // @gotags: json:"tags" bson:"tags"
+	map<string, string> tags = 12;
 	// 描述
-    // @gotags: json:"description"
-	string description = 12;
+    // @gotags: json:"description" bson:"description"
+	string description = 13;
 }
 
 // ApplicationDeploySet todo
