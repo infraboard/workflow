@@ -12,7 +12,6 @@ import (
 
 	"github.com/infraboard/mcube/logger"
 	"github.com/infraboard/mcube/logger/zap"
-	"github.com/infraboard/mcube/types/ftime"
 	"github.com/spf13/cobra"
 
 	"github.com/infraboard/workflow/api/apps/node"
@@ -166,7 +165,7 @@ func MakeRegistryNode(cfg *conf.Config) *node.Node {
 		GitCommit:    version.GIT_COMMIT,
 		BuildEnv:     version.GO_VERSION,
 		BuildAt:      version.BUILD_TIME,
-		Online:       ftime.Now().Timestamp(),
+		Online:       time.Now().UnixMilli(),
 		Prefix:       cfg.Etcd.Prefix,
 		TTL:          cfg.Etcd.InstanceTTL,
 		Interval:     time.Duration(cfg.Etcd.InstanceTTL/3) * time.Second,

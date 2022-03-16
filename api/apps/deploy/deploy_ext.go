@@ -2,10 +2,10 @@ package deploy
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/infraboard/mcube/http/request"
-	"github.com/infraboard/mcube/types/ftime"
 	"github.com/rs/xid"
 
 	"github.com/infraboard/keyauth/app/token"
@@ -27,21 +27,10 @@ func NewApplicationDeploy(req *CreateApplicationDeployRequest) (*ApplicationDepl
 	}
 
 	ins := &ApplicationDeploy{
-		Id:               xid.New().String(),
-		CreateAt:         ftime.Now().Timestamp(),
-		UpdateAt:         ftime.Now().Timestamp(),
-		Domain:           req.Domain,
-		Namespace:        req.Namespace,
-		CreateBy:         req.CreateBy,
-		AppId:            req.AppId,
-		Environment:      req.Environment,
-		Name:             req.Name,
-		ApplicationConf:  req.ApplicationConf,
-		DeployMode:       req.DeployMode,
-		HostDeployConfig: req.HostDeployConfig,
-		K8SDeployConfig:  req.K8SDeployConfig,
-		Tags:             req.Tags,
-		Description:      req.Description,
+		Id:       xid.New().String(),
+		CreateAt: time.Now().UnixMilli(),
+		UpdateAt: time.Now().UnixMilli(),
+		Data:     req,
 	}
 
 	return ins, nil

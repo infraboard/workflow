@@ -2,11 +2,11 @@ package template
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/infraboard/keyauth/app/token"
 	"github.com/infraboard/mcube/http/request"
-	"github.com/infraboard/mcube/types/ftime"
 	"github.com/rs/xid"
 )
 
@@ -25,8 +25,8 @@ func NewTemplate(req *CreateTemplateRequest) (*Template, error) {
 		Namespace:    req.Namespace,
 		CreateBy:     req.CreateBy,
 		Id:           xid.New().String(),
-		CreateAt:     ftime.Now().Timestamp(),
-		UpdateAt:     ftime.Now().Timestamp(),
+		CreateAt:     time.Now().UnixMilli(),
+		UpdateAt:     time.Now().UnixMilli(),
 		Name:         req.Name,
 		Tags:         req.Tags,
 		VisiableMode: req.VisiableMode,
@@ -77,7 +77,7 @@ func NewDefaultTemplate() *Template {
 }
 
 func (t *Template) Update(updater string, req *UpdateTemplateData) {
-	t.UpdateAt = ftime.Now().Timestamp()
+	t.UpdateAt = time.Now().UnixMilli()
 	t.UpdateBy = updater
 	t.Name = req.Name
 	t.Tags = req.Tags
@@ -86,7 +86,7 @@ func (t *Template) Update(updater string, req *UpdateTemplateData) {
 }
 
 func (t *Template) Patch(updater string, req *UpdateTemplateData) {
-	t.UpdateAt = ftime.Now().Timestamp()
+	t.UpdateAt = time.Now().UnixMilli()
 	t.UpdateBy = updater
 
 	if req.Name != "" {

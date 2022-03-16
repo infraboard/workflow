@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/infraboard/keyauth/app/token"
 	"github.com/infraboard/mcube/http/request"
-	"github.com/infraboard/mcube/types/ftime"
 	"github.com/rs/xid"
 )
 
@@ -65,8 +65,8 @@ func NewAction(req *CreateActionRequest) (*Action, error) {
 
 	p := &Action{
 		Id:           xid.New().String(),
-		CreateAt:     ftime.Now().Timestamp(),
-		UpdateAt:     ftime.Now().Timestamp(),
+		CreateAt:     time.Now().UnixMilli(),
+		UpdateAt:     time.Now().UnixMilli(),
 		Domain:       req.Domain,
 		Namespace:    req.Namespace,
 		CreateBy:     req.CreateBy,

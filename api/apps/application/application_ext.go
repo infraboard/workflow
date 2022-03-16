@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/xid"
@@ -13,7 +14,6 @@ import (
 	"github.com/infraboard/keyauth/app/token"
 	"github.com/infraboard/mcube/http/request"
 	pb "github.com/infraboard/mcube/pb/request"
-	"github.com/infraboard/mcube/types/ftime"
 
 	"github.com/infraboard/workflow/api/apps/pipeline"
 	"github.com/infraboard/workflow/api/apps/scm"
@@ -83,8 +83,8 @@ func NewApplication(req *CreateApplicationRequest) (*Application, error) {
 
 	ins := &Application{
 		Id:          xid.New().String(),
-		CreateAt:    ftime.Now().Timestamp(),
-		UpdateAt:    ftime.Now().Timestamp(),
+		CreateAt:    time.Now().UnixMilli(),
+		UpdateAt:    time.Now().UnixMilli(),
 		Domain:      req.Domain,
 		Namespace:   req.Namespace,
 		CreateBy:    req.CreateBy,
@@ -103,7 +103,7 @@ func NewApplication(req *CreateApplicationRequest) (*Application, error) {
 }
 
 func (a *Application) Update(updater string, req *UpdateApplicationData) {
-	a.UpdateAt = ftime.Now().Timestamp()
+	a.UpdateAt = time.Now().UnixMilli()
 	a.UpdateBy = updater
 	a.Name = req.Name
 	a.Tags = req.Tags
@@ -112,7 +112,7 @@ func (a *Application) Update(updater string, req *UpdateApplicationData) {
 }
 
 func (a *Application) Patch(updater string, req *UpdateApplicationData) {
-	a.UpdateAt = ftime.Now().Timestamp()
+	a.UpdateAt = time.Now().UnixMilli()
 	a.UpdateBy = updater
 
 	if req.Name != "" {
@@ -230,7 +230,7 @@ func (req *ApplicationEvent) Validate() error {
 
 func NewPipelineCreateStatus() *PipeLineStatus {
 	return &PipeLineStatus{
-		Timestamp: ftime.Now().Timestamp(),
+		Timestamp: time.Now().UnixMilli(),
 	}
 }
 

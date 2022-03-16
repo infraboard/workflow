@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/infraboard/mcube/logger"
-	"github.com/infraboard/mcube/types/ftime"
 	clientv3 "go.etcd.io/etcd/client/v3"
 
 	"github.com/infraboard/workflow/api/apps/pipeline"
@@ -18,7 +18,7 @@ type recorder struct {
 }
 
 func (l *recorder) Update(step *pipeline.Step) error {
-	step.UpdateAt = ftime.Now().Timestamp()
+	step.UpdateAt = time.Now().UnixMilli()
 	objKey := pipeline.StepObjectKey(step.Key)
 	objValue, err := json.Marshal(step)
 	if err != nil {
