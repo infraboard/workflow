@@ -2,9 +2,9 @@ package impl
 
 import (
 	"context"
+	"time"
 
 	"github.com/infraboard/mcube/exception"
-	"github.com/infraboard/mcube/types/ftime"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 
@@ -89,7 +89,7 @@ func (i *service) UpdateAction(ctx context.Context, req *action.UpdateActionRequ
 	}
 
 	ins.Update(req)
-	ins.UpdateAt = ftime.Now().Timestamp()
+	ins.UpdateAt = time.Now().UnixMilli()
 	_, err = i.col.UpdateOne(context.TODO(), bson.M{"name": req.Name, "version": req.Version}, bson.M{"$set": ins})
 	if err != nil {
 		return nil, exception.NewInternalServerError("update action(%s) error, %s", ins.Key(), err)

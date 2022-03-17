@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/infraboard/keyauth/app/token"
 	"github.com/infraboard/mcube/http/request"
 	"github.com/infraboard/mcube/logger/zap"
-	"github.com/infraboard/mcube/types/ftime"
 	"github.com/rs/xid"
 )
 
@@ -104,7 +104,7 @@ func NewPipeline(req *CreatePipelineRequest) (*Pipeline, error) {
 
 	p := &Pipeline{
 		Id:          xid.New().String(),
-		CreateAt:    ftime.Now().Timestamp(),
+		CreateAt:    time.Now().UnixMilli(),
 		TemplateId:  req.TemplateId,
 		CreateBy:    req.CreateBy,
 		Domain:      req.Domain,
@@ -226,7 +226,7 @@ func (p *Pipeline) Run() {
 		p.Status = NewDefaultPipelineStatus()
 	}
 	p.Status.Status = PIPELINE_STATUS_EXECUTING
-	p.Status.StartAt = ftime.Now().Timestamp()
+	p.Status.StartAt = time.Now().UnixMilli()
 }
 
 func (p *Pipeline) Complete() {
@@ -234,7 +234,7 @@ func (p *Pipeline) Complete() {
 		p.Status = NewDefaultPipelineStatus()
 	}
 	p.Status.Status = PIPELINE_STATUS_COMPLETE
-	p.Status.EndAt = ftime.Now().Timestamp()
+	p.Status.EndAt = time.Now().UnixMilli()
 }
 
 func (p *Pipeline) GetCurrentFlow() *Flow {
@@ -274,7 +274,7 @@ func (p *Pipeline) GetNextFlow() *Flow {
 			step := steps[i]
 			step.PipelineId = p.Id
 			step.Namespace = p.Namespace
-			step.CreateAt = ftime.Now().Timestamp()
+			step.CreateAt = time.Now().UnixMilli()
 			steps[i].BuildKey(p.Namespace, p.Id, stage.Id)
 			step.setFlowNumber(p.NextFlowNumber())
 		}

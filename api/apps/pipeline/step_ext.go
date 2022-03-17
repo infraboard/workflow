@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/infraboard/mcube/http/request"
-	"github.com/infraboard/mcube/types/ftime"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -224,7 +224,7 @@ func (s *StepSet) Add(item *Step) {
 func NewStep(t STEP_CREATE_BY, req *CreateStepRequest) *Step {
 	return &Step{
 		CreateType:   t,
-		CreateAt:     ftime.Now().Timestamp(),
+		CreateAt:     time.Now().UnixMilli(),
 		Name:         req.Name,
 		Action:       req.Action,
 		WithAudit:    req.WithAudit,
@@ -240,7 +240,7 @@ func NewStep(t STEP_CREATE_BY, req *CreateStepRequest) *Step {
 
 func NewDefaultStep() *Step {
 	return &Step{
-		CreateAt: ftime.Now().Timestamp(),
+		CreateAt: time.Now().UnixMilli(),
 		Status:   NewDefaultStepStatus(),
 		Webhooks: []*WebHook{},
 	}
@@ -273,7 +273,7 @@ func (s *Step) IsCreateByPipeline() bool {
 }
 
 func (s *Step) Run() {
-	s.Status.StartAt = ftime.Now().Timestamp()
+	s.Status.StartAt = time.Now().UnixMilli()
 	s.Status.Status = STEP_STATUS_RUNNING
 }
 
@@ -290,13 +290,13 @@ func (s *Step) setFlowNumber(n int64) {
 }
 
 func (s *Step) Failed(format string, a ...interface{}) {
-	s.Status.EndAt = ftime.Now().Timestamp()
+	s.Status.EndAt = time.Now().UnixMilli()
 	s.Status.Status = STEP_STATUS_FAILED
 	s.Status.Message = fmt.Sprintf(format, a...)
 }
 
 func (s *Step) ScheduleFailed(format string, a ...interface{}) {
-	s.Status.EndAt = ftime.Now().Timestamp()
+	s.Status.EndAt = time.Now().UnixMilli()
 	s.Status.Status = STEP_STATUS_SCHEDULE_FAILED
 	s.Status.Message = fmt.Sprintf(format, a...)
 }
@@ -307,7 +307,7 @@ func (s *Step) Cancel(format string, a ...interface{}) {
 }
 
 func (s *Step) Audit(resp AUDIT_RESPONSE, message string) {
-	s.Status.AuditAt = ftime.Now().Timestamp()
+	s.Status.AuditAt = time.Now().UnixMilli()
 	s.Status.AuditResponse = resp
 	s.Status.AuditMessage = message
 	if s.Status.AuditResponse.Equal(AUDIT_RESPONSE_ALLOW) {
@@ -333,7 +333,7 @@ func (s *Step) MarkSendAuditNotify() {
 }
 
 func (s *Step) Success(format string, a ...interface{}) {
-	s.Status.EndAt = ftime.Now().Timestamp()
+	s.Status.EndAt = time.Now().UnixMilli()
 	s.Status.Status = STEP_STATUS_SUCCEEDED
 	s.Status.Message = fmt.Sprintf(format, a...)
 }
@@ -549,19 +549,19 @@ func (h *WebHook) StartSend() {
 	if h.Status == nil {
 		h.Status = &WebHookStatus{}
 	}
-	h.Status.StartAt = ftime.Now().Timestamp()
+	h.Status.StartAt = time.Now().UnixMilli()
 }
 
 func (h *WebHook) SendFailed(format string, a ...interface{}) {
 	if h.Status.StartAt != 0 {
-		h.Status.Cost = ftime.Now().Timestamp() - h.Status.StartAt
+		h.Status.Cost = time.Now().UnixMilli() - h.Status.StartAt
 	}
 	h.Status.Message = fmt.Sprintf(format, a...)
 }
 
 func (h *WebHook) Success(message string) {
 	if h.Status.StartAt != 0 {
-		h.Status.Cost = ftime.Now().Timestamp() - h.Status.StartAt
+		h.Status.Cost = time.Now().UnixMilli() - h.Status.StartAt
 	}
 	h.Status.Success = true
 	h.Status.Message = message
