@@ -131,7 +131,7 @@ func (i *impl) CancelStep(ctx context.Context, req *pipeline.CancelStepRequest) 
 		return nil, err
 	}
 
-	// s.Cancel(message)
+	s.Cancel("step canceled by user")
 	if err := i.putStep(ctx, s); err != nil {
 		return nil, fmt.Errorf("update step error, %s", err)
 	}
