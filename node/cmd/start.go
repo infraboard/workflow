@@ -235,7 +235,7 @@ func loadGRPCClient(cfg *conf.Config) error {
 	cf := client.NewDefaultConfig()
 	cf.SetAddress(cfg.GRPC.Addr())
 	cf.SetClientCredentials(cfg.Keyauth.ClientID, cfg.Keyauth.ClientSecret)
-	cli, err := client.NewClient(cf)
+	cli, err := client.NewClientSet(cf)
 	if err != nil {
 		return err
 	}

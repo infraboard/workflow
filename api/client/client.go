@@ -28,7 +28,7 @@ func C() *ClientSet {
 }
 
 // NewClient todo
-func NewClient(conf *kc.Config) (*ClientSet, error) {
+func NewClientSet(conf *kc.Config) (*ClientSet, error) {
 	zap.DevelopmentSetup()
 	log := zap.L()
 

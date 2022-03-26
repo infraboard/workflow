@@ -15,6 +15,7 @@ service Service {
 	rpc QueryApplication(QueryApplicationRequest) returns(ApplicationSet);
     rpc DescribeApplication(DescribeApplicationRequest) returns(Application);
     rpc DeleteApplication(DeleteApplicationRequest) returns(Application);
+
     // 应用事件处理
     rpc HandleApplicationEvent(ApplicationEvent) returns(Application);
 }
@@ -170,8 +171,11 @@ message QueryApplicationRequest {
     // @gotags: json:"namespace" validate:"required"
     string namespace = 3;
     // 应用的名字
-    // @gotags: json:"name"
-    string name = 4;
+    // @gotags: json:"names"
+    repeated string names = 4;
+    // 应用的Id列表
+    // @gotags: json:"ids"
+    repeated string ids = 5;
 }
 
 message DeleteApplicationRequest {
