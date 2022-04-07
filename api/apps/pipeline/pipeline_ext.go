@@ -269,6 +269,8 @@ func (p *Pipeline) GetNextFlow() *Flow {
 			return nil
 		}
 
+		// 先找出了 该Stage 中下一步 需要执行的Step
+		// 然后为这些Step进行 编号(Flow number)
 		steps := stage.NextStep()
 		for i := range steps {
 			step := steps[i]
