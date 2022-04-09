@@ -1,6 +1,7 @@
 package step
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -38,7 +39,7 @@ func (c *Controller) addStep(s *pipeline.Step) error {
 	status := s.Status.Status
 	switch status {
 	case pipeline.STEP_STATUS_PENDDING:
-		engine.RunStep(s)
+		engine.RunStep(context.Background(), s)
 		return nil
 	case pipeline.STEP_STATUS_RUNNING:
 		// TODO: 判断引擎中该step状态是否一致

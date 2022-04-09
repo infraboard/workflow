@@ -55,5 +55,6 @@ func (c *Controller) HandleAdd(n *node.Node) error {
 			c.log.Infof("reset step %s schedule node to \"\", waiting for reschedule", s.Key)
 		}
 	}
+
 	return nil
 }

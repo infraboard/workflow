@@ -3,18 +3,16 @@ package engine
 import (
 	"context"
 
-	"github.com/infraboard/mcube/grpc/gcontext"
-
 	"github.com/infraboard/workflow/api/apps/action"
 	"github.com/infraboard/workflow/api/apps/pipeline"
 	"github.com/infraboard/workflow/node/controller/step/runner"
 )
 
-func (e *Engine) Run(s *pipeline.Step) {
+func (e *Engine) Run(ctx context.Context, s *pipeline.Step) {
 	req := runner.NewRunRequest(s)
 	resp := runner.NewRunReponse(e.updateStep)
 
-	e.run(req, resp)
+	e.run(ctx, req, resp)
 
 	if resp.HasError() {
 		s.Failed(resp.ErrorMessage())
@@ -31,7 +29,7 @@ func (e *Engine) Run(s *pipeline.Step) {
 //   2. pipeline 运行中产生的
 //   3. pipeline 全局传人
 //   4. action 默认默认值
-func (e *Engine) run(req *runner.RunRequest, resp *runner.RunResponse) {
+func (e *Engine) run(ctx context.Context, req *runner.RunRequest, resp *runner.RunResponse) {
 	if !e.init {
 		resp.Failed("engine not init")
 		return
@@ -43,8 +41,7 @@ func (e *Engine) run(req *runner.RunRequest, resp *runner.RunResponse) {
 
 	// 1.查询step对应的action定义
 	descA := action.NewDescribeActionRequest(s.ActionName(), s.ActionVersion())
-	ctx := gcontext.NewGrpcOutCtx()
-	actionIns, err := e.wc.Action().DescribeAction(ctx.Context(), descA)
+	actionIns, err := e.wc.Action().DescribeAction(ctx, descA)
 	if err != nil {
 		resp.Failed("describe step action error, %s", err)
 		return
@@ -57,7 +54,7 @@ func (e *Engine) run(req *runner.RunRequest, resp *runner.RunResponse) {
 	if s.IsCreateByPipeline() {
 		descP := pipeline.NewDescribePipelineRequestWithID(s.GetPipelineId())
 		descP.Namespace = s.GetNamespace()
-		pl, err := e.wc.Pipeline().DescribePipeline(ctx.Context(), descP)
+		pl, err := e.wc.Pipeline().DescribePipeline(ctx, descP)
 		if err != nil {
 			resp.Failed("describe step pipeline error, %s", err)
 			return

@@ -241,7 +241,6 @@ func loadGRPCClient(cfg *conf.Config) error {
 	}
 
 	client.SetGlobal(cli)
-
 	return err
 }
 

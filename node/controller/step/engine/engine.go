@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/infraboard/mcube/logger"
@@ -19,13 +20,13 @@ var (
 	engine = &Engine{}
 )
 
-func RunStep(s *pipeline.Step) {
+func RunStep(ctx context.Context, s *pipeline.Step) {
 	// 开始执行, 更新状态
 	s.Run()
 	engine.updateStep(s)
 
 	// 执行step
-	go engine.Run(s)
+	go engine.Run(ctx, s)
 }
 
 func CancelStep(s *pipeline.Step) {

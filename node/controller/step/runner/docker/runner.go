@@ -118,7 +118,7 @@ func (r *Runner) Run(ctx context.Context, in *runner.RunRequest, out *runner.Run
 	// 退出时销毁容器
 	defer r.removeContainer(resp.ID)
 
-	// 更新状态
+	// 更新状态, 中间状态保持
 	up := r.store.NewFileUploader(req.Step.Key)
 	out.UpdateReponseMap("log_driver", up.DriverName())
 	out.UpdateReponseMap("log_path", up.ObjectID())
@@ -126,13 +126,11 @@ func (r *Runner) Run(ctx context.Context, in *runner.RunRequest, out *runner.Run
 	out.UpdateReponseMap(CONTAINER_WARN_KEY, strings.Join(resp.Warnings, ","))
 	out.UpdateResponse(in.Step)
 
-	// TODO: 如果镜像不存在, 要提前拉去
+	// TODO:未提前拉起容器镜像, 提前保证镜像已经再本地存在, 自己不去拉起镜像逻辑
 
 	// 启动容器
 	err = r.cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
 	if err != nil {
-		// 启动失败则删除容器
-		r.removeContainer(resp.ID)
 		out.Failed("run container error, %s", err)
 		return
 	}

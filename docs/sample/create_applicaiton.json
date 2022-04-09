@@ -1,0 +1,62 @@
+{
+    "object_kind": "push",
+    "event_name": "push",
+    "before": "f8a831144634f5810e17014582b5ba21267bb257",
+    "after": "f8a831144634f5810e17014582b5ba21267bb257",
+    "ref": "refs/heads/master",
+    "checkout_sha": "f8a831144634f5810e17014582b5ba21267bb257",
+    "message": null,
+    "user_id": 9556442,
+    "user_name": "紫川秀",
+    "user_username": "yumaojun03",
+    "user_email": "",
+    "user_avatar": "https://secure.gravatar.com/avatar/1c8f622795d244227b2982871bc925d6?s=80&d=identicon",
+    "project_id": 29032549,
+    "project": {
+        "id": 29032549,
+        "name": "sample-devcloud",
+        "description": "测试使用",
+        "web_url": "https://gitlab.com/yumaojun03/sample-devcloud",
+        "avatar_url": null,
+        "git_ssh_url": "git@gitlab.com:yumaojun03/sample-devcloud.git",
+        "git_http_url": "https://gitlab.com/yumaojun03/sample-devcloud.git",
+        "namespace": "紫川秀",
+        "visibility_level": 0,
+        "path_with_namespace": "yumaojun03/sample-devcloud",
+        "default_branch": "main",
+        "ci_config_path": "",
+        "homepage": "https://gitlab.com/yumaojun03/sample-devcloud",
+        "url": "git@gitlab.com:yumaojun03/sample-devcloud.git",
+        "ssh_url": "git@gitlab.com:yumaojun03/sample-devcloud.git",
+        "http_url": "https://gitlab.com/yumaojun03/sample-devcloud.git"
+    },
+    "commits": [
+        {
+            "id": "f8a831144634f5810e17014582b5ba21267bb257",
+            "message": "Initial commit",
+            "title": "Initial commit",
+            "timestamp": "2021-08-22T03:44:35+00:00",
+            "url": "https://gitlab.com/yumaojun03/sample-devcloud/-/commit/f8a831144634f5810e17014582b5ba21267bb257",
+            "author": {
+                "name": "紫川秀",
+                "email": "9556442-yumaojun03@users.noreply.gitlab.com"
+            },
+            "added": [
+                "README.md"
+            ],
+            "modified": [],
+            "removed": []
+        }
+    ],
+    "total_commits_count": 1,
+    "push_options": {},
+    "repository": {
+        "name": "sample-devcloud",
+        "url": "git@gitlab.com:yumaojun03/sample-devcloud.git",
+        "description": "测试使用",
+        "homepage": "https://gitlab.com/yumaojun03/sample-devcloud",
+        "git_http_url": "https://gitlab.com/yumaojun03/sample-devcloud.git",
+        "git_ssh_url": "git@gitlab.com:yumaojun03/sample-devcloud.git",
+        "visibility_level": 0
+    }
+}
