@@ -20,7 +20,6 @@
 ```
 
 
-
 ```
 APP_NODE_NAME #部署节点名字 [spec.nodeName]      
 APP_POD_NAME #部署POD名字 [metadata.name]
