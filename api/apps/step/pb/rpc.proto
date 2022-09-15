@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package infraboard.workflow.step;
+option go_package = "github.com/infraboard/workflow/api/apps/step";
+
+import "api/apps/step/pb/step.proto";
+
+service RPC {
+	rpc CreateStep(CreateStepRequest) returns(Step);
+	rpc QueryStep(QueryStepRequest) returns(StepSet);
+	rpc DescribeStep(DescribeStepRequest) returns(Step);
+	rpc DeleteStep(DeleteStepRequest) returns(Step);
+	rpc CancelStep(CancelStepRequest) returns(Step);
+	rpc AuditStep(AuditStepRequest) returns(Step);
+}
+
+message CreateStepRequest {
+    // 名称
+	// @gotags: json:"name" validate:"required"
+    string name = 1;
+	// 具体动作
+	// @gotags: json:"action" validate:"required"
+	string action = 2;
+	// 是否需要审批, 审批通过后才能执行
+	// @gotags: json:"with_audit"
+	bool with_audit =3;
+	// 审批参数, 有审批模块做具体实现
+	// @gotags: json:"audit_params"
+	map<string, string> audit_params = 4;
+	// 参数
+	// @gotags: json:"with"
+	map<string, string> with = 5;	
+	// step执行完成后, 是否需要通知
+	// @gotags: json:"with_notify"
+	bool with_notify = 6;
+	// 通知参数, 由通知模块做具体实现
+	// @gotags: json:"notify_params"
+	map<string, string> notify_params = 7;
+	// WebHook配置, 用于和其他系统联动, 比如各种机器人
+	// @gotags: json:"webhooks"
+	repeated WebHook webhooks = 8;
+	// 调度标签
+	// @gotags: json:"node_selector"
+	map<string, string> node_selector = 9;
+	// 空间
+	// @gotags: json:"namespace"
+	string namespace = 10;
+}
+
+// QueryStepRequest 查询Book请求
+message QueryStepRequest {
+	// @gotags: json:"key"
+    string key = 2;
+}
+
+// DescribeStepRequest todo
+message DescribeStepRequest {
+	// 唯一ID
+	// @gotags: json:"key"
+	string key = 1;
+	// 唯一name
+	// @gotags: json:"namespace"
+	string namespace = 2;	
+}
+
+message DeleteStepRequest {
+	// 唯一ID
+	// @gotags: json:"key" validate:"required"
+	string key = 1;
+}
+
+
+message CancelStepRequest {
+	// 取消step对应的key
+	// @gotags: json:"id"
+	string key = 1;
+}
+
+message AuditStepRequest {
+	// 取消step对应的key
+	// @gotags: json:"key"
+	string key = 1;
+	// 审核的结果
+	// @gotags: json:"audit_reponse"
+	AUDIT_RESPONSE audit_reponse = 2;
+	// 审批时的反馈信息
+	// @gotags: json:"audit_message"
+	string audit_message = 3;
+}

@@ -1,0 +1,197 @@
+syntax = "proto3";
+
+package infraboard.workflow.step;
+option go_package = "github.com/infraboard/workflow/api/apps/step";
+
+// STEP_CREATE_BY step任务类型
+enum STEP_CREATE_BY {
+	// 由pipeline控制器创建
+	PIPELINE = 0;
+	// 由cronjob控制器创建
+	CRONJOB = 1;
+	// 由用户自己创建, 用于单次任务执行，比如调试
+	USER = 2;
+}
+
+// AUDIT_RESPONSE 审核结果
+enum AUDIT_RESPONSE {
+	// 未处理
+	UOD = 0;
+	// 允许执行
+	ALLOW = 1;
+	// 不允许执行
+	DENY = 2;
+}
+
+// STATUS Step任务状态
+enum STATUS {
+    // 任务等待被执行
+    PENDDING = 0;
+	// 任务调度失败
+	SCHEDULE_FAILED = 10;
+	// 正在执行
+	RUNNING = 1;
+    // 执行成功
+    SUCCEEDED = 3;
+	// 执行失败
+	FAILED = 4;
+    // 取消中
+    CANCELING = 5;
+    // 取消完成
+    CANCELED = 6;
+	// 忽略执行
+	SKIP = 7;
+	// 审批中, 确认过后才能继续执行
+	AUDITING = 8;
+	// 审批拒绝
+	REFUSE = 9;
+}
+
+// StepSet todo
+message StepSet {
+    // step总个数
+	// @gotags: bson:"total" json:"total"
+    int64 total = 1;
+    // step具体数据
+	// @gotags: bson:"items" json:"items"
+    repeated Step items = 2;
+}
+
+message Step {
+	// 步骤ID
+	// @gotags: bson:"id" json:"id"
+	int32 id = 1;
+    // 名称
+	// @gotags: bson:"name" json:"name" validate:"required"
+    string name = 2;
+	// 具体动作
+	// @gotags: bson:"action" json:"action" validate:"required"
+	string action = 3;
+	// 参数
+	// @gotags: bson:"with" json:"with"
+	map<string, string> with = 4;
+	// 是否并行
+	// @gotags: bson:"is_parallel" json:"is_parallel"
+	bool is_parallel = 5;
+	// 忽略失败
+	// @gotags: bson:"ignore_failed" json:"ignore_failed"
+	bool ignore_failed = 6;
+	// Key 运行时标识符
+	// @gotags: bson:"key" json:"key,omitempty"
+	string key = 7;
+	// step由那种控制器创建的, 也就是step类型
+	// @gotags: bson:"create_type" json:"create_type"
+	STEP_CREATE_BY create_type = 8;
+	// 所属空间
+	// @gotags: bson:"namespace" json:"namespace"
+	string namespace = 9;
+	// 所属空间
+	// @gotags: bson:"pipeline_id" json:"pipeline_id,omitempty"
+	string pipeline_id = 10;
+	// 创建时间
+	// @gotags: bson:"create_at" json:"create_at"
+	int64 create_at = 11;
+	// 状态更新时间
+	// @gotags: bson:"update_at" json:"update_at"
+	int64 update_at = 12;
+	// 资源版本
+	// @gotags: bson:"resource_version" json:"resource_version,omitempty"
+	int64 resource_version = 13;
+
+	// 是否需要审批, 审批通过后才能执行
+	// @gotags: bson:"with_audit" json:"with_audit"
+	bool with_audit =14;
+	// 审批参数, 有审批模块做具体实现
+	// @gotags: bson:"audit_params" json:"audit_params"
+	map<string, string> audit_params = 15;
+	// step执行完成后, 是否需要通知
+	// @gotags: bson:"with_notify" json:"with_notify"
+	bool with_notify = 16;
+	// 通知参数, 由通知模块做具体实现
+	// @gotags: bson:"notify_params" json:"notify_params"
+	map<string, string> notify_params = 17;
+	// WebHook配置, 用于和其他系统联动, 比如各种机器人
+	// @gotags: bson:"webhooks" json:"webhooks"
+	repeated WebHook webhooks = 18;
+	// 调度标签
+	// @gotags: bson:"node_selector" json:"node_selector"
+	map<string, string> node_selector = 19;
+	// 当前步骤的状态
+	// @gotags: bson:"status" json:"status,omitempty"
+	StepStatus status = 20;
+}
+
+message WebHook {
+	// POST URL
+	// @gotags: bson:"url" json:"url" validate:"required,url"
+	string url = 1;
+	// 需要自定义添加的头, 用于身份认证
+	// @gotags: bson:"header" json:"header"
+	map<string, string> header = 2;
+	// 那些状态下触发
+	// @gotags: bson:"events" json:"events"
+	repeated STATUS events = 3;
+	// 简单的描述信息
+	// @gotags: bson:"description" json:"description"
+	string description = 4;
+	// 推送结果
+	// @gotags: bson:"status" json:"status"
+	WebHookStatus status = 5;
+}
+
+message WebHookStatus {
+	// 开始时间
+	// @gotags: bson:"start_at" json:"start_at"
+	int64 start_at = 1;
+	// 耗时多久，单位毫秒
+	// @gotags: bson:"cost" json:"cost"
+	int64 cost = 2;
+	// 是否推送成功
+	// @gotags: bson:"success" json:"success"
+	bool success = 3;
+	// 异常时的错误信息
+	// @gotags: bson:"message" json:"message"
+	string message = 4;
+}
+
+message StepStatus {
+	// 当前该step的flow编号
+	// @gotags: bson:"flow_number" json:"flow_number"
+	int64 flow_number = 1;
+	// 开始时间
+	// @gotags: bson:"start_at" json:"start_at"
+	int64 start_at = 2;
+	// 结束时间
+	// @gotags: bson:"end_at" json:"end_at"
+	int64 end_at = 3;
+	// 当前状态
+	// @gotags: bson:"status" json:"status"
+	STATUS status = 4;
+	// 被调度到的节点
+	// @gotags: bson:"scheduled_node" json:"scheduled_node"
+	string scheduled_node = 5;
+	// 审批时间
+	// @gotags: bson:"audit_at" json:"audit_at"
+	int64 audit_at = 9;
+	// 审批结果
+	// @gotags: bson:"audit_response" json:"audit_response"
+	AUDIT_RESPONSE audit_response = 12;
+	// 审批时的反馈信息
+	// @gotags: bson:"audit_message" json:"audit_message"
+	string audit_message = 8;
+	// 通知发送时间
+	// @gotags: bson:"notify_at" json:"notify_at"
+	int64 notify_at = 10;
+	// 通知失败信息, 如果没有表示成功
+	// @gotags: bson:"notify_error" json:"notify_error"
+	string notify_error = 11;
+    // 执行结果
+	// @gotags: bson:"message" json:"message"
+    string message = 6;
+	// 执行完后的一些额外数据, 都以URL的方式返回
+	// @gotags: bson:"response" json:"response"
+	map<string, string> response = 7;
+	// 执行过程中的一些上下文信息
+	// @gotags: bson:"context_map" json:"context_map,omitempty"
+	map<string, string> context_map = 14;	
+}
