@@ -138,9 +138,6 @@ message Pipeline {
 	// 触发条件
 	// @gotags: bson:"on" json:"on"
 	Trigger on = 10;
-	// 触发事件
-	// @gotags: bson:"hook_event" json:"hook_event"
-	infraboard.workflow.pipeline.scm.WebHookEvent hook_event = 15;
 	// 当前状态
 	// @gotags: bson:"status" json:"status"
 	PipelineStatus status = 11;
@@ -436,9 +433,6 @@ message CreatePipelineRequest {
 	// 模版id
 	// @gotags: bson:"template_id" json:"template_id"
 	string template_id = 8;
-	// 触发事件
-	// @gotags: bson:"hook_event" json:"hook_event"
-	infraboard.workflow.pipeline.scm.WebHookEvent hook_event = 9;
 	// 所属域
 	// @gotags: bson:"domain" json:"domain" validate:"required"
 	string domain = 10;

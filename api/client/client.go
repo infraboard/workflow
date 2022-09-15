@@ -7,8 +7,6 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/infraboard/workflow/api/apps/action"
-	"github.com/infraboard/workflow/api/apps/application"
-	"github.com/infraboard/workflow/api/apps/deploy"
 	"github.com/infraboard/workflow/api/apps/pipeline"
 	"github.com/infraboard/workflow/api/apps/template"
 )
@@ -50,11 +48,6 @@ type ClientSet struct {
 }
 
 // Example todo
-func (c *ClientSet) Application() application.ServiceClient {
-	return application.NewServiceClient(c.conn)
-}
-
-// Example todo
 func (c *ClientSet) Pipeline() pipeline.ServiceClient {
 	return pipeline.NewServiceClient(c.conn)
 }
@@ -67,9 +60,4 @@ func (c *ClientSet) Action() action.ServiceClient {
 // Example todo
 func (c *ClientSet) Template() template.ServiceClient {
 	return template.NewServiceClient(c.conn)
-}
-
-// Example todo
-func (c *ClientSet) Deploy() deploy.ServiceClient {
-	return deploy.NewServiceClient(c.conn)
 }
